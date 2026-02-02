@@ -1,0 +1,57 @@
+### JetBrains IDE (IntelliJ IDEA) ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+gen/
+
+### Eclipse ###
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~
+.settings/
+.loadpath
+.recommenders
+.project
+.classpath
+.factorypath
+
+### VS Code ###
+.vscode/
+
+### Build Tools (Maven) ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+### Build Tools (Gradle) ###
+.gradle/
+build/
+!gradle-wrapper.jar
+
+### Log Files ###
+*.log
+logs/
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+
+### Security & Config (Quan trọng!) ###
+.env
+*.properties
+*.yml
+# Lưu ý: Nếu bạn muốn đẩy file config mặc định lên, hãy bỏ comment dòng dưới
+# !src/main/resources/application.properties
