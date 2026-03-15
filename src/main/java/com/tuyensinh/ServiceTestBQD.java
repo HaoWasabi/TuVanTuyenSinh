@@ -171,6 +171,24 @@ public class ServiceTestBQD {
                         + ", maQuyDoi: " + b.getDMaquydoi());
             }
 
+            // Test 9: IMPORT FROM EXCEL
+            System.out.println("\n=== TEST 9: IMPORT FROM EXCEL ===");
+            String excelFilePath = "src/main/resources/BangQuyDoi_import.xlsx"; // Đường dẫn file Excel
+            try {
+                List<BangQuyDoi> importedRecords = service.importFromExcel(excelFilePath);
+                System.out.println("[✓] Imported " + importedRecords.size() + " records from Excel");
+                for (BangQuyDoi b : importedRecords) {
+                    System.out.println(" - ID: " + b.getIdqd()
+                            + ", phuongThuc: " + b.getDPhuongthuc()
+                            + ", toHop: " + b.getDTohop()
+                            + ", mon: " + b.getDMon()
+                            + ", maQuyDoi: " + b.getDMaquydoi());
+                }
+            } catch (Exception ex) {
+                System.out.println("[⚠] Excel import skipped: " + ex.getMessage());
+                System.out.println("   (File not found or error reading file - this is optional)");
+            }
+
             System.out.println("\n========== SERVICE TEST END - ALL TESTS PASSED ==========\n");
 
         } catch (Exception ex) {

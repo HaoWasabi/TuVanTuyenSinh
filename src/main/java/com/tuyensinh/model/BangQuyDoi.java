@@ -46,9 +46,9 @@ public class BangQuyDoi {
     @Column(name = "`d_diemd`", precision = 6, scale = 2)
     private BigDecimal dDiemd;
 
-    @Column(name = "`d_maquydoi`", length = 45)
+    @Column(name = "`d_maquydoi`", length = 255)
     private String dMaquydoi;
 
-    @Column(name = "`d_phanvi`", length = 45)
+    @Column(name = "`d_phanvi`", length = 255)
     private String dPhanvi;
 }
