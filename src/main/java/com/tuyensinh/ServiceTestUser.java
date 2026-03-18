@@ -19,7 +19,7 @@ public class ServiceTestUser {
             User newUser = User.builder()
                     .username("nguyenvana_" + System.currentTimeMillis() % 1000)
                     .email("nguyenvana" + System.currentTimeMillis() % 1000 + "@gmail.com")
-                    .passwordHash("hashed_password_abc")
+                    .password("hashed_password_abc")
                     .role("user") // Đúng quy định
                     .fullName("Nguyễn Văn A")
                     .status("active") // Đúng quy định

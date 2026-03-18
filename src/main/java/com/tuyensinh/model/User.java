@@ -22,8 +22,8 @@ public class User {
     @Column(name = "email", length = 100, unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password_hash", length = 255, nullable = false)
-    private String passwordHash;
+    @Column(name = "password", length = 255, nullable = false)
+    private String password;
 
     @Column(name = "role", length = 20)
     private String role; // 'admin' hoặc 'user'
