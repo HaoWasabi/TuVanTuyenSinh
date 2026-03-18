@@ -7,7 +7,7 @@
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/xettuyen2026?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Ho_Chi_Minh</property>
         <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password"></property>
+        <property name="hibernate.connection.password">123456</property>
 
         <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
         <property name="hibernate.show_sql">true</property>
@@ -16,5 +16,7 @@
 
         <mapping class="com.tuyensinh.model.NganhToHop"/>
         <mapping class="com.tuyensinh.model.BangQuyDoi"/>
+        <mapping class="com.tuyensinh.model.Nganh"/>
+        <mapping class="com.tuyensinh.model.TohopMonthi"/>
     </session-factory>
 </hibernate-configuration>
