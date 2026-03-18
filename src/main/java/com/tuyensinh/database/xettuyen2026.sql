@@ -36,7 +36,7 @@ CREATE TABLE `xt_bangquydoi` (
   `d_phanvi` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`idqd`),
   UNIQUE KEY `d_maquydoi_UNIQUE` (`d_maquydoi`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `xt_diemcongxetuyen` (
   `dc_keys` varchar(45) NOT NULL,
   PRIMARY KEY (`iddiemcong`),
   UNIQUE KEY `dc_keys_UNIQUE` (`dc_keys`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,7 +110,7 @@ CREATE TABLE `xt_diemthixettuyen` (
   `NK2` decimal(8,2) DEFAULT NULL,
   PRIMARY KEY (`iddiemthi`),
   UNIQUE KEY `cccd_UNIQUE` (`cccd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -224,7 +224,7 @@ CREATE TABLE `xt_nguyenvongxettuyen` (
   `tt_thm` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`idnv`),
   UNIQUE KEY `nv_keys_UNIQUE` (`nv_keys`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -260,7 +260,7 @@ CREATE TABLE `xt_thisinhxettuyen25` (
   `khu_vuc` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   PRIMARY KEY (`idthisinh`),
   UNIQUE KEY `cccd_UNIQUE` (`cccd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
