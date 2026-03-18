@@ -17,5 +17,6 @@
         <mapping class="com.tuyensinh.model.NganhToHop"/>
         <mapping class="com.tuyensinh.model.BangQuyDoi"/>
         <mapping class="com.tuyensinh.model.ThiSinh"/>
+        <mapping class="com.tuyensinh.model.User"/>
     </session-factory>
 </hibernate-configuration>
