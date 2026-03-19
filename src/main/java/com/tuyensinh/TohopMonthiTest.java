@@ -55,7 +55,6 @@ public class TohopMonthiTest {
             service.update(x);
         });
 
-        /*
         // ===== DELETE =====
         System.out.println("\n=== DELETE ===");
 
@@ -63,7 +62,7 @@ public class TohopMonthiTest {
             service.delete(x.getIdtohop());
             System.out.println("Đã xóa id = " + x.getIdtohop());
         });
-        */
+        
         // =========================
         // IMPORT EXCEL
         // =========================

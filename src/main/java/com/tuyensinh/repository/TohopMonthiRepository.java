@@ -237,7 +237,7 @@ public class TohopMonthiRepository {
 
                     try {
                         TohopMonthi entity = parseRow(row);
-                        
+                        save(entity);
                         list.add(entity);
 
                     } catch (Exception e) {

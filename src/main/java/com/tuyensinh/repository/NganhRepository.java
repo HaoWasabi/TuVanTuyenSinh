@@ -143,6 +143,7 @@ public class NganhRepository {
 
                 try {
                     Nganh nganh = parseRow(row);
+                    save(nganh);
                     list.add(nganh);
                 } catch (Exception ex) {
                     System.err.println("Import lỗi dòng "
@@ -168,7 +169,7 @@ public class NganhRepository {
                 .slXtt(getInt(row, 10))
                 .slDgnl(getInt(row, 11))
                 .slVsat(getInt(row, 12))
-                .slThpt(getString(row, 13))
+                .slThpt(getInt(row, 13))
                 .build();
     }
 
