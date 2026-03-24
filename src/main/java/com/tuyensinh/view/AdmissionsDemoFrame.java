@@ -34,6 +34,7 @@ public class AdmissionsDemoFrame extends JFrame {
         // Add available panels
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
+        contentPanel.add(new MajorManagementPanel(), "major");
 
         // Sidebar
         Sidebar sidebar = new Sidebar(cardLayout, contentPanel);
