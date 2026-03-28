@@ -111,29 +111,38 @@ public class DiemThiRepository {
      * 18 NK2
      */
     public List<DiemThi> importFromExcel(String filePath) throws IOException {
-
         List<DiemThi> list = new ArrayList<>();
+        Transaction tx = null;
 
+        // Mở FileInputStream, Workbook và Session trong cùng 1 khối try-with-resources
         try (FileInputStream fis = new FileInputStream(filePath);
-             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+             XSSFWorkbook workbook = new XSSFWorkbook(fis);
+             Session session = HibernateUtil.getSessionFactory().openSession()) {
 
+            tx = session.beginTransaction(); // Chỉ mở 1 Transaction duy nhất
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-
-                if (row.getRowNum() == 0 || isRowEmpty(row)) {
-                    continue;
-                }
+                if (row.getRowNum() == 0 || isRowEmpty(row)) continue;
 
                 try {
                     DiemThi diemThi = parseRow(row);
-                    save(diemThi);
+                    session.persist(diemThi); // Đẩy vào bộ nhớ đệm của Hibernate
                     list.add(diemThi);
+
+                    // Giải phóng bộ nhớ mỗi 50 dòng (Best practice cho dữ liệu lớn)
+                    if (list.size() % 50 == 0) {
+                        session.flush();
+                        session.clear();
+                    }
                 } catch (Exception ex) {
-                    System.err.println("Import lỗi dòng "
-                            + (row.getRowNum() + 1) + ": " + ex.getMessage());
+                    System.err.println("Import lỗi dòng " + (row.getRowNum() + 1) + ": " + ex.getMessage());
                 }
             }
+            tx.commit(); // Ghi toàn bộ dữ liệu xuống Database trong 1 lần
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
         }
         return list;
     }

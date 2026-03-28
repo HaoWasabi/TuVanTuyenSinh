@@ -30,6 +30,10 @@ public class NguyenVongService {
         return repository.findByCccd(cccd);
     }
 
+    public List<NguyenVong> getByMaNganh(String maNganh) {
+        return repository.findByMaNganh(maNganh);
+    }
+
     public List<NguyenVong> getAll() {
         return repository.findAll();
     }
