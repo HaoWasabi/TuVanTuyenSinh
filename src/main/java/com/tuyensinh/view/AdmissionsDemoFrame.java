@@ -35,6 +35,10 @@ public class AdmissionsDemoFrame extends JFrame {
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
 
+        contentPanel.add(new DiemThiPanel(), "diem");
+        contentPanel.add(new DiemCongPanel(), "diemCong");
+        contentPanel.add(new NguyenVongPanel(), "nguyenVong");
+
         // Sidebar
         Sidebar sidebar = new Sidebar(cardLayout, contentPanel);
         mainPanel.add(sidebar, BorderLayout.WEST);
