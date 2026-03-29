@@ -20,7 +20,7 @@ public class AdmissionsDemoFrame extends JFrame {
         setContentPane(root);
 
         // Top bar
-        root.add(new TopBar(), BorderLayout.NORTH);
+        root.add(new TopBar(this), BorderLayout.NORTH);
 
         // Main layout: sidebar + content
         JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
@@ -31,9 +31,15 @@ public class AdmissionsDemoFrame extends JFrame {
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(UIStyles.BG_APP);
 
-        // Add available panels
+        // Add panels
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
+        contentPanel.add(new AccountManagementPanel(), "account");
+        contentPanel.add(new UserManagementPanel(), "user");
+        contentPanel.add(new ReportsPanel(), "report");
+
+        // Hiển thị mặc định
+        cardLayout.show(contentPanel, "dashboard");
 
         // Sidebar
         Sidebar sidebar = new Sidebar(cardLayout, contentPanel);
