@@ -49,6 +49,25 @@ public class DiemCongRepository {
         }
     }
 
+    public boolean add(DiemCong dc) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Hibernate sẽ tự động map object DiemCong thành lệnh INSERT SQL
+            session.save(dc);
+
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback(); // Hoàn tác nếu có lỗi (ví dụ: trùng Keys)
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public DiemCong update(DiemCong diemCong) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

@@ -49,6 +49,25 @@ public class DiemThiRepository {
         }
     }
 
+    public boolean add(DiemThi dt) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Hibernate sẽ tự động map object NguyenVong thành lệnh INSERT SQL
+            session.save(dt);
+
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback(); // Hoàn tác nếu có lỗi (ví dụ: trùng Keys)
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public DiemThi update(DiemThi DiemThi) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

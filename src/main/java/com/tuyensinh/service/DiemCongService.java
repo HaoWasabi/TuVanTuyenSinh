@@ -34,6 +34,15 @@ public class DiemCongService {
         return repository.findAll();
     }
 
+    public boolean add(DiemCong dc) {
+        if (dc.getDcKeys() == null || dc.getDcKeys().isEmpty()) {
+            // Format: DC_079123456789_7480201
+            String generatedKey = "DC_" + dc.getTsCccd() + "_" + dc.getManganh();
+            dc.setDcKeys(generatedKey);
+        }
+        return repository.add(dc);
+    }
+
     public DiemCong update(DiemCong diemCong) {
         return repository.update(diemCong);
     }

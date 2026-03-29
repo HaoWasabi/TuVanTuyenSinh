@@ -1,5 +1,6 @@
 package com.tuyensinh.service;
 
+import com.tuyensinh.model.DiemCong;
 import com.tuyensinh.model.NguyenVong;
 import com.tuyensinh.repository.NguyenVongRepository;
 import java.io.IOException;
@@ -36,6 +37,15 @@ public class NguyenVongService {
 
     public List<NguyenVong> getAll() {
         return repository.findAll();
+    }
+
+    public boolean add(NguyenVong nv) {
+        if (nv.getNvKeys() == null || nv.getNvKeys().isEmpty()) {
+            // Format: NV_079123456789_1
+            String generatedKey = "NV_" + nv.getNnCccd() + "_" + nv.getNvTt();
+            nv.setNvKeys(generatedKey);
+        }
+        return repository.add(nv);
     }
 
     public NguyenVong update(NguyenVong nguyenVong) {

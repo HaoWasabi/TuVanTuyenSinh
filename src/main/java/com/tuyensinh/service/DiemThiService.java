@@ -35,6 +35,10 @@ public class DiemThiService {
         return repository.findAll();
     }
 
+    public boolean add(DiemThi dt) {
+        return repository.add(dt);
+    }
+
     public DiemThi update(DiemThi diemThi) {
         return repository.update(diemThi);
     }

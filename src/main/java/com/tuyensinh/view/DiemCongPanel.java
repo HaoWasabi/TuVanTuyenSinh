@@ -24,6 +24,7 @@ public class DiemCongPanel extends JPanel {
     private JButton prevBtn;
     private JButton nextBtn;
 
+
     // GỌI SERVICE Ở ĐÂY
     private final DiemCongService diemCongService = new DiemCongService();
 
@@ -56,6 +57,12 @@ public class DiemCongPanel extends JPanel {
         JButton importBtn = createButton("Import Excel", UIStyles.SUCCESS);
         importBtn.addActionListener(e -> handleImport());
 
+        JButton addBtn = createButton("Thêm", UIStyles.INFO);
+        addBtn.addActionListener(e -> handleAdd());
+
+        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+        editBtn.addActionListener(e -> handleEdit());
+
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
         deleteBtn.addActionListener(e -> handleDelete());
 
@@ -63,6 +70,8 @@ public class DiemCongPanel extends JPanel {
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
         toolbar.add(importBtn);
+        toolbar.add(addBtn);
+        toolbar.add(editBtn);
         toolbar.add(deleteBtn);
 
         // Cấu hình Cột cho Bảng Điểm Cộng
@@ -233,6 +242,92 @@ public class DiemCongPanel extends JPanel {
         // Thông báo nếu không tìm thấy
         if (currentDataList.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào cho: " + keyword, "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void handleAdd() {
+        DiemCongFormDialog dialog = new DiemCongFormDialog(
+                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                "Thêm Điểm Cộng Mới",
+                false);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
+            try {
+                // Tạo object Model mới từ data của Dialog
+                DiemCong dc = new DiemCong();
+                dc.setTsCccd(dialog.getCccd());
+                dc.setManganh(dialog.getMaNganh());
+                dc.setMatohop(dialog.getMaToHop());
+                dc.setPhuongthuc(dialog.getPhuongThuc());
+                dc.setDiemCC(dialog.getDiemCC());
+                dc.setDiemUtxt(dialog.getDiemUtxt());
+                dc.setDiemTong(dialog.getDiemTong());
+                dc.setGhichu(dialog.getGhiChu());
+                dc.setDcKeys(dialog.getKeys()); // Hoặc tự generate kiểu: "DC_" + dialog.getCccd() + "_" + dialog.getMaNganh()
+
+                // GỌI HÀM SAVE/ADD CỦA BACKEND
+                diemCongService.add(dc); // LƯU Ý: Đổi tên hàm "add" cho đúng với Service của bạn
+
+                loadDataToTable(); // Load lại bảng
+                JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void handleEdit() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Lấy dữ liệu từ bảng (Lưu ý index cột phải khớp với mảng String[] cols của bạn)
+        Integer id = (Integer) tableModel.getValueAt(selectedRow, 0); // Giả sử cột 0 là ID
+        String cccd = (String) tableModel.getValueAt(selectedRow, 1);
+        String manganh = (String) tableModel.getValueAt(selectedRow, 2);
+        String matohop = (String) tableModel.getValueAt(selectedRow, 3);
+        String phuongthuc = (String) tableModel.getValueAt(selectedRow, 4);
+        java.math.BigDecimal diemCC = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
+        java.math.BigDecimal diemUtxt = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
+        java.math.BigDecimal diemTong = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 7).toString());
+        String ghichu = (String) tableModel.getValueAt(selectedRow, 8);
+        String keys = (String) tableModel.getValueAt(selectedRow, 9);
+
+        // Mở hộp thoại Sửa
+        DiemCongFormDialog dialog = new DiemCongFormDialog(
+                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                "Sửa Thông Tin Điểm Cộng",
+                true); // true = isEditing
+
+        dialog.setData(cccd, manganh, matohop, phuongthuc, diemCC, diemUtxt, diemTong, ghichu, keys);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
+            try {
+                // Tạo object Model update
+                DiemCong dc = new DiemCong();
+                dc.setIddiemcong(id); // Set ID để update đúng dòng
+                dc.setTsCccd(dialog.getCccd());
+                dc.setManganh(dialog.getMaNganh());
+                dc.setMatohop(dialog.getMaToHop());
+                dc.setPhuongthuc(dialog.getPhuongThuc());
+                dc.setDiemCC(dialog.getDiemCC());
+                dc.setDiemUtxt(dialog.getDiemUtxt());
+                dc.setDiemTong(dialog.getDiemTong());
+                dc.setGhichu(dialog.getGhiChu());
+                dc.setDcKeys(dialog.getKeys());
+
+                // GỌI HÀM UPDATE CỦA BACKEND
+                diemCongService.update(dc); // LƯU Ý: Đổi tên hàm "update" cho đúng với Service của bạn
+
+                loadDataToTable(); // Load lại bảng
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

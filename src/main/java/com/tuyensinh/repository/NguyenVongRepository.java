@@ -58,6 +58,25 @@ public class NguyenVongRepository {
         }
     }
 
+    public boolean add(NguyenVong nv) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Hibernate sẽ tự động map object NguyenVong thành lệnh INSERT SQL
+            session.save(nv);
+
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback(); // Hoàn tác nếu có lỗi (ví dụ: trùng Keys)
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public NguyenVong update(NguyenVong nguyenVong) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

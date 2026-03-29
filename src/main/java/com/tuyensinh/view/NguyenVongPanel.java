@@ -56,6 +56,12 @@ public class NguyenVongPanel extends JPanel {
         JButton importBtn = createButton("Import Excel", UIStyles.SUCCESS);
         importBtn.addActionListener(e -> handleImport());
 
+        JButton addBtn = createButton("Thêm", UIStyles.INFO);
+        addBtn.addActionListener(e -> handleAdd());
+
+        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+        editBtn.addActionListener(e -> handleEdit());
+
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
         deleteBtn.addActionListener(e -> handleDelete());
 
@@ -63,6 +69,8 @@ public class NguyenVongPanel extends JPanel {
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
         toolbar.add(importBtn);
+        toolbar.add(addBtn);
+        toolbar.add(editBtn);
         toolbar.add(deleteBtn);
 
         // Cấu hình Cột cho Bảng Điểm Cộng
@@ -235,6 +243,94 @@ public class NguyenVongPanel extends JPanel {
         // Thông báo nếu không tìm thấy
         if (currentDataList.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào cho: " + keyword, "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void handleAdd() {
+        NguyenVongFormDialog dialog = new NguyenVongFormDialog(
+                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                "Thêm Nguyện Vọng Mới", false);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
+            try {
+                NguyenVong nv = new NguyenVong();
+                nv.setNnCccd(dialog.getCccd());
+                nv.setNvManganh(dialog.getMaNganh());
+                nv.setNvTt(dialog.getThuTuNv());
+                nv.setTtPhuongthuc(dialog.getPhuongThuc());
+                nv.setTtThm(dialog.getMaThm());
+                nv.setDiemThxt(dialog.getDiemThxt());
+                nv.setDiemUtqd(dialog.getDiemUtqd());
+                nv.setDiemCong(dialog.getDiemCong());
+                nv.setDiemXettuyen(dialog.getDiemXetTuyen());
+                nv.setNvKetqua(dialog.getKetQua());
+                // Khóa nv_keys sẽ do NguyenVongService tự động generate như ta đã code trước đó
+
+                nguyenVongService.add(nv); // Gọi Backend lưu
+
+                loadDataToTable(); // Load lại toàn bộ data và render lại bảng phân trang
+                JOptionPane.showMessageDialog(this, "Thêm nguyện vọng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void handleEdit() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 nguyện vọng để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Lấy dữ liệu từ bảng (Đối chiếu chính xác index cột với mảng String[] cols của bạn)
+        Integer idnv = (Integer) tableModel.getValueAt(selectedRow, 0); // Khóa chính idnv
+        String cccd = (String) tableModel.getValueAt(selectedRow, 1);
+        String maNganh = (String) tableModel.getValueAt(selectedRow, 2);
+        Integer thuTuNv = (Integer) tableModel.getValueAt(selectedRow, 3);
+
+        // Ép kiểu các cột Điểm sang BigDecimal
+        java.math.BigDecimal diemThxt = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 4).toString());
+        java.math.BigDecimal diemUtqd = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
+        java.math.BigDecimal diemCong = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
+        java.math.BigDecimal diemXetTuyen = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 7).toString());
+
+        String ketQua = (String) tableModel.getValueAt(selectedRow, 8);
+        String keys = (String) tableModel.getValueAt(selectedRow, 9);
+        String phuongThuc = (String) tableModel.getValueAt(selectedRow, 10);
+        String maThm = (String) tableModel.getValueAt(selectedRow, 11);
+
+        // Mở hộp thoại truyền dữ liệu
+        NguyenVongFormDialog dialog = new NguyenVongFormDialog(
+                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                "Sửa Thông Tin Nguyện Vọng", true);
+        dialog.setData(cccd, maNganh, thuTuNv, diemThxt, diemUtqd, diemCong, diemXetTuyen, ketQua, keys, phuongThuc, maThm);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
+            try {
+                NguyenVong nv = new NguyenVong();
+                nv.setIdnv(idnv); // Set Khóa chính để Hibernate biết là update dòng nào
+                nv.setNnCccd(dialog.getCccd());
+                nv.setNvManganh(dialog.getMaNganh());
+                nv.setNvTt(dialog.getThuTuNv());
+                nv.setTtPhuongthuc(dialog.getPhuongThuc());
+                nv.setTtThm(dialog.getMaThm());
+                nv.setDiemThxt(dialog.getDiemThxt());
+                nv.setDiemUtqd(dialog.getDiemUtqd());
+                nv.setDiemCong(dialog.getDiemCong());
+                nv.setDiemXettuyen(dialog.getDiemXetTuyen());
+                nv.setNvKetqua(dialog.getKetQua());
+                nv.setNvKeys(dialog.getKeys());
+
+                nguyenVongService.update(nv); // Gọi Backend cập nhật
+
+                loadDataToTable();
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

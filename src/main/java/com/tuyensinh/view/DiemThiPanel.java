@@ -1,7 +1,6 @@
 package com.tuyensinh.view;
 
 import com.tuyensinh.model.DiemThi;
-import com.tuyensinh.model.NguyenVong;
 import com.tuyensinh.service.DiemThiService;
 
 import javax.swing.*;
@@ -9,6 +8,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DiemThiPanel extends JPanel {
@@ -34,7 +34,7 @@ public class DiemThiPanel extends JPanel {
         setBackground(UIStyles.BG_APP);
 
         // Title
-        JLabel title = new JLabel("Tìm CCCD, SBD...");
+        JLabel title = new JLabel("Quản Lý Điểm Thi");
         title.setFont(UIStyles.FONT_TITLE);
         title.setForeground(UIStyles.TEXT_DARK);
         add(title, BorderLayout.NORTH);
@@ -44,7 +44,7 @@ public class DiemThiPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        searchInput.setText("Tìm CCCD...");
+        searchInput.setText("Tìm CCCD, SBD...");
         searchInput.setFont(UIStyles.FONT_BODY);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
@@ -57,6 +57,12 @@ public class DiemThiPanel extends JPanel {
         JButton importBtn = createButton("Import Excel", UIStyles.SUCCESS);
         importBtn.addActionListener(e -> handleImport());
 
+        JButton addBtn = createButton("Thêm", UIStyles.INFO);
+        addBtn.addActionListener(e -> handleAdd());
+
+        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+        editBtn.addActionListener(e -> handleEdit());
+
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
         deleteBtn.addActionListener(e -> handleDelete());
 
@@ -64,6 +70,8 @@ public class DiemThiPanel extends JPanel {
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
         toolbar.add(importBtn);
+        toolbar.add(addBtn);
+        toolbar.add(editBtn);
         toolbar.add(deleteBtn);
 
         // Cấu hình Cột cho Bảng Điểm Thi
@@ -237,6 +245,120 @@ public class DiemThiPanel extends JPanel {
         // Thông báo nếu không tìm thấy
         if (currentDataList.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào cho: " + keyword, "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void handleAdd() {
+        DiemThiFormDialog dialog = new DiemThiFormDialog(
+                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                "Thêm Điểm Thi Thí Sinh", false);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
+            try {
+                // Sử dụng Lombok Builder để tạo object sạch sẽ và dễ nhìn (vì class DiemThi có @Builder)
+                DiemThi dt = DiemThi.builder()
+                        .cccd(dialog.getCccd())
+                        .sobaodanh(dialog.getSoBaoDanh())
+                        .dPhuongthuc(dialog.getDPhuongThuc())
+                        .toan(dialog.getToan())
+                        .nguVan(dialog.getVan())
+                        .n1Thi(dialog.getN1Thi())
+                        .n1Cc(dialog.getN1Cc())
+                        .vatLi(dialog.getLy())
+                        .hoaHoc(dialog.getHoa())
+                        .sinhHoc(dialog.getSinh())
+                        .lichSu(dialog.getSu())
+                        .diaLi(dialog.getDia())
+                        .ktpl(dialog.getKtpl())
+                        .tinHoc(dialog.getTinHoc())
+                        .cncn(dialog.getCncn())
+                        .cnnn(dialog.getCnnn())
+                        .nl1(dialog.getNl1())
+                        .nk1(dialog.getNk1())
+                        .nk2(dialog.getNk2())
+                        .build();
+
+                diemThiService.add(dt);
+
+                loadDataToTable();
+                JOptionPane.showMessageDialog(this, "Thêm điểm thi thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void handleEdit() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng điểm thi để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // CHÚ Ý: Các chỉ số (0, 1, 2...) dưới đây PHẢI KHỚP với thứ tự các cột
+            // trong mảng String[] columnNames mà bạn truyền vào JTable.
+            Integer id = (Integer) tableModel.getValueAt(selectedRow, 0);
+            String cccd = (String) tableModel.getValueAt(selectedRow, 1);
+            String sbd = (String) tableModel.getValueAt(selectedRow, 2);
+            String phuongThuc = (String) tableModel.getValueAt(selectedRow, 3);
+
+            BigDecimal toan = new BigDecimal(tableModel.getValueAt(selectedRow, 4).toString());
+            BigDecimal van = new BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
+            BigDecimal n1Thi = new BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
+            BigDecimal n1Cc = new BigDecimal(tableModel.getValueAt(selectedRow, 7).toString());
+            BigDecimal ly = new BigDecimal(tableModel.getValueAt(selectedRow, 8).toString());
+            BigDecimal hoa = new BigDecimal(tableModel.getValueAt(selectedRow, 9).toString());
+            BigDecimal sinh = new BigDecimal(tableModel.getValueAt(selectedRow, 10).toString());
+            BigDecimal su = new BigDecimal(tableModel.getValueAt(selectedRow, 11).toString());
+            BigDecimal dia = new BigDecimal(tableModel.getValueAt(selectedRow, 12).toString());
+            BigDecimal ktpl = new BigDecimal(tableModel.getValueAt(selectedRow, 13).toString());
+            BigDecimal tinHoc = new BigDecimal(tableModel.getValueAt(selectedRow, 14).toString());
+            BigDecimal cncn = new BigDecimal(tableModel.getValueAt(selectedRow, 15).toString());
+            BigDecimal cnnn = new BigDecimal(tableModel.getValueAt(selectedRow, 16).toString());
+            BigDecimal nl1 = new BigDecimal(tableModel.getValueAt(selectedRow, 17).toString());
+            BigDecimal nk1 = new BigDecimal(tableModel.getValueAt(selectedRow, 18).toString());
+            BigDecimal nk2 = new BigDecimal(tableModel.getValueAt(selectedRow, 19).toString());
+
+            DiemThiFormDialog dialog = new DiemThiFormDialog(
+                    getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
+                    "Sửa Thông Tin Điểm Thi", true);
+
+            dialog.setData(cccd, sbd, phuongThuc, toan, van, n1Thi, n1Cc, ly, hoa, sinh, su, dia, ktpl, tinHoc, cncn, cnnn, nl1, nk1, nk2);
+            dialog.setVisible(true);
+
+            if (dialog.isConfirmed()) {
+                DiemThi dt = DiemThi.builder()
+                        .iddiemthi(id) // Quan trọng để Entity Framework / JPA biết là lệnh Update
+                        .cccd(dialog.getCccd())
+                        .sobaodanh(dialog.getSoBaoDanh())
+                        .dPhuongthuc(dialog.getDPhuongThuc())
+                        .toan(dialog.getToan())
+                        .nguVan(dialog.getVan())
+                        .n1Thi(dialog.getN1Thi())
+                        .n1Cc(dialog.getN1Cc())
+                        .vatLi(dialog.getLy())
+                        .hoaHoc(dialog.getHoa())
+                        .sinhHoc(dialog.getSinh())
+                        .lichSu(dialog.getSu())
+                        .diaLi(dialog.getDia())
+                        .ktpl(dialog.getKtpl())
+                        .tinHoc(dialog.getTinHoc())
+                        .cncn(dialog.getCncn())
+                        .cnnn(dialog.getCnnn())
+                        .nl1(dialog.getNl1())
+                        .nk1(dialog.getNk1())
+                        .nk2(dialog.getNk2())
+                        .build();
+
+                diemThiService.update(dt);
+
+                loadDataToTable();
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật. Vui lòng kiểm tra lại thứ tự cột JTable!\nChi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
