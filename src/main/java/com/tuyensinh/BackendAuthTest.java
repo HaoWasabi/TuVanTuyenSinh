@@ -17,7 +17,7 @@ public class BackendAuthTest {
         
         // 2. Giả lập thông tin đăng nhập (Đảm bảo tài khoản này có trong DB xettuyen2026)
         String testUser = "admin1"; 
-        String testPass = "$2y$12$examplehash2"; 
+        String testPass = "123456"; 
 
         System.out.println("[1] Đang tiến hành đăng nhập với Username: " + testUser);
         
@@ -28,22 +28,21 @@ public class BackendAuthTest {
             if (user != null) {
                 System.out.println("=> ĐĂNG NHẬP THÀNH CÔNG!");
                 
-                // 4. Khởi tạo Session (Dùng thông tin từ User đã login)
-                SessionManager.initialize(user);
-                
                 System.out.println("--------------------------------------------------");
                 System.out.println("THÔNG TIN USER:");
                 System.out.println("- Họ tên: " + user.getFullName());
-                System.out.println("- Vai trò (Role): " + user.getRole().getName());
+                System.out.println("- Vai trò (Role): " + (user.getRole() != null ? user.getRole().getName() : "CHƯA GÁN ROLE"));
                 System.out.println("- Trạng thái: " + user.getStatus());
                 System.out.println("- Lần đăng nhập cuối: " + user.getLastLogin());
                 
                 // 5. Kiểm tra danh sách Quyền (Permissions)
-                // Lấy danh sách chuỗi quyền từ đối tượng User (User -> Role -> List<RolePermission>)
-                List<String> permissions = user.getRole().getPermissions()
-                        .stream()
-                        .map(RolePermission::getPermission)
-                        .collect(Collectors.toList());
+                List<String> permissions = new java.util.ArrayList<>();
+                if (user.getRole() != null && user.getRole().getPermissions() != null) {
+                    permissions = user.getRole().getPermissions()
+                            .stream()
+                            .map(RolePermission::getPermission)
+                            .collect(Collectors.toList());
+                }
                         
                 System.out.println("--------------------------------------------------");
                 System.out.println("DANH SÁCH QUYỀN TRUY XUẤT ĐƯỢC (" + permissions.size() + " quyền):");

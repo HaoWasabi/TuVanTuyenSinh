@@ -2,7 +2,6 @@ package com.tuyensinh.service;
 
 import com.tuyensinh.model.User;
 import com.tuyensinh.repository.UserRepository;
-import org.mindrot.jbcrypt.BCrypt;
 import java.util.Optional;
 
 public class AuthService {
@@ -17,11 +16,25 @@ public class AuthService {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             
-            // Kiểm tra trạng thái và mật khẩu (Sử dụng BCrypt)
-            if ("active".equalsIgnoreCase(user.getStatus()) && BCrypt.checkpw(password, user.getPassword())) {
+            // Debug: In ra để kiểm tra giá trị thực tế từ DB
+            System.out.println("[DEBUG] DB Password: '" + user.getPassword() + "'");
+            System.out.println("[DEBUG] DB Status: '" + user.getStatus() + "'");
+            System.out.println("[DEBUG] DB id_role value: " + user.getIdRoleValue());
+
+            if (user.getRole() == null) {
+                System.err.println("[WARNING] Hibernate không thể map Role. Kiểm tra xem id=" + user.getIdRoleValue() + " có tồn tại trong bảng roles chưa?");
+            }
+
+            // Kiểm tra trạng thái và mật khẩu (So sánh Plain Text theo dữ liệu thực tế DB)
+            if ("active".equalsIgnoreCase(user.getStatus()) && password.equals(user.getPassword())) {
+                // Khởi tạo Session: Nạp thông tin User và danh sách Quyền (Permissions)
+                SessionManager.initialize(user);
+                
                 // Cập nhật lần đăng nhập cuối
                 userRepository.updateLastLogin(user.getId());
                 return user;
+            } else if (!"active".equalsIgnoreCase(user.getStatus())) {
+                throw new RuntimeException("Tài khoản đang bị khóa hoặc chưa kích hoạt!");
             }
         }
         

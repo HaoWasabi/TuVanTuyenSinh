@@ -30,11 +30,13 @@ public class User {
     @Column(name = "password", length = 255, nullable = false)
     private String password;
 
-    // Chỉnh sửa: Khớp với cột id_role và xử lý logic không có FK cứng
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_role")
+    @JoinColumn(name = "id_role", referencedColumnName = "id", insertable = false, updatable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     private Role role;
+
+    @Column(name = "id_role")
+    private Integer idRoleValue; // Cột này dùng để kiểm tra giá trị ID thực tế
 
     @Column(name = "full_name", length = 100)
     private String fullName;
