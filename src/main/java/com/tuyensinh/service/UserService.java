@@ -32,8 +32,11 @@ public class UserService {
     }
 
     private void validateRoleAndStatus(User user) {
-        if (user.getRole() != null && !user.getRole().equals("admin") && !user.getRole().equals("user")) {
-            throw new IllegalArgumentException("Lỗi: Role chỉ có thể là 'admin' hoặc 'user'. Giá trị nhận được: " + user.getRole());
+        if (user.getRole() != null) {
+            String roleName = user.getRole().getName();
+            if (!"admin".equalsIgnoreCase(roleName) && !"user".equalsIgnoreCase(roleName)) {
+                throw new IllegalArgumentException("Lỗi: Role chỉ có thể là 'admin' hoặc 'user'. Giá trị nhận được: " + roleName);
+            }
         }
         if (user.getStatus() != null && !user.getStatus().equals("active") && !user.getStatus().equals("off")) {
             throw new IllegalArgumentException("Lỗi: Status chỉ có thể là 'active' hoặc 'off'. Giá trị nhận được: " + user.getStatus());

@@ -1,22 +1,33 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE hibernate-configuration PUBLIC
         "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
         "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/xettuyen2026?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Ho_Chi_Minh</property>
-        <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password"></property>
+        <!-- 1. Cấu hình kết nối MySQL -->
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/xettuyen2026?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property> <!-- Thay bằng mật khẩu của bạn -->
 
-        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
-        <property name="hibernate.show_sql">true</property>
-        <property name="hibernate.format_sql">true</property>
-        <property name="hibernate.hbm2ddl.auto">update</property>
+        <!-- 2. Cấu hình Hibernate Dialect (Dành cho MySQL 8+) -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
 
+        <!-- 3. Cấu hình hiển thị SQL ra Console để debug -->
+        <property name="show_sql">true</property>
+        <property name="format_sql">true</property>
+        <property name="highlight_sql">true</property>
+
+        <!-- 4. Quản lý database schema (update: tự động cập nhật bảng nếu có thay đổi) -->
+        <property name="hbm2ddl.auto">update</property>
+
+        <!-- 5. Khai báo các Entity (Mapping) -->
+        <mapping class="com.tuyensinh.model.User"/>
+        <mapping class="com.tuyensinh.model.Role"/>
+        <mapping class="com.tuyensinh.model.RolePermission"/>
+        <mapping class="com.tuyensinh.model.ThiSinh"/>
         <mapping class="com.tuyensinh.model.NganhToHop"/>
         <mapping class="com.tuyensinh.model.BangQuyDoi"/>
-        <mapping class="com.tuyensinh.model.ThiSinh"/>
-        <mapping class="com.tuyensinh.model.User"/>
+
     </session-factory>
 </hibernate-configuration>
