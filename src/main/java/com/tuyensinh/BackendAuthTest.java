@@ -16,8 +16,8 @@ public class BackendAuthTest {
         AuthService authService = new AuthService();
         
         // 2. Giả lập thông tin đăng nhập (Đảm bảo tài khoản này có trong DB xettuyen2026)
-        String testUser = "admin1"; 
-        String testPass = "123456"; 
+        String testUser = "admin2"; 
+        String testPass = "$2y$12$examplehash3"; 
 
         System.out.println("[1] Đang tiến hành đăng nhập với Username: " + testUser);
         

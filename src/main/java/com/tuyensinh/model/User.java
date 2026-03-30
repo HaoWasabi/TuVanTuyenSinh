@@ -31,11 +31,11 @@ public class User {
     private String password;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_role", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "role_id", referencedColumnName = "id", insertable = false, updatable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     private Role role;
 
-    @Column(name = "id_role")
+    @Column(name = "role_id")
     private Integer idRoleValue; // Cột này dùng để kiểm tra giá trị ID thực tế
 
     @Column(name = "full_name", length = 100)

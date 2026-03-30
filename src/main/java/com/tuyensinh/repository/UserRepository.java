@@ -63,7 +63,7 @@ public class UserRepository {
     public Optional<User> findByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             // Thay JOIN FETCH bằng LEFT JOIN FETCH để tránh mất dữ liệu nếu Role bị lỗi logic
-            String hql = "SELECT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.username = :username";
+            String hql = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.username = :username";
             return session.createQuery(hql, User.class)
                     .setParameter("username", username)
                     .uniqueResultOptional();
