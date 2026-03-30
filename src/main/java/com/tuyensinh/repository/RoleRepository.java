@@ -25,6 +25,12 @@ public class RoleRepository {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
+            
+            // Tìm ID lớn nhất hiện có, nếu bảng trống thì mặc định là 0
+            Integer maxId = session.createQuery("SELECT COALESCE(MAX(r.id), 0) FROM Role r", Integer.class)
+                    .uniqueResult();
+            role.setId(maxId + 1); // Đánh số ID tiếp theo dựa trên thực tế
+
             session.persist(role);
             tx.commit();
             return role;
