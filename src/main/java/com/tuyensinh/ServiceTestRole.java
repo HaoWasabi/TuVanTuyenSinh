@@ -14,10 +14,10 @@ public class ServiceTestRole {
             System.out.println("========== TEST QUẢN LÝ NHÓM QUYỀN ==========");
 
             // 1. Test Thêm nhóm quyền mới
-            // System.out.println("\n[TEST 1] Tạo nhóm quyền mới...");
-            // String roleName = "CanBoTuyenSinh";
-            // Role newRole = roleService.createRole(roleName, "Nhóm quyền dành cho cán bộ tuyển sinh");
-            // System.out.println("[✓] Đã tạo Role: " + newRole.getName() + " (ID: " + newRole.getId() + ")");
+            System.out.println("\n[TEST 1] Tạo nhóm quyền mới...");
+            String roleName = "CanBoTuyenSinh";
+            Role newRole = roleService.createRole(roleName, "Nhóm quyền dành cho cán bộ tuyển sinh");
+            System.out.println("[✓] Đã tạo Role: " + newRole.getName() + " (ID: " + newRole.getId() + ")");
 
             // 2. Test Cập nhật quyền (Thêm nếu chưa có)
             System.out.println("\n[TEST 2] Cập nhật danh sách quyền cho Role ID: " + newRole.getId());
