@@ -34,7 +34,7 @@ public class AdmissionsDemoFrame extends JFrame {
         // Add available panels
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
-
+        contentPanel.add(new MajorManagementPanel(), "major");
         contentPanel.add(new DiemThiPanel(), "diem");
         contentPanel.add(new DiemCongPanel(), "diemCong");
         contentPanel.add(new NguyenVongPanel(), "nguyenVong");
