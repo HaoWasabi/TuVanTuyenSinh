@@ -1,16 +1,11 @@
 package com.tuyensinh.view;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import javax.swing.*;
+import java.awt.*;
 
 public class TopBar extends JPanel {
-    public TopBar() {
+
+    public TopBar(JFrame parentFrame) {
         setLayout(new BorderLayout(16, 0));
         setBackground(UIStyles.BG_TOPBAR);
         setBorder(BorderFactory.createCompoundBorder(
@@ -19,26 +14,27 @@ public class TopBar extends JPanel {
         ));
         setPreferredSize(new Dimension(0, 60));
 
-        // Left: Logo/Title
+        // Left
         JLabel logo = new JLabel("TUYEN SINH SGU");
         logo.setFont(UIStyles.FONT_SUBTITLE);
         logo.setForeground(UIStyles.PRIMARY);
+
         JLabel subtitle = new JLabel("Hệ thống xét tuyển 2026");
         subtitle.setFont(UIStyles.FONT_SMALL);
         subtitle.setForeground(UIStyles.TEXT_MUTED);
 
-        JPanel logoPanel = new JPanel(new java.awt.GridLayout(2, 1, 0, 2));
+        JPanel logoPanel = new JPanel(new GridLayout(2, 1, 0, 2));
         logoPanel.setOpaque(false);
         logoPanel.add(logo);
         logoPanel.add(subtitle);
         add(logoPanel, BorderLayout.WEST);
 
-        // Center spacer (search moved to management pages)
+        // Center
         JPanel centerSpacer = new JPanel();
         centerSpacer.setOpaque(false);
         add(centerSpacer, BorderLayout.CENTER);
 
-        // Right: User actions
+        // Right
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         rightPanel.setOpaque(false);
 
@@ -57,6 +53,20 @@ public class TopBar extends JPanel {
         logoutBtn.setForeground(Color.WHITE);
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
+        logoutBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    parentFrame,
+                    "Bạn có chắc muốn đăng xuất không?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                new RoleSelectionFrame().setVisible(true);
+                parentFrame.dispose();
+            }
+        });
 
         rightPanel.add(notifBtn);
         rightPanel.add(userLabel);

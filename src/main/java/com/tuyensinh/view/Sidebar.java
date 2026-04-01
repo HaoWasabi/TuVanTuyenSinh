@@ -1,18 +1,7 @@
 package com.tuyensinh.view;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+import java.awt.*;
 
 public class Sidebar extends JPanel {
     private final JPanel navContainer;
@@ -23,39 +12,40 @@ public class Sidebar extends JPanel {
         setPreferredSize(new Dimension(260, 0));
         setBackground(UIStyles.BG_SIDEBAR);
 
-        // Header
         JLabel header = new JLabel("MENU");
         header.setFont(UIStyles.FONT_LABEL);
         header.setForeground(UIStyles.TEXT_MUTED);
         header.setBorder(BorderFactory.createEmptyBorder(16, 16, 12, 16));
         add(header, BorderLayout.NORTH);
 
-        // Navigation container
         navContainer = new JPanel();
-        navContainer.setLayout(new javax.swing.BoxLayout(navContainer, javax.swing.BoxLayout.Y_AXIS));
+        navContainer.setLayout(new BoxLayout(navContainer, BoxLayout.Y_AXIS));
         navContainer.setBackground(UIStyles.BG_SIDEBAR);
         navContainer.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
 
-        // Add menu items
         addMenuItem("Dashboard", "dashboard", cardLayout, contentPanel);
         addMenuItem("Quản lý thí sinh", "candidate", cardLayout, contentPanel);
+        addMenuItem("Quản lý tài khoản", "account", cardLayout, contentPanel);
+        addMenuItem("Quản lý người dùng", "user", cardLayout, contentPanel);
+        addMenuItem("Báo cáo & thống kê", "report", cardLayout, contentPanel);
+
         addMenuItem("Ngành & tổ hợp", "dashboard", cardLayout, contentPanel);
         addMenuItem("Quản lý điểm", "dashboard", cardLayout, contentPanel);
         addMenuItem("Nguyện vọng & xét", "dashboard", cardLayout, contentPanel);
-        addMenuItem("Quản lý người dùng", "dashboard", cardLayout, contentPanel);
-        addMenuItem("Báo cáo & thống kê", "dashboard", cardLayout, contentPanel);
 
         JScrollPane scrollPane = new JScrollPane(navContainer);
         scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(UIStyles.BG_SIDEBAR);
         scrollPane.setBackground(UIStyles.BG_SIDEBAR);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Footer
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footer.setBackground(new Color(35, 42, 56));
+
         JLabel footerText = new JLabel("v1.0 Admin");
         footerText.setFont(UIStyles.FONT_TINY);
         footerText.setForeground(UIStyles.TEXT_MUTED);
+
         footer.add(footerText);
         add(footer, BorderLayout.SOUTH);
     }
@@ -73,7 +63,7 @@ public class Sidebar extends JPanel {
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         btn.setFocusPainted(false);
-        btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btn.addActionListener(e -> {
             cardLayout.show(contentPanel, pageKey);
@@ -82,7 +72,6 @@ public class Sidebar extends JPanel {
 
         navContainer.add(btn);
 
-        // Set first button as selected
         if (selectedButton == null) {
             selectButton(btn);
         }
@@ -93,6 +82,7 @@ public class Sidebar extends JPanel {
             selectedButton.setBackground(UIStyles.BG_SIDEBAR);
             selectedButton.setForeground(UIStyles.TEXT_LIGHT);
         }
+
         selectedButton = btn;
         selectedButton.setBackground(UIStyles.PRIMARY);
         selectedButton.setForeground(Color.WHITE);
