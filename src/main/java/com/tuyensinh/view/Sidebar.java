@@ -25,11 +25,7 @@ public class Sidebar extends JPanel {
 
         addMenuItem("Dashboard", "dashboard", cardLayout, contentPanel);
         addMenuItem("Quản lý thí sinh", "candidate", cardLayout, contentPanel);
-        addMenuItem("Quản lý tài khoản", "account", cardLayout, contentPanel);
-        addMenuItem("Quản lý người dùng", "user", cardLayout, contentPanel);
-        addMenuItem("Báo cáo & thống kê", "report", cardLayout, contentPanel);
-
-        addMenuItem("Ngành & tổ hợp", "dashboard", cardLayout, contentPanel);
+        addMenuItem("Ngành & tổ hợp", "major", cardLayout, contentPanel);
         addMenuItem("Quản lý điểm", "dashboard", cardLayout, contentPanel);
         addMenuItem("Nguyện vọng & xét", "dashboard", cardLayout, contentPanel);
 

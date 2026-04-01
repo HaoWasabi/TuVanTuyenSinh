@@ -34,12 +34,7 @@ public class AdmissionsDemoFrame extends JFrame {
         // Add panels
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
-        contentPanel.add(new AccountManagementPanel(), "account");
-        contentPanel.add(new UserManagementPanel(), "user");
-        contentPanel.add(new ReportsPanel(), "report");
-
-        // Hiển thị mặc định
-        cardLayout.show(contentPanel, "dashboard");
+        contentPanel.add(new MajorManagementPanel(), "major");
 
         // Sidebar
         Sidebar sidebar = new Sidebar(cardLayout, contentPanel);
