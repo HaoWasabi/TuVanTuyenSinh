@@ -13,7 +13,7 @@ public class AdminMainFrame extends JFrame {
         setLayout(new BorderLayout());
 
         // TopBar
-        add(new TopBar(this), BorderLayout.NORTH);
+        add(new TopBar(), BorderLayout.NORTH);
 
         // Content dùng CardLayout
         CardLayout cardLayout = new CardLayout();

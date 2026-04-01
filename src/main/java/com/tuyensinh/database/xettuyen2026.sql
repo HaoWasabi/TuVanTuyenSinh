@@ -5,8 +5,9 @@
 -- Host: 127.0.0.1
 -- Generation Time: Mar 30, 2026 at 05:37 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
-
+-- PHP Version: 8.2.1
+CREATE DATABASE xettuyen2026;
+USE xettuyen2026;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
