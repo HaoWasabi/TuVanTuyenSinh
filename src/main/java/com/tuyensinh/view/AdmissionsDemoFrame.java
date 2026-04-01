@@ -20,7 +20,7 @@ public class AdmissionsDemoFrame extends JFrame {
         setContentPane(root);
 
         // Top bar
-        root.add(new TopBar(this), BorderLayout.NORTH);
+        root.add(new TopBar(), BorderLayout.NORTH);
 
         // Main layout: sidebar + content
         JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
@@ -31,10 +31,13 @@ public class AdmissionsDemoFrame extends JFrame {
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(UIStyles.BG_APP);
 
-        // Add panels
+        // Add available panels
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
-        contentPanel.add(new MajorManagementPanel(), "major");
+
+        contentPanel.add(new DiemThiPanel(), "diem");
+        contentPanel.add(new DiemCongPanel(), "diemCong");
+        contentPanel.add(new NguyenVongPanel(), "nguyenVong");
 
         // Sidebar
         Sidebar sidebar = new Sidebar(cardLayout, contentPanel);

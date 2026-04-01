@@ -49,6 +49,34 @@ public class NguyenVongRepository {
         }
     }
 
+    // Hàm lấy danh sách nguyện vọng theo ngành, sắp xếp điểm từ cao xuống thấp
+    public List<NguyenVong> findByMaNganh(String maNganh) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from NguyenVong n where n.nvManganh = :maNganh order by n.diemXettuyen desc, n.nvTt asc", NguyenVong.class)
+                    .setParameter("maNganh", maNganh)
+                    .list();
+        }
+    }
+
+    public boolean add(NguyenVong nv) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Hibernate sẽ tự động map object NguyenVong thành lệnh INSERT SQL
+            session.save(nv);
+
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback(); // Hoàn tác nếu có lỗi (ví dụ: trùng Keys)
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public NguyenVong update(NguyenVong nguyenVong) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -103,29 +131,38 @@ public class NguyenVongRepository {
      * 10 tt_thm
      */
     public List<NguyenVong> importFromExcel(String filePath) throws IOException {
-
         List<NguyenVong> list = new ArrayList<>();
+        Transaction tx = null;
 
+        // Mở FileInputStream, Workbook và Session trong cùng 1 khối try-with-resources
         try (FileInputStream fis = new FileInputStream(filePath);
-             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+             XSSFWorkbook workbook = new XSSFWorkbook(fis);
+             Session session = HibernateUtil.getSessionFactory().openSession()) {
 
+            tx = session.beginTransaction(); // Chỉ mở 1 Transaction duy nhất
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-
-                if (row.getRowNum() == 0 || isRowEmpty(row)) {
-                    continue;
-                }
+                if (row.getRowNum() == 0 || isRowEmpty(row)) continue;
 
                 try {
                     NguyenVong nguyenVong = parseRow(row);
-                    save(nguyenVong);
+                    session.persist(nguyenVong); // Đẩy vào bộ nhớ đệm của Hibernate
                     list.add(nguyenVong);
+
+                    // Giải phóng bộ nhớ mỗi 50 dòng (Best practice cho dữ liệu lớn)
+                    if (list.size() % 50 == 0) {
+                        session.flush();
+                        session.clear();
+                    }
                 } catch (Exception ex) {
-                    System.err.println("Import lỗi dòng "
-                            + (row.getRowNum() + 1) + ": " + ex.getMessage());
+                    System.err.println("Import lỗi dòng " + (row.getRowNum() + 1) + ": " + ex.getMessage());
                 }
             }
+            tx.commit(); // Ghi toàn bộ dữ liệu xuống Database trong 1 lần
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
         }
         return list;
     }

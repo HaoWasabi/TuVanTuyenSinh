@@ -49,6 +49,25 @@ public class DiemCongRepository {
         }
     }
 
+    public boolean add(DiemCong dc) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Hibernate sẽ tự động map object DiemCong thành lệnh INSERT SQL
+            session.save(dc);
+
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback(); // Hoàn tác nếu có lỗi (ví dụ: trùng Keys)
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public DiemCong update(DiemCong diemCong) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -101,29 +120,38 @@ public class DiemCongRepository {
      * 8 dc_keys
      */
     public List<DiemCong> importFromExcel(String filePath) throws IOException {
-
         List<DiemCong> list = new ArrayList<>();
+        Transaction tx = null;
 
+        // Mở FileInputStream, Workbook và Session trong cùng 1 khối try-with-resources
         try (FileInputStream fis = new FileInputStream(filePath);
-             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+             XSSFWorkbook workbook = new XSSFWorkbook(fis);
+             Session session = HibernateUtil.getSessionFactory().openSession()) {
 
+            tx = session.beginTransaction(); // Chỉ mở 1 Transaction duy nhất
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-
-                if (row.getRowNum() == 0 || isRowEmpty(row)) {
-                    continue;
-                }
+                if (row.getRowNum() == 0 || isRowEmpty(row)) continue;
 
                 try {
                     DiemCong diemCong = parseRow(row);
-                    save(diemCong);
+                    session.persist(diemCong); // Đẩy vào bộ nhớ đệm của Hibernate
                     list.add(diemCong);
+
+                    // Giải phóng bộ nhớ mỗi 50 dòng (Best practice cho dữ liệu lớn)
+                    if (list.size() % 50 == 0) {
+                        session.flush();
+                        session.clear();
+                    }
                 } catch (Exception ex) {
-                    System.err.println("Import lỗi dòng "
-                            + (row.getRowNum() + 1) + ": " + ex.getMessage());
+                    System.err.println("Import lỗi dòng " + (row.getRowNum() + 1) + ": " + ex.getMessage());
                 }
             }
+            tx.commit(); // Ghi toàn bộ dữ liệu xuống Database trong 1 lần
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
         }
         return list;
     }
