@@ -2,6 +2,7 @@ package com.tuyensinh.service;
 
 import com.tuyensinh.model.NganhToHop;
 import com.tuyensinh.repository.NTHRepository;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,5 +40,9 @@ public class NTHService {
 
     public boolean deleteById(Integer id) {
         return nganhToHopRepository.deleteById(id);
+    }
+
+    public List<NganhToHop> importFromExcel(String filePath) throws IOException {
+        return nganhToHopRepository.importFromExcel(filePath);
     }
 }

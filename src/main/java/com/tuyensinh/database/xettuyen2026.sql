@@ -348,10 +348,6 @@ CREATE TABLE `xt_nganh_tohop` (
 -- Dumping data for table `xt_nganh_tohop`
 --
 
-INSERT INTO `xt_nganh_tohop` (`id`, `manganh`, `matohop`, `th_mon1`, `hsmon1`, `th_mon2`, `hsmon2`, `th_mon3`, `hsmon3`, `tb_keys`, `N1`, `TO`, `LI`, `HO`, `SI`, `VA`, `SU`, `DI`, `TI`, `KHAC`, `KTPL`, `dolech`) VALUES
-(3, 'DIEN', 'D01', 'Toan', 3, 'Van', 2, 'Anh', 1, 'DIEN_D01_1773813679071', 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0.80),
-(6, 'DIEN', 'D01', 'Toan', 3, 'Van', 2, 'Anh', 1, 'DIEN_D01_1774797370169', 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0.80);
-
 -- --------------------------------------------------------
 
 --

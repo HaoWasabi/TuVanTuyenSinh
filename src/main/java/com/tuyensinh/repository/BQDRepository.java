@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -96,10 +97,9 @@ public class BQDRepository {
 
     /**
      * Import danh sách BangQuyDoi từ file Excel
-     * Định dạng Excel: 
-     *   - Dòng 1: Header (bỏ qua)
-     *   - Từ dòng 2 trở đi: dữ liệu
-     *   - Cột: phuongThuc, toHop, mon, dieA, dieB, dieC, dieD, maQuyDoi, phanvi
+     * Hỗ trợ 2 định dạng:
+     * 1) Có ID: idqd, d_phuongthuc, d_tohop, d_mon, d_diema, d_diemb, d_diemc, d_diemd, d_maquydoi, d_phanvi
+     * 2) Không ID: d_phuongthuc, d_tohop, d_mon, d_diema, d_diemb, d_diemc, d_diemd, d_maquydoi, d_phanvi
      * 
      * @param filePath Đường dẫn file Excel
      * @return Danh sách BangQuyDoi đã import
@@ -107,12 +107,18 @@ public class BQDRepository {
      */
     public List<BangQuyDoi> importFromExcel(String filePath) throws IOException {
         List<BangQuyDoi> importedList = new ArrayList<>();
+        Transaction tx = null;
         
         try (FileInputStream fis = new FileInputStream(filePath);
-             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+             XSSFWorkbook workbook = new XSSFWorkbook(fis);
+             Session session = HibernateUtil.getSessionFactory().openSession()) {
             
             Sheet sheet = workbook.getSheetAt(0); // Lấy sheet đầu tiên
+            boolean hasIdColumn = detectIdColumn(sheet);
             int rowStart = 1; // Bỏ qua dòng header (dòng 0)
+            int processedCount = 0;
+
+            tx = session.beginTransaction();
             
             for (Row row : sheet) {
                 if (row.getRowNum() < rowStart) {
@@ -125,37 +131,87 @@ public class BQDRepository {
                 }
                 
                 try {
-                    BangQuyDoi bangQuyDoi = parseExcelRow(row);
-                    saveWithoutTransaction(bangQuyDoi);
+                    BangQuyDoi bangQuyDoi = parseExcelRow(row, hasIdColumn);
+                    upsertByMaquydoi(session, bangQuyDoi);
                     importedList.add(bangQuyDoi);
+
+                    processedCount++;
+                    if (processedCount % 50 == 0) {
+                        session.flush();
+                        session.clear();
+                    }
                 } catch (Exception ex) {
                     System.err.println("Lỗi import dòng " + (row.getRowNum() + 1) + ": " + ex.getMessage());
                     // Tiếp tục import các dòng khác
                 }
             }
+
+            tx.commit();
+        } catch (Exception ex) {
+            rollbackQuietly(tx);
+            throw ex;
         }
         
         return importedList;
     }
 
+    private boolean detectIdColumn(Sheet sheet) {
+        Row header = sheet.getRow(0);
+        if (header == null) {
+            return false;
+        }
+        String firstHeader = getCellAsString(header, 0);
+        if (firstHeader == null) {
+            return false;
+        }
+        return firstHeader.trim().toLowerCase().contains("id");
+    }
+
     /**
      * Parse dữ liệu từ một dòng Excel
-     * Cột: 0=phuongThuc, 1=toHop, 2=mon, 3=dieA, 4=dieB, 5=dieC, 6=dieD, 7=maQuyDoi, 8=phanvi
      */
-    private BangQuyDoi parseExcelRow(Row row) {
+    private BangQuyDoi parseExcelRow(Row row, boolean hasIdColumn) {
         BangQuyDoi bangQuyDoi = new BangQuyDoi();
+        int offset = hasIdColumn ? 1 : 0;
+
+        if (hasIdColumn) {
+            bangQuyDoi.setIdqd(getCellAsInteger(row, 0));
+        } else {
+            bangQuyDoi.setIdqd(null);
+        }
         
-        bangQuyDoi.setDPhuongthuc(truncateString(getCellAsString(row, 0), 45));
-        bangQuyDoi.setDTohop(truncateString(getCellAsString(row, 1), 45));
-        bangQuyDoi.setDMon(truncateString(getCellAsString(row, 2), 45));
-        bangQuyDoi.setDDiema(getCellAsBigDecimal(row, 3));
-        bangQuyDoi.setDDiemb(getCellAsBigDecimal(row, 4));
-        bangQuyDoi.setDDiemc(getCellAsBigDecimal(row, 5));
-        bangQuyDoi.setDDiemd(getCellAsBigDecimal(row, 6));
-        bangQuyDoi.setDMaquydoi(truncateString(getCellAsString(row, 7), 255));
-        bangQuyDoi.setDPhanvi(truncateString(getCellAsString(row, 8), 255));
+        bangQuyDoi.setDPhuongthuc(truncateString(getCellAsString(row, offset + 0), 45));
+        bangQuyDoi.setDTohop(truncateString(getCellAsString(row, offset + 1), 45));
+        bangQuyDoi.setDMon(truncateString(getCellAsString(row, offset + 2), 45));
+        bangQuyDoi.setDDiema(getCellAsBigDecimal(row, offset + 3));
+        bangQuyDoi.setDDiemb(getCellAsBigDecimal(row, offset + 4));
+        bangQuyDoi.setDDiemc(getCellAsBigDecimal(row, offset + 5));
+        bangQuyDoi.setDDiemd(getCellAsBigDecimal(row, offset + 6));
+        bangQuyDoi.setDMaquydoi(truncateString(getCellAsString(row, offset + 7), 255));
+        bangQuyDoi.setDPhanvi(truncateString(getCellAsString(row, offset + 8), 255));
         
         return bangQuyDoi;
+    }
+
+    private void upsertByMaquydoi(Session session, BangQuyDoi bangQuyDoi) {
+        String maQuyDoi = bangQuyDoi.getDMaquydoi();
+        if (maQuyDoi == null || maQuyDoi.trim().isEmpty()) {
+            session.persist(bangQuyDoi);
+            return;
+        }
+
+        Optional<BangQuyDoi> existing = session.createQuery(
+                        "from BangQuyDoi b where b.dMaquydoi = :dMaquydoi", BangQuyDoi.class)
+                .setParameter("dMaquydoi", maQuyDoi)
+                .setMaxResults(1)
+                .uniqueResultOptional();
+
+        if (existing.isPresent()) {
+            bangQuyDoi.setIdqd(existing.get().getIdqd());
+            session.merge(bangQuyDoi);
+        } else {
+            session.persist(bangQuyDoi);
+        }
     }
 
     /**
@@ -166,22 +222,35 @@ public class BQDRepository {
         if (cell == null) {
             return null;
         }
-        return cell.getStringCellValue().trim();
+        DataFormatter formatter = new DataFormatter();
+        String value = formatter.formatCellValue(cell);
+        return value == null ? null : value.trim();
+    }
+
+    private Integer getCellAsInteger(Row row, int cellIndex) {
+        String value = getCellAsString(row, cellIndex);
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        if (value.endsWith(".0")) {
+            value = value.substring(0, value.length() - 2);
+        }
+        return Integer.valueOf(value);
     }
 
     /**
      * Lấy giá trị cell dạng BigDecimal
      */
     private BigDecimal getCellAsBigDecimal(Row row, int cellIndex) {
-        Cell cell = row.getCell(cellIndex);
-        if (cell == null) {
+        String value = getCellAsString(row, cellIndex);
+        if (value == null || value.isEmpty()) {
             return null;
         }
-        try {
-            return new BigDecimal(cell.getNumericCellValue());
-        } catch (Exception ex) {
-            return null;
+        String normalized = value.replace(",", "");
+        if (normalized.endsWith(".0")) {
+            normalized = normalized.substring(0, normalized.length() - 2);
         }
+        return new BigDecimal(normalized);
     }
 
     /**
@@ -191,10 +260,13 @@ public class BQDRepository {
         if (row == null) {
             return true;
         }
-        for (int i = 0; i < 9; i++) { // Kiểm tra 9 cột
+        for (int i = 0; i < Math.max(9, row.getLastCellNum()); i++) {
             Cell cell = row.getCell(i);
-            if (cell != null && cell.getCellType().toString().length() > 0) {
-                return false;
+            if (cell != null) {
+                String text = getCellAsString(row, i);
+                if (text != null && !text.trim().isEmpty()) {
+                    return false;
+                }
             }
         }
         return true;
@@ -213,24 +285,14 @@ public class BQDRepository {
         return value;
     }
 
-    /**
-     * Lưu BangQuyDoi không cần transaction (dùng cho batch import)
-     */
-    private void saveWithoutTransaction(BangQuyDoi bangQuyDoi) {
-        Transaction tx = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            tx = session.beginTransaction();
-            session.persist(bangQuyDoi);
-            tx.commit();
-        } catch (Exception ex) {
-            rollbackQuietly(tx);
-            throw ex;
-        }
-    }
-
     private void rollbackQuietly(Transaction tx) {
-        if (tx != null && tx.isActive()) {
+        if (tx == null) {
+            return;
+        }
+        try {
             tx.rollback();
+        } catch (Exception ignored) {
+            // Keep original persistence exception as root cause.
         }
     }
 }

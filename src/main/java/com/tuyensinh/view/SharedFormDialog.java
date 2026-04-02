@@ -50,7 +50,14 @@ public class SharedFormDialog extends JDialog {
             lbl.setForeground(UIStyles.TEXT_DARK);
             formPanel.add(lbl);
 
-            if (col.equalsIgnoreCase("Trạng Thái")) {
+            if (col.trim().toLowerCase().startsWith("id")) {
+                JTextField txt = new JTextField("(Tự tăng)");
+                txt.setFont(UIStyles.FONT_BODY);
+                txt.setEditable(false);
+                txt.setForeground(UIStyles.TEXT_MUTED);
+                inputFields.add(txt);
+                formPanel.add(txt);
+            } else if (col.equalsIgnoreCase("Trạng Thái")) {
                 JComboBox<String> combo = new JComboBox<>(new String[]{"Đang tuyển", "Dừng tuyển"});
                 combo.setFont(UIStyles.FONT_BODY);
                 inputFields.add(combo);
@@ -102,6 +109,9 @@ public class SharedFormDialog extends JDialog {
     private boolean validateForm() {
         for (JComponent comp : inputFields) {
             if (comp instanceof JTextField) {
+                if (!((JTextField) comp).isEditable()) {
+                    continue;
+                }
                 if (((JTextField) comp).getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return false;
@@ -122,7 +132,8 @@ public class SharedFormDialog extends JDialog {
             if (comp instanceof JComboBox) {
                 data[i] = ((JComboBox<?>) comp).getSelectedItem();
             } else if (comp instanceof JTextField) {
-                data[i] = ((JTextField) comp).getText().trim();
+                JTextField txt = (JTextField) comp;
+                data[i] = txt.isEditable() ? txt.getText().trim() : null;
             }
         }
         return data;
