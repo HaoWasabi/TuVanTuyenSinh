@@ -1,15 +1,14 @@
 package com.tuyensinh;
 
-import com.tuyensinh.view.AdmissionsDemoFrame;
+import com.tuyensinh.view.RoleSelectionFrame;
 
 import javax.swing.*;
 
 public class Main {
 
     public static void main(String[] args) {
-        // Placeholder for future interactive menu
         SwingUtilities.invokeLater(() -> {
-            AdmissionsDemoFrame frame = new AdmissionsDemoFrame();
+            RoleSelectionFrame frame = new RoleSelectionFrame();
             frame.setVisible(true);
         });
     }

@@ -2,6 +2,9 @@ package com.tuyensinh.view;
 
 import com.tuyensinh.model.ThiSinh;
 import com.tuyensinh.service.ThiSinhService;
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
+import com.tuyensinh.service.UserService;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -26,6 +29,7 @@ public class CandidateManagementPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTable table;
     private final ThiSinhService thiSinhService = new ThiSinhService();
+    private final UserService userService = new UserService();
     private List<ThiSinh> currentData = new ArrayList<>();
     private final JTextField detailCccdField = new JTextField();
     private final JTextField detailSbdField = new JTextField();
@@ -70,12 +74,15 @@ public class CandidateManagementPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        searchInput.setText("Tìm CCCD, họ tên...");
+        String placeholderText = "Tìm CCCD, họ tên...";
+        searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
+        searchInput.setForeground(UIStyles.TEXT_MUTED);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
                 new EmptyBorder(6, 10, 6, 10)
         ));
+        applySearchPlaceholder(searchInput, placeholderText);
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
         searchBtn.addActionListener(e -> handleSearch(searchInput.getText()));
@@ -206,19 +213,26 @@ public class CandidateManagementPanel extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
-        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
-        importBtn.addActionListener(e -> handleImport());
-        JButton addBtn = createButton("Thêm", UIStyles.INFO);
-        addBtn.addActionListener(e -> handleAdd());
-        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-        editBtn.addActionListener(e -> handleEdit());
-        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-        deleteBtn.addActionListener(e -> handleDelete());
-
-        actions.add(importBtn);
-        actions.add(addBtn);
-        actions.add(editBtn);
-        actions.add(deleteBtn);
+        if (SessionManager.hasPermission("THISINH_IMPORT")) {
+            JButton importBtn = createButton("Import", UIStyles.SUCCESS);
+            importBtn.addActionListener(e -> handleImport());
+            actions.add(importBtn);
+        }
+        if (SessionManager.hasPermission("THISINH_CREATE")) {
+            JButton addBtn = createButton("Thêm", UIStyles.INFO);
+            addBtn.addActionListener(e -> handleAdd());
+            actions.add(addBtn);
+        }
+        if (SessionManager.hasPermission("THISINH_EDIT")) {
+            JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+            editBtn.addActionListener(e -> handleEdit());
+            actions.add(editBtn);
+        }
+        if (SessionManager.hasPermission("THISINH_DELETE")) {
+            JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
+            deleteBtn.addActionListener(e -> handleDelete());
+            actions.add(deleteBtn);
+        }
         return actions;
     }
 
@@ -332,16 +346,93 @@ public class CandidateManagementPanel extends JPanel {
                         .doiTuong(dialog.getDoituong())
                         .khuVuc(dialog.getKhuvuc())
                         .updatedAt(LocalDate.now())
-                        .password(dialog.getPassword().isBlank() ? dialog.getCCCD() : dialog.getPassword())
+                    .password(generatePasswordFromDOB(dialog.getNgaysinh())) // Mật khẩu mặc định DDMMYY từ ngày sinh
                         .build();
 
                 thiSinhService.create(thiSinh);
+
+                // Tạo tài khoản student tương ứng
+                String generatedPassword = generatePasswordFromDOB(dialog.getNgaysinh());
+                // Kiểm tra xem người dùng đã tồn tại chưa
+                boolean userCreated = false;
+                String username = safeTrim(dialog.getSbaodanh());
+                if (userService.getByUsername(username).isEmpty()) {
+                    User studentUser = User.builder()
+                        .username(username)
+                        .password(generatedPassword)
+                        .email(defaultEmailIfBlank(dialog.getEmail(), username))
+                        .fullName((safeTrim(dialog.getHo()) + " " + safeTrim(dialog.getTen())).trim())
+                        .phoneNumber(blankToNull(dialog.getDienthoai()))
+                        .idRoleValue(3) // HOC_SINH = role ID 3
+                        .status("active")
+                        .build();
+
+                    userService.create(studentUser);
+                    userCreated = true;
+                }
+
+                String infoMsg = "Thêm thí sinh thành công!\n\n" +
+                        "Thông tin sinh viên:\n" +
+                        "Họ tên: " + dialog.getHo() + " " + dialog.getTen() + "\n" +
+                        "Ngày sinh: " + dialog.getNgaysinh() + "\n" +
+                        "Email: " + dialog.getEmail() + "\n" +
+                        "Số điện thoại: " + dialog.getDienthoai() + "\n\n";
+                
+                if (userCreated) {
+                    infoMsg += "Tài khoản học sinh được tạo:\n" +
+                        "Username: " + username + "\n" +
+                        "Mật khẩu: " + generatedPassword;
+                } else {
+                    infoMsg += "Tài khoản học sinh đã tồn tại.\n" +
+                        "Username: " + username;
+                }
+
                 loadDataToTable();
-                javax.swing.JOptionPane.showMessageDialog(this, "Thêm thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                javax.swing.JOptionPane.showMessageDialog(this, infoMsg, "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Lỗi khi thêm thí sinh: " + ex.getMessage(), "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private String generatePasswordFromDOB(String ngaySinh) {
+        if (ngaySinh == null || ngaySinh.isEmpty()) {
+            return "000000";
+        }
+        try {
+            String[] parts = ngaySinh.split("/");
+            if (parts.length >= 3) {
+                String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                String year = parts[2];
+                if (year.length() == 4) {
+                    year = year.substring(2);
+                }
+                return day + month + year;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "000000";
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String defaultEmailIfBlank(String email, String username) {
+        String trimmed = safeTrim(email);
+        if (!trimmed.isEmpty()) {
+            return trimmed;
+        }
+        return username + "@hoc_sinh.local";
     }
 
     private void handleEdit() {
@@ -438,15 +529,48 @@ public class CandidateManagementPanel extends JPanel {
 
         if (dialog.isConfirmed()) {
             try {
-            List<ThiSinh> imported = thiSinhService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
-            loadDataToTable();
-            javax.swing.JOptionPane.showMessageDialog(this,
-                "Đã import " + imported.size() + " thí sinh từ file: " + dialog.getSelectedFile().getName(),
-                "Import thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                List<ThiSinh> imported = thiSinhService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                
+                // Tạo tài khoản cho mỗi thí sinh được import
+                int accountsCreated = 0;
+                for (ThiSinh thiSinh : imported) {
+                    try {
+                        String generatedPassword = generatePasswordFromDOB(thiSinh.getNgaySinh());
+                        // Kiểm tra xem người dùng đã tồn tại chưa
+                        String username = safeTrim(thiSinh.getSobaodanh());
+                        if (username.isEmpty()) {
+                            continue;
+                        }
+                        if (userService.getByUsername(username).isEmpty()) {
+                            User studentUser = User.builder()
+                                .username(username)
+                                .password(generatedPassword)
+                                .email(defaultEmailIfBlank(thiSinh.getEmail(), username))
+                                .fullName((thiSinh.getHo() != null ? thiSinh.getHo() : "") + " " + (thiSinh.getTen() != null ? thiSinh.getTen() : ""))
+                                .phoneNumber(blankToNull(thiSinh.getDienThoai()))
+                                .idRoleValue(3) // HOC_SINH = role ID 3
+                                .status("active")
+                                .build();
+                            
+                            userService.create(studentUser);
+                            accountsCreated++;
+                        }
+                    } catch (Exception e) {
+                        // Tiếp tục tạo các tài khoản khác nếu có lỗi
+                        e.printStackTrace();
+                    }
+                }
+                
+                loadDataToTable();
+                String message = "Đã import " + imported.size() + " thí sinh từ file: " + dialog.getSelectedFile().getName() + "\n" +
+                        "Đã tạo " + accountsCreated + " tài khoản học sinh";
+                javax.swing.JOptionPane.showMessageDialog(this,
+                    message,
+                    "Import thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-            javax.swing.JOptionPane.showMessageDialog(this,
-                "Lỗi khi import file Excel: " + ex.getMessage(),
-                "Import thất bại", javax.swing.JOptionPane.ERROR_MESSAGE);
+                javax.swing.JOptionPane.showMessageDialog(this,
+                    "Lỗi khi import file Excel: " + ex.getMessage(),
+                    "Import thất bại", javax.swing.JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -473,6 +597,26 @@ public class CandidateManagementPanel extends JPanel {
 
     private boolean containsIgnoreCase(String source, String keyword) {
         return source != null && source.toLowerCase().contains(keyword);
+    }
+
+    private void applySearchPlaceholder(JTextField field, String placeholderText) {
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (field.getText().equals(placeholderText)) {
+                    field.setText("");
+                    field.setForeground(UIStyles.TEXT_DARK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (field.getText().trim().isEmpty()) {
+                    field.setText(placeholderText);
+                    field.setForeground(UIStyles.TEXT_MUTED);
+                }
+            }
+        });
     }
 
     private JButton createButton(String text, Color color) {

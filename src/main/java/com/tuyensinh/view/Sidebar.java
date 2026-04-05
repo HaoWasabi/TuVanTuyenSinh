@@ -1,5 +1,7 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.service.SessionManager;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -42,16 +44,17 @@ public class Sidebar extends JPanel {
         navContainer.setBackground(UIStyles.BG_SIDEBAR);
         navContainer.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
 
-        // Add menu items
+        // Add menu items based on permissions
         addMenuItem("Dashboard", "dashboard", cardLayout, contentPanel);
-        addMenuItem("Quản lý thí sinh", "candidate", cardLayout, contentPanel);
-        addMenuItem("Ngành & tổ hợp", "major", cardLayout, contentPanel);
-        addMenuItem("Quản lý điểm thi", "diem", cardLayout, contentPanel);
-        addMenuItem("Nguyện vọng & xét tuyển", "nguyenVong", cardLayout, contentPanel);
-        addMenuItem("Quản lý điểm cộng", "diemCong", cardLayout, contentPanel);
-        addMenuItem("Quản lý người dùng", "user", cardLayout, contentPanel);
-        addMenuItem("Báo cáo thống kê", "report", cardLayout, contentPanel);
-        addMenuItem("Phân quyền", "permission", cardLayout, contentPanel);
+        addMenuItem("Thông tin cá nhân", "personal", cardLayout, contentPanel);
+        addMenuItemIfAllowed("Quản lý thí sinh", "candidate", cardLayout, contentPanel, "THISINH_VIEW");
+        addMenuItemIfAllowed("Ngành & tổ hợp", "major", cardLayout, contentPanel, "NGANH_VIEW", "NGANH_TOHOP_VIEW");
+        addMenuItemIfAllowed("Quản lý điểm thi", "diem", cardLayout, contentPanel, "DIEM_VIEW");
+        addMenuItemIfAllowed("Nguyện vọng & xét tuyển", "nguyenVong", cardLayout, contentPanel, "NGUYENVONG_VIEW");
+        addMenuItemIfAllowed("Quản lý điểm cộng", "diemCong", cardLayout, contentPanel, "DIEMCONG_VIEW");
+        addMenuItemIfAllowed("Quản lý người dùng", "user", cardLayout, contentPanel, "USER_VIEW");
+        addMenuItemIfAllowed("Báo cáo thống kê", "report", cardLayout, contentPanel, "DIEM_THONGKE");
+        addMenuItemIfAllowed("Phân quyền", "permission", cardLayout, contentPanel, "USER_CHANGE_ROLE");
 
         JScrollPane scrollPane = new JScrollPane(navContainer);
         scrollPane.setBorder(null);
@@ -96,6 +99,12 @@ public class Sidebar extends JPanel {
         // Set first button as selected
         if (selectedButton == null) {
             selectButton(btn);
+        }
+    }
+
+    private void addMenuItemIfAllowed(String title, String pageKey, CardLayout cardLayout, JPanel contentPanel, String... requiredPermissions) {
+        if (SessionManager.hasAnyPermission(requiredPermissions)) {
+            addMenuItem(title, pageKey, cardLayout, contentPanel);
         }
     }
 

@@ -1,17 +1,28 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
+import com.tuyensinh.service.UserService;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class UserManagementPanel extends JPanel {
+    private final UserService userService = new UserService();
+    private final List<User> currentUsers = new ArrayList<>();
+
     private DefaultTableModel tableModel;
     private JTable table;
-    private final JTextField detailCodeField = new JTextField();
+    private final JTextField detailIdField = new JTextField();
+    private final JTextField detailUsernameField = new JTextField();
     private final JTextField detailNameField = new JTextField();
-    private final JTextField detailGenderField = new JTextField();
-    private final JTextField detailDobField = new JTextField();
     private final JTextField detailEmailField = new JTextField();
     private final JTextField detailPhoneField = new JTextField();
     private final JTextField detailRoleField = new JTextField();
@@ -35,6 +46,8 @@ public class UserManagementPanel extends JPanel {
         splitPane.setDividerLocation(0.64);
         splitPane.setBorder(null);
         add(splitPane, BorderLayout.CENTER);
+
+        loadUsers(userService.getAll());
     }
 
     private JPanel createListCard() {
@@ -42,12 +55,15 @@ public class UserManagementPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        searchInput.setText("Tìm họ tên, email...");
+        String placeholderText = "Tìm họ tên, email...";
+        searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
+        searchInput.setForeground(UIStyles.TEXT_MUTED);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
                 new EmptyBorder(6, 10, 6, 10)
         ));
+        applySearchPlaceholder(searchInput, placeholderText);
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
         searchBtn.addActionListener(e -> handleSearch(searchInput.getText()));
@@ -59,14 +75,9 @@ public class UserManagementPanel extends JPanel {
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
 
         // Table
-        String[] cols = {"Mã ND", "Họ tên", "Giới tính", "Ngày sinh", "Email", "Điện thoại", "Vai trò", "Trạng thái"};
-        Object[][] data = {
-                {"ND001", "Nguyễn Văn A", "Nam", "12/08/2006", "a@gmail.com", "0912111222", "Admin", "Hoạt động"},
-                {"ND002", "Trần Thị B", "Nữ", "20/11/2006", "b@gmail.com", "0903222333", "Nhân viên", "Hoạt động"},
-                {"ND003", "Lê Văn C", "Nam", "01/03/2006", "c@gmail.com", "0907333444", "Thí sinh", "Đã khóa"}
-        };
+        String[] cols = {"ID", "Username", "Họ tên", "Email", "Điện thoại", "Vai trò", "Trạng thái"};
 
-        tableModel = new DefaultTableModel(data, cols) {
+        tableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -150,10 +161,9 @@ public class UserManagementPanel extends JPanel {
 
         JPanel fields = new JPanel(new GridLayout(0, 1, 0, 8));
         fields.setOpaque(false);
-        fields.add(labelWithField("Mã người dùng", detailCodeField));
+        fields.add(labelWithField("ID", detailIdField));
+        fields.add(labelWithField("Username", detailUsernameField));
         fields.add(labelWithField("Họ tên", detailNameField));
-        fields.add(labelWithField("Giới tính", detailGenderField));
-        fields.add(labelWithField("Ngày sinh", detailDobField));
         fields.add(labelWithField("Email", detailEmailField));
         fields.add(labelWithField("Điện thoại", detailPhoneField));
         fields.add(labelWithField("Vai trò", detailRoleField));
@@ -164,10 +174,9 @@ public class UserManagementPanel extends JPanel {
         fieldsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         fieldsScroll.getVerticalScrollBar().setUnitIncrement(12);
 
-        configureReadOnlyField(detailCodeField);
+        configureReadOnlyField(detailIdField);
+        configureReadOnlyField(detailUsernameField);
         configureReadOnlyField(detailNameField);
-        configureReadOnlyField(detailGenderField);
-        configureReadOnlyField(detailDobField);
         configureReadOnlyField(detailEmailField);
         configureReadOnlyField(detailPhoneField);
         configureReadOnlyField(detailRoleField);
@@ -184,19 +193,21 @@ public class UserManagementPanel extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
-        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
-        importBtn.addActionListener(e -> handleImport());
-        JButton addBtn = createButton("Thêm", UIStyles.INFO);
-        addBtn.addActionListener(e -> handleAdd());
-        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-        editBtn.addActionListener(e -> handleEdit());
-        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-        deleteBtn.addActionListener(e -> handleDelete());
-
-        actions.add(importBtn);
-        actions.add(addBtn);
-        actions.add(editBtn);
-        actions.add(deleteBtn);
+        if (SessionManager.hasPermission("USER_CREATE")) {
+            JButton addBtn = createButton("Thêm", UIStyles.INFO);
+            addBtn.addActionListener(e -> handleAdd());
+            actions.add(addBtn);
+        }
+        if (SessionManager.hasPermission("USER_EDIT")) {
+            JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+            editBtn.addActionListener(e -> handleEdit());
+            actions.add(editBtn);
+        }
+        if (SessionManager.hasPermission("USER_DELETE")) {
+            JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
+            deleteBtn.addActionListener(e -> handleDelete());
+            actions.add(deleteBtn);
+        }
         return actions;
     }
 
@@ -205,11 +216,7 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void handleRefresh() {
-        if (tableModel.getRowCount() > 0) {
-            table.setRowSelectionInterval(0, 0);
-        } else {
-            updateDetailFromSelection();
-        }
+        loadUsers(userService.getAll());
     }
 
     private JPanel labelWithField(String label, JTextField field) {
@@ -237,10 +244,9 @@ public class UserManagementPanel extends JPanel {
         int row = table.getSelectedRow();
         if (row < 0) {
             selectedLabel.setText("Chưa chọn người dùng");
-            detailCodeField.setText("");
+            detailIdField.setText("");
+            detailUsernameField.setText("");
             detailNameField.setText("");
-            detailGenderField.setText("");
-            detailDobField.setText("");
             detailEmailField.setText("");
             detailPhoneField.setText("");
             detailRoleField.setText("");
@@ -248,98 +254,196 @@ public class UserManagementPanel extends JPanel {
             return;
         }
 
-        detailCodeField.setText(String.valueOf(tableModel.getValueAt(row, 0)));
-        detailNameField.setText(String.valueOf(tableModel.getValueAt(row, 1)));
-        detailGenderField.setText(String.valueOf(tableModel.getValueAt(row, 2)));
-        detailDobField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
-        detailEmailField.setText(String.valueOf(tableModel.getValueAt(row, 4)));
-        detailPhoneField.setText(String.valueOf(tableModel.getValueAt(row, 5)));
-        detailRoleField.setText(String.valueOf(tableModel.getValueAt(row, 6)));
-        detailStatusField.setText(String.valueOf(tableModel.getValueAt(row, 7)));
-        selectedLabel.setText("Đang chọn: " + detailNameField.getText());
+        User user = getSelectedUser();
+        if (user == null) {
+            return;
+        }
+
+        detailIdField.setText(String.valueOf(user.getId()));
+        detailUsernameField.setText(safe(user.getUsername()));
+        detailNameField.setText(safe(user.getFullName()));
+        detailEmailField.setText(safe(user.getEmail()));
+        detailPhoneField.setText(safe(user.getPhoneNumber()));
+        detailRoleField.setText(toRoleLabel(user));
+        detailStatusField.setText(toStatusLabel(user.getStatus()));
+        selectedLabel.setText("Đang chọn: " + safe(user.getUsername()));
     }
 
     private void handleAdd() {
+        JTextField usernameField = new JTextField();
         JTextField nameField = new JTextField();
-        JTextField genderField = new JTextField();
-        JTextField dobField = new JTextField();
         JTextField emailField = new JTextField();
         JTextField phoneField = new JTextField();
-        JTextField roleField = new JTextField();
+        JComboBox<String> roleBox = new JComboBox<>(new String[]{"ADMIN", "GIAM_THI", "HOC_SINH"});
+        JComboBox<String> statusBox = new JComboBox<>(new String[]{"Hoạt động", "Đã khóa"});
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+        panel.add(new JLabel("Username *:"));
+        panel.add(usernameField);
         panel.add(new JLabel("Họ tên:"));
         panel.add(nameField);
-        panel.add(new JLabel("Giới tính:"));
-        panel.add(genderField);
-        panel.add(new JLabel("Ngày sinh:"));
-        panel.add(dobField);
         panel.add(new JLabel("Email:"));
         panel.add(emailField);
         panel.add(new JLabel("Điện thoại:"));
         panel.add(phoneField);
         panel.add(new JLabel("Vai trò:"));
-        panel.add(roleField);
+        panel.add(roleBox);
+        panel.add(new JLabel("Trạng thái:"));
+        panel.add(statusBox);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Thêm người dùng", JOptionPane.OK_CANCEL_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
-            Object[] newRow = {
-                    "ND00" + (tableModel.getRowCount() + 1),
-                    nameField.getText(),
-                    genderField.getText(),
-                    dobField.getText(),
-                    emailField.getText(),
-                    phoneField.getText(),
-                    roleField.getText(),
-                    "Hoạt động"
-            };
-            tableModel.addRow(newRow);
-            table.setRowSelectionInterval(tableModel.getRowCount() - 1, tableModel.getRowCount() - 1);
+            if (usernameField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Username không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String generatedPassword = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
+
+            User user = User.builder()
+                    .username(usernameField.getText().trim())
+                    .password(generatedPassword)
+                    .fullName(blankToNull(nameField.getText()))
+                    .email(defaultEmailIfBlank(emailField.getText(), usernameField.getText().trim()))
+                    .phoneNumber(blankToNull(phoneField.getText()))
+                    .idRoleValue(mapRoleOptionToId((String) roleBox.getSelectedItem()))
+                    .status("Hoạt động".equals(statusBox.getSelectedItem()) ? "active" : "off")
+                    .build();
+
+            try {
+                userService.create(user);
+                loadUsers(userService.getAll());
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Đã tạo tài khoản thành công.\nUsername: " + user.getUsername() + "\nMật khẩu mặc định: " + generatedPassword,
+                        "Tạo tài khoản thành công",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Không thể thêm người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void handleEdit() {
         int row = table.getSelectedRow();
-        if (row < 0) return;
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn người dùng để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        JTextField nameField = new JTextField((String) tableModel.getValueAt(row, 1));
-        JTextField genderField = new JTextField((String) tableModel.getValueAt(row, 2));
-        JTextField dobField = new JTextField((String) tableModel.getValueAt(row, 3));
-        JTextField emailField = new JTextField((String) tableModel.getValueAt(row, 4));
-        JTextField phoneField = new JTextField((String) tableModel.getValueAt(row, 5));
-        JTextField roleField = new JTextField((String) tableModel.getValueAt(row, 6));
+        User user = getSelectedUser();
+        if (user == null) {
+            return;
+        }
+
+        if (isOtherAdmin(user)) {
+            JOptionPane.showMessageDialog(this, "Bạn không có quyền sửa thông tin admin khác.", "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JTextField nameField = new JTextField(safe(user.getFullName()));
+        JTextField emailField = new JTextField(safe(user.getEmail()));
+        JTextField phoneField = new JTextField(safe(user.getPhoneNumber()));
+        JComboBox<String> roleBox = new JComboBox<>(new String[]{"ADMIN", "GIAM_THI", "HOC_SINH"});
+        roleBox.setSelectedItem(roleOptionFromId(user.getIdRoleValue()));
+        roleBox.setEnabled(SessionManager.hasPermission("USER_CHANGE_ROLE"));
+        JComboBox<String> statusBox = new JComboBox<>(new String[]{"Hoạt động", "Đã khóa"});
+        statusBox.setSelectedItem(toStatusLabel(user.getStatus()));
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+        panel.add(new JLabel("Username:"));
+        JTextField usernameField = new JTextField(safe(user.getUsername()));
+        usernameField.setEditable(false);
+        panel.add(usernameField);
         panel.add(new JLabel("Họ tên:"));
         panel.add(nameField);
-        panel.add(new JLabel("Giới tính:"));
-        panel.add(genderField);
-        panel.add(new JLabel("Ngày sinh:"));
-        panel.add(dobField);
         panel.add(new JLabel("Email:"));
         panel.add(emailField);
         panel.add(new JLabel("Điện thoại:"));
         panel.add(phoneField);
         panel.add(new JLabel("Vai trò:"));
-        panel.add(roleField);
+        panel.add(roleBox);
+        panel.add(new JLabel("Trạng thái:"));
+        panel.add(statusBox);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Sửa người dùng", JOptionPane.OK_CANCEL_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
-            tableModel.setValueAt(nameField.getText(), row, 1);
-            tableModel.setValueAt(genderField.getText(), row, 2);
-            tableModel.setValueAt(dobField.getText(), row, 3);
-            tableModel.setValueAt(emailField.getText(), row, 4);
-            tableModel.setValueAt(phoneField.getText(), row, 5);
-            tableModel.setValueAt(roleField.getText(), row, 6);
-            updateDetailFromSelection();
+            user.setFullName(blankToNull(nameField.getText()));
+            user.setEmail(defaultEmailIfBlank(emailField.getText(), user.getUsername()));
+            user.setPhoneNumber(blankToNull(phoneField.getText()));
+            if (SessionManager.hasPermission("USER_CHANGE_ROLE")) {
+                user.setIdRoleValue(mapRoleOptionToId((String) roleBox.getSelectedItem()));
+            }
+            user.setStatus("Hoạt động".equals(statusBox.getSelectedItem()) ? "active" : "off");
+
+            try {
+                userService.update(user);
+                loadUsers(userService.getAll());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Không thể cập nhật người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void handleDelete() {
-        int row = table.getSelectedRow();
-        if (row >= 0) tableModel.removeRow(row);
+        User user = getSelectedUser();
+        if (user == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn người dùng để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (isOtherAdmin(user)) {
+            JOptionPane.showMessageDialog(this, "Bạn không có quyền xóa admin khác.", "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn xóa user '" + safe(user.getUsername()) + "' không?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            userService.deleteById(user.getId());
+            loadUsers(userService.getAll());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Không thể xóa người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleSearch(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty() || keyword.equals("Tìm họ tên, email...")) {
+            loadUsers(userService.getAll());
+            return;
+        }
+
+        loadUsers(userService.searchByKeyword(keyword.trim()));
+    }
+
+    private void loadUsers(List<User> users) {
+        currentUsers.clear();
+        currentUsers.addAll(users);
+        tableModel.setRowCount(0);
+
+        for (User user : currentUsers) {
+            tableModel.addRow(new Object[]{
+                    user.getId(),
+                    safe(user.getUsername()),
+                    safe(user.getFullName()),
+                    safe(user.getEmail()),
+                    safe(user.getPhoneNumber()),
+                    toRoleLabel(user),
+                    toStatusLabel(user.getStatus())
+            });
+        }
+
         if (tableModel.getRowCount() > 0) {
             table.setRowSelectionInterval(0, 0);
         } else {
@@ -347,16 +451,103 @@ public class UserManagementPanel extends JPanel {
         }
     }
 
-    private void handleSearch(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) return;
-
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            String name = tableModel.getValueAt(i, 1).toString().toLowerCase();
-            if (name.contains(keyword.toLowerCase())) {
-                table.setRowSelectionInterval(i, i);
-                break;
-            }
+    private User getSelectedUser() {
+        int row = table.getSelectedRow();
+        if (row < 0 || row >= currentUsers.size()) {
+            return null;
         }
+        Integer userId = currentUsers.get(row).getId();
+        Optional<User> latest = userService.getById(userId);
+        return latest.orElse(currentUsers.get(row));
+    }
+
+    private String toRoleLabel(User user) {
+        if (user.getRole() != null && user.getRole().getName() != null) {
+            return user.getRole().getName();
+        }
+        return roleFromId(user.getIdRoleValue());
+    }
+
+    private String roleFromId(Integer roleId) {
+        if (roleId == null) {
+            return "N/A";
+        }
+        if (roleId == 1) {
+            return "ADMIN";
+        }
+        if (roleId == 2) {
+            return "GIAM_THI";
+        }
+        if (roleId == 3) {
+            return "HOC_SINH";
+        }
+        return "role_id=" + roleId;
+    }
+
+    private String roleOptionFromId(Integer roleId) {
+        if (roleId == null) {
+            return "GIAM_THI";
+        }
+        if (roleId == 1) {
+            return "ADMIN";
+        }
+        if (roleId == 2) {
+            return "GIAM_THI";
+        }
+        if (roleId == 3) {
+            return "HOC_SINH";
+        }
+        return "GIAM_THI";
+    }
+
+    private Integer mapRoleOptionToId(String roleOption) {
+        if ("ADMIN".equalsIgnoreCase(roleOption)) {
+            return 1;
+        }
+        if ("GIAM_THI".equalsIgnoreCase(roleOption)) {
+            return 2;
+        }
+        return 3;
+    }
+
+    private boolean isOtherAdmin(User targetUser) {
+        if (targetUser == null || targetUser.getIdRoleValue() == null || targetUser.getIdRoleValue() != 1) {
+            return false;
+        }
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser == null || currentUser.getId() == null || targetUser.getId() == null) {
+            return true;
+        }
+        return !currentUser.getId().equals(targetUser.getId());
+    }
+
+    private String toStatusLabel(String status) {
+        if ("active".equalsIgnoreCase(status)) {
+            return "Hoạt động";
+        }
+        if ("off".equalsIgnoreCase(status)) {
+            return "Đã khóa";
+        }
+        return safe(status);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String defaultEmailIfBlank(String email, String username) {
+        String trimmed = email == null ? "" : email.trim();
+        if (!trimmed.isEmpty()) {
+            return trimmed;
+        }
+        return username + "@local";
     }
 
     private JButton createButton(String text, Color color) {
@@ -368,5 +559,25 @@ public class UserManagementPanel extends JPanel {
         btn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private void applySearchPlaceholder(JTextField field, String placeholderText) {
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (field.getText().equals(placeholderText)) {
+                    field.setText("");
+                    field.setForeground(UIStyles.TEXT_DARK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (field.getText().trim().isEmpty()) {
+                    field.setText(placeholderText);
+                    field.setForeground(UIStyles.TEXT_MUTED);
+                }
+            }
+        });
     }
 }

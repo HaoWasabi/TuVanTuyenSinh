@@ -11,6 +11,10 @@ import java.awt.FlowLayout;
 
 public class TopBar extends JPanel {
     public TopBar() {
+        this(null);
+    }
+
+    public TopBar(Runnable onLogout) {
         setLayout(new BorderLayout(16, 0));
         setBackground(UIStyles.BG_TOPBAR);
         setBorder(BorderFactory.createCompoundBorder(
@@ -57,6 +61,9 @@ public class TopBar extends JPanel {
         logoutBtn.setForeground(Color.WHITE);
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+        if (onLogout != null) {
+            logoutBtn.addActionListener(e -> onLogout.run());
+        }
 
         rightPanel.add(notifBtn);
         rightPanel.add(userLabel);

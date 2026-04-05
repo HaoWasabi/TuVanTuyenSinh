@@ -1,5 +1,7 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.service.SessionManager;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -23,7 +25,7 @@ public class AdmissionsDemoFrame extends JFrame {
         setContentPane(root);
 
         // Top bar
-        root.add(new TopBar(), BorderLayout.NORTH);
+        root.add(new TopBar(this::handleLogout), BorderLayout.NORTH);
 
         // Main layout: sidebar + content
         JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
@@ -36,6 +38,7 @@ public class AdmissionsDemoFrame extends JFrame {
 
         // Add available panels
         contentPanel.add(new DashboardPanel(), "dashboard");
+        contentPanel.add(new PersonalInfoPanel(), "personal");
         registerLazyCard("candidate", CandidateManagementPanel::new);
         registerLazyCard("major", MajorManagementPanel::new);
         registerLazyCard("diem", DiemThiPanel::new);
@@ -62,9 +65,47 @@ public class AdmissionsDemoFrame extends JFrame {
     }
 
     private void preparePanel(String key) {
+        if (!canAccessPage(key)) {
+            javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Bạn không có quyền truy cập chức năng này.",
+                    "Từ chối truy cập",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            cardLayout.show(contentPanel, "dashboard");
+            return;
+        }
+
         LazyPanelCard card = lazyCards.get(key);
         if (card != null) {
             card.ensureLoaded();
+        }
+    }
+
+    private boolean canAccessPage(String key) {
+        return switch (key) {
+            case "candidate" -> SessionManager.hasAnyPermission("THISINH_VIEW");
+            case "major" -> SessionManager.hasAnyPermission("NGANH_VIEW", "NGANH_TOHOP_VIEW");
+            case "diem" -> SessionManager.hasAnyPermission("DIEM_VIEW");
+            case "nguyenVong" -> SessionManager.hasAnyPermission("NGUYENVONG_VIEW");
+            case "diemCong" -> SessionManager.hasAnyPermission("DIEMCONG_VIEW");
+            case "user" -> SessionManager.hasAnyPermission("USER_VIEW");
+            case "permission" -> SessionManager.hasAnyPermission("USER_CHANGE_ROLE");
+            case "report" -> SessionManager.hasAnyPermission("DIEM_THONGKE");
+            default -> true;
+        };
+    }
+
+    private void handleLogout() {
+        int confirm = javax.swing.JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn đăng xuất không?",
+                "Xác nhận đăng xuất",
+                javax.swing.JOptionPane.YES_NO_OPTION
+        );
+        if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+            new RoleSelectionFrame().setVisible(true);
+            dispose();
         }
     }
 }

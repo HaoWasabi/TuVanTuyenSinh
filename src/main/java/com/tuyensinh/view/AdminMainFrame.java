@@ -13,7 +13,7 @@ public class AdminMainFrame extends JFrame {
         setLayout(new BorderLayout());
 
         // TopBar
-        add(new TopBar(), BorderLayout.NORTH);
+        add(new TopBar(this::handleLogout), BorderLayout.NORTH);
 
         // Content dùng CardLayout
         CardLayout cardLayout = new CardLayout();
@@ -39,5 +39,18 @@ public class AdminMainFrame extends JFrame {
 
         // Mặc định hiện dashboard
         cardLayout.show(contentPanel, "dashboard");
+    }
+
+    private void handleLogout() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn đăng xuất không?",
+                "Xác nhận đăng xuất",
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm == JOptionPane.YES_OPTION) {
+            new RoleSelectionFrame().setVisible(true);
+            dispose();
+        }
     }
 }

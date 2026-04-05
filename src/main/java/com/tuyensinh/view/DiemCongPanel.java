@@ -67,12 +67,15 @@ public class DiemCongPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        searchInput.setText("Tìm CCCD, mã ngành...");
+        String placeholderText = "Tìm CCCD, mã ngành...";
+        searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
+        searchInput.setForeground(UIStyles.TEXT_MUTED);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
                 new EmptyBorder(6, 10, 6, 10)
         ));
+        applySearchPlaceholder(searchInput, placeholderText);
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
         searchBtn.addActionListener(e -> handleSearch(searchInput.getText()));
@@ -525,5 +528,25 @@ public class DiemCongPanel extends JPanel {
         btn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private void applySearchPlaceholder(JTextField field, String placeholderText) {
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (field.getText().equals(placeholderText)) {
+                    field.setText("");
+                    field.setForeground(UIStyles.TEXT_DARK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (field.getText().trim().isEmpty()) {
+                    field.setText(placeholderText);
+                    field.setForeground(UIStyles.TEXT_MUTED);
+                }
+            }
+        });
     }
 }

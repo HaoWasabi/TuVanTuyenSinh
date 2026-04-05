@@ -6,9 +6,28 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import java.time.LocalDateTime;
 
+import java.util.List;
 import java.util.Optional;
 
 public class UserRepository {
+
+    public List<User> findAll() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from User u order by u.id desc", User.class).list();
+        }
+    }
+
+    public List<User> searchByKeyword(String keyword) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "from User u where lower(u.username) like :kw " +
+                    "or lower(u.email) like :kw " +
+                    "or lower(u.fullName) like :kw " +
+                    "order by u.id desc";
+            return session.createQuery(hql, User.class)
+                    .setParameter("kw", "%" + keyword.toLowerCase() + "%")
+                    .list();
+        }
+    }
 
     public User save(User user) {
         Transaction tx = null;

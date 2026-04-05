@@ -1,8 +1,10 @@
+
 package com.tuyensinh.service;
 
 import com.tuyensinh.model.User;
 import com.tuyensinh.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class UserService {
@@ -13,6 +15,14 @@ public class UserService {
         this.userRepository = new UserRepository();
     }
 
+    public List<User> getAll() {
+        return userRepository.findAll();
+    }
+
+    public List<User> searchByKeyword(String keyword) {
+        return userRepository.searchByKeyword(keyword);
+    }
+
     public User create(User user) {
         validateRoleAndStatus(user);
         return userRepository.save(user);
@@ -20,6 +30,10 @@ public class UserService {
 
     public Optional<User> getById(Integer id) {
         return userRepository.findById(id);
+    }
+
+    public Optional<User> getByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User update(User user) {

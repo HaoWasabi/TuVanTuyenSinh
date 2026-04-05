@@ -41,6 +41,21 @@ public class SessionManager {
     }
 
     public static boolean hasPermission(String code) {
+        if (currentUser != null && currentUser.getIdRoleValue() != null && currentUser.getIdRoleValue() == 1) {
+            return true;
+        }
         return permissions.contains(code);
+    }
+
+    public static boolean hasAnyPermission(String... codes) {
+        if (codes == null || codes.length == 0) {
+            return true;
+        }
+        for (String code : codes) {
+            if (hasPermission(code)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
