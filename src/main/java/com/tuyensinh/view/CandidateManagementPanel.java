@@ -8,12 +8,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,10 +23,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class CandidateManagementPanel extends JPanel {
-    private final DefaultTableModel tableModel;
-    private final JTable table;
+    private DefaultTableModel tableModel;
+    private JTable table;
     private final ThiSinhService thiSinhService = new ThiSinhService();
     private List<ThiSinh> currentData = new ArrayList<>();
+    private final JTextField detailCccdField = new JTextField();
+    private final JTextField detailSbdField = new JTextField();
+    private final JTextField detailNameField = new JTextField();
+    private final JTextField detailDobField = new JTextField();
+    private final JTextField detailGenderField = new JTextField();
+    private final JTextField detailEmailField = new JTextField();
+    private final JTextField detailPhoneField = new JTextField();
+    private final JTextField detailAreaField = new JTextField();
+    private final JLabel selectedCandidateLabel = new JLabel("Chưa chọn thí sinh");
 
     public CandidateManagementPanel() {
         setLayout(new BorderLayout(16, 16));
@@ -37,7 +48,24 @@ public class CandidateManagementPanel extends JPanel {
         title.setForeground(UIStyles.TEXT_DARK);
         add(title, BorderLayout.NORTH);
 
-        // Search & Actions
+        JPanel root = new JPanel(new BorderLayout(0, 14));
+        root.setOpaque(false);
+        root.add(createContentSplit(), BorderLayout.CENTER);
+        add(root, BorderLayout.CENTER);
+
+        loadDataToTable();
+    }
+
+    private JSplitPane createContentSplit() {
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createListCard(), createDetailCard());
+        splitPane.setResizeWeight(0.64);
+        splitPane.setDividerSize(8);
+        splitPane.setDividerLocation(0.64);
+        splitPane.setBorder(null);
+        return splitPane;
+    }
+
+    private JPanel createListCard() {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.setOpaque(false);
 
@@ -45,33 +73,20 @@ public class CandidateManagementPanel extends JPanel {
         searchInput.setText("Tìm CCCD, họ tên...");
         searchInput.setFont(UIStyles.FONT_BODY);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UIStyles.BORDER),
-            new EmptyBorder(6, 10, 6, 10)
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(6, 10, 6, 10)
         ));
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
         searchBtn.addActionListener(e -> handleSearch(searchInput.getText()));
 
-        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
-        importBtn.addActionListener(e -> handleImport());
+        JButton refreshBtn = createButton("Làm mới", UIStyles.INFO);
+        refreshBtn.addActionListener(e -> handleRefresh());
 
-        JButton addBtn = createButton("Thêm", UIStyles.INFO);
-        addBtn.addActionListener(e -> handleAdd());
-
-        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-        editBtn.addActionListener(e -> handleEdit());
-
-        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-        deleteBtn.addActionListener(e -> handleDelete());
         toolbar.add(searchInput);
         toolbar.add(searchBtn);
         toolbar.add(new javax.swing.JSeparator(javax.swing.JSeparator.VERTICAL));
-        toolbar.add(importBtn);
-        toolbar.add(addBtn);
-        toolbar.add(editBtn);
-        toolbar.add(deleteBtn);
 
-        // Table - đầy đủ các trường từ database
         String[] cols = {"CCCD", "Số báo danh", "Họ", "Tên", "Ngày sinh", "Giới tính", "Email", "Điện thoại", "Nơi sinh", "Đối tượng", "Khu vực"};
         tableModel = new DefaultTableModel(null, cols) {
             @Override
@@ -86,6 +101,11 @@ public class CandidateManagementPanel extends JPanel {
         table.getTableHeader().setBackground(new Color(247, 249, 251));
         table.setFont(UIStyles.FONT_BODY);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateDetailFromSelection();
+            }
+        });
 
         JPanel tableCard = new JPanel(new BorderLayout(0, 12));
         tableCard.setBackground(UIStyles.BG_CARD);
@@ -97,10 +117,17 @@ public class CandidateManagementPanel extends JPanel {
         JLabel tableTitle = new JLabel("Danh sách thí sinh (Phân trang 20 dòng/trang)");
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
-        tableCard.add(tableTitle, BorderLayout.NORTH);
+
+        JPanel listHeader = new JPanel(new BorderLayout());
+        listHeader.setOpaque(false);
+        listHeader.add(tableTitle, BorderLayout.WEST);
+        JPanel listActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        listActions.setOpaque(false);
+        listActions.add(refreshBtn);
+        listHeader.add(listActions, BorderLayout.EAST);
+        tableCard.add(listHeader, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Pagination
         JPanel pagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
         pagination.setOpaque(false);
         pagination.add(createButton("Trước", UIStyles.PRIMARY));
@@ -108,20 +135,156 @@ public class CandidateManagementPanel extends JPanel {
         pagination.add(createButton("Sau", UIStyles.PRIMARY));
         tableCard.add(pagination, BorderLayout.SOUTH);
 
-        JPanel center = new JPanel();
-        center.setOpaque(false);
-        center.setLayout(new BorderLayout(0, 12));
-        center.add(toolbar, BorderLayout.NORTH);
-        center.add(tableCard, BorderLayout.CENTER);
+        JPanel card = new JPanel(new BorderLayout(0, 12));
+        card.setBackground(UIStyles.BG_CARD);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+        card.add(toolbar, BorderLayout.NORTH);
+        card.add(tableCard, BorderLayout.CENTER);
+        return card;
+    }
 
-        add(center, BorderLayout.CENTER);
+    private JPanel createDetailCard() {
+        JPanel card = new JPanel(new BorderLayout(0, 12));
+        card.setBackground(UIStyles.BG_CARD);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
 
-        loadDataToTable();
+        JPanel header = new JPanel(new BorderLayout(0, 6));
+        header.setOpaque(false);
+        JLabel title = new JLabel("Chi tiết thí sinh");
+        title.setFont(UIStyles.FONT_SUBTITLE);
+        title.setForeground(UIStyles.TEXT_DARK);
+        header.add(title, BorderLayout.WEST);
+
+        JPanel rightHeader = new JPanel(new BorderLayout(0, 6));
+        rightHeader.setOpaque(false);
+        selectedCandidateLabel.setFont(UIStyles.FONT_SMALL);
+        selectedCandidateLabel.setForeground(UIStyles.TEXT_MUTED);
+        rightHeader.add(selectedCandidateLabel, BorderLayout.NORTH);
+        rightHeader.add(createDetailActions(), BorderLayout.SOUTH);
+        header.add(rightHeader, BorderLayout.EAST);
+
+        JPanel fields = new JPanel(new java.awt.GridLayout(0, 1, 0, 8));
+        fields.setOpaque(false);
+        fields.add(labelWithField("CCCD", detailCccdField));
+        fields.add(labelWithField("Số báo danh", detailSbdField));
+        fields.add(labelWithField("Họ và tên", detailNameField));
+        fields.add(labelWithField("Ngày sinh", detailDobField));
+        fields.add(labelWithField("Giới tính", detailGenderField));
+        fields.add(labelWithField("Email", detailEmailField));
+        fields.add(labelWithField("Điện thoại", detailPhoneField));
+        fields.add(labelWithField("Khu vực / Đối tượng", detailAreaField));
+
+        JScrollPane fieldsScroll = new JScrollPane(fields);
+        fieldsScroll.setBorder(null);
+        fieldsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        fieldsScroll.getVerticalScrollBar().setUnitIncrement(12);
+
+        card.add(header, BorderLayout.NORTH);
+        card.add(fieldsScroll, BorderLayout.CENTER);
+
+        configureReadOnlyField(detailCccdField);
+        configureReadOnlyField(detailSbdField);
+        configureReadOnlyField(detailNameField);
+        configureReadOnlyField(detailDobField);
+        configureReadOnlyField(detailGenderField);
+        configureReadOnlyField(detailEmailField);
+        configureReadOnlyField(detailPhoneField);
+        configureReadOnlyField(detailAreaField);
+        card.setPreferredSize(new Dimension(440, 0));
+        card.setMinimumSize(new Dimension(440, 0));
+
+        return card;
+    }
+
+    private JPanel createDetailActions() {
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
+        importBtn.addActionListener(e -> handleImport());
+        JButton addBtn = createButton("Thêm", UIStyles.INFO);
+        addBtn.addActionListener(e -> handleAdd());
+        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+        editBtn.addActionListener(e -> handleEdit());
+        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
+        deleteBtn.addActionListener(e -> handleDelete());
+
+        actions.add(importBtn);
+        actions.add(addBtn);
+        actions.add(editBtn);
+        actions.add(deleteBtn);
+        return actions;
+    }
+
+    private JPanel labelWithField(String label, JTextField field) {
+        JPanel panel = new JPanel(new BorderLayout(0, 4));
+        panel.setOpaque(false);
+        JLabel text = new JLabel(label);
+        text.setFont(UIStyles.FONT_LABEL);
+        text.setForeground(UIStyles.TEXT_DARK);
+        panel.add(text, BorderLayout.NORTH);
+        panel.add(field, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void configureReadOnlyField(JTextField field) {
+        field.setEditable(false);
+        field.setBackground(new Color(247, 249, 251));
+        field.setFont(UIStyles.FONT_BODY);
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(6, 10, 6, 10)
+        ));
+    }
+
+    private void updateDetailFromSelection() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            selectedCandidateLabel.setText("Chưa chọn thí sinh");
+            detailCccdField.setText("");
+            detailSbdField.setText("");
+            detailNameField.setText("");
+            detailDobField.setText("");
+            detailGenderField.setText("");
+            detailEmailField.setText("");
+            detailPhoneField.setText("");
+            detailAreaField.setText("");
+            return;
+        }
+
+        String cccd = String.valueOf(tableModel.getValueAt(selectedRow, 0));
+        String sbd = String.valueOf(tableModel.getValueAt(selectedRow, 1));
+        String fullName = String.valueOf(tableModel.getValueAt(selectedRow, 2)) + " " + String.valueOf(tableModel.getValueAt(selectedRow, 3));
+        String dob = String.valueOf(tableModel.getValueAt(selectedRow, 4));
+        String gender = String.valueOf(tableModel.getValueAt(selectedRow, 5));
+        String email = String.valueOf(tableModel.getValueAt(selectedRow, 6));
+        String phone = String.valueOf(tableModel.getValueAt(selectedRow, 7));
+        String area = String.valueOf(tableModel.getValueAt(selectedRow, 10)) + " / " + String.valueOf(tableModel.getValueAt(selectedRow, 9));
+
+        selectedCandidateLabel.setText("Đang chọn: " + fullName.trim());
+        detailCccdField.setText(cccd);
+        detailSbdField.setText(sbd);
+        detailNameField.setText(fullName.trim());
+        detailDobField.setText(dob);
+        detailGenderField.setText(gender);
+        detailEmailField.setText(email);
+        detailPhoneField.setText(phone);
+        detailAreaField.setText(area);
     }
 
     private void loadDataToTable() {
         currentData = thiSinhService.getAll();
         renderTable(currentData);
+    }
+
+    private void handleRefresh() {
+        loadDataToTable();
     }
 
     private void renderTable(List<ThiSinh> thiSinhList) {
@@ -142,10 +305,15 @@ public class CandidateManagementPanel extends JPanel {
             };
             tableModel.addRow(row);
         }
+        if (tableModel.getRowCount() > 0) {
+            table.setRowSelectionInterval(0, 0);
+        } else {
+            updateDetailFromSelection();
+        }
     }
 
     private void handleAdd() {
-        CandidateFormDialog dialog = new CandidateFormDialog(getTopLevelAncestor() instanceof java.awt.Frame ? 
+        CandidateFormDialog dialog = new CandidateFormDialog(getTopLevelAncestor() instanceof java.awt.Frame ?
                 (java.awt.Frame) getTopLevelAncestor() : null, "Thêm Thí Sinh", false);
         dialog.setVisible(true);
 

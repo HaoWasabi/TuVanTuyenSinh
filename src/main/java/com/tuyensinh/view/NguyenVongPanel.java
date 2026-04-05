@@ -11,8 +11,18 @@ import java.io.File;
 import java.util.List;
 
 public class NguyenVongPanel extends JPanel {
-    private final DefaultTableModel tableModel;
-    private final JTable table;
+    private DefaultTableModel tableModel;
+    private JTable table;
+    private final JTextField detailIdField = new JTextField();
+    private final JTextField detailCccdField = new JTextField();
+    private final JTextField detailNganhField = new JTextField();
+    private final JTextField detailOrderField = new JTextField();
+    private final JTextField detailMethodField = new JTextField();
+    private final JTextField detailToHopField = new JTextField();
+    private final JTextField detailScoreField = new JTextField();
+    private final JTextField detailResultField = new JTextField();
+    private final JTextField detailKeyField = new JTextField();
+    private final JLabel selectedLabel = new JLabel("Chưa chọn bản ghi");
 
     // CÁC BIẾN NÀY ĐỂ QUẢN LÝ PHÂN TRANG
     private List<NguyenVong> currentDataList = new java.util.ArrayList<>();
@@ -38,6 +48,19 @@ public class NguyenVongPanel extends JPanel {
         title.setForeground(UIStyles.TEXT_DARK);
         add(title, BorderLayout.NORTH);
 
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createListCard(), createDetailCard());
+        splitPane.setResizeWeight(0.64);
+        splitPane.setDividerSize(8);
+        splitPane.setDividerLocation(0.64);
+        splitPane.setBorder(null);
+        add(splitPane, BorderLayout.CENTER);
+
+        // TỰ ĐỘNG LOAD DỮ LIỆU KHI MỞ PANEL
+        loadDataToTable();
+    }
+
+    private JPanel createListCard() {
+
         // Search & Actions Toolbar
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.setOpaque(false);
@@ -52,26 +75,12 @@ public class NguyenVongPanel extends JPanel {
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
         searchBtn.addActionListener(e -> handleSearch(searchInput.getText()));
-
-        JButton importBtn = createButton("Import Excel", UIStyles.SUCCESS);
-        importBtn.addActionListener(e -> handleImport());
-
-        JButton addBtn = createButton("Thêm", UIStyles.INFO);
-        addBtn.addActionListener(e -> handleAdd());
-
-        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-        editBtn.addActionListener(e -> handleEdit());
-
-        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-        deleteBtn.addActionListener(e -> handleDelete());
+        JButton refreshBtn = createButton("Làm mới", UIStyles.INFO);
+        refreshBtn.addActionListener(e -> handleRefresh());
 
         toolbar.add(searchInput);
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
-        toolbar.add(importBtn);
-        toolbar.add(addBtn);
-        toolbar.add(editBtn);
-        toolbar.add(deleteBtn);
 
         // Cấu hình Cột cho Bảng Điểm Cộng
         String[] cols = {
@@ -92,6 +101,11 @@ public class NguyenVongPanel extends JPanel {
         table.getTableHeader().setBackground(new Color(247, 249, 251));
         table.setFont(UIStyles.FONT_BODY);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Có thanh cuộn ngang vì rất nhiều cột
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateDetailFromSelection();
+            }
+        });
 
         // Chỉnh độ rộng một số cột quan trọng
         table.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
@@ -108,7 +122,15 @@ public class NguyenVongPanel extends JPanel {
         JLabel tableTitle = new JLabel("Danh sách nguyện vọng thí sinh");
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
-        tableCard.add(tableTitle, BorderLayout.NORTH);
+
+        JPanel listHeader = new JPanel(new BorderLayout());
+        listHeader.setOpaque(false);
+        listHeader.add(tableTitle, BorderLayout.WEST);
+        JPanel listActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        listActions.setOpaque(false);
+        listActions.add(refreshBtn);
+        listHeader.add(listActions, BorderLayout.EAST);
+        tableCard.add(listHeader, BorderLayout.NORTH);
 
         JScrollPane scrollPane = new JScrollPane(table);
         tableCard.add(scrollPane, BorderLayout.CENTER);
@@ -147,11 +169,138 @@ public class NguyenVongPanel extends JPanel {
         center.setLayout(new BorderLayout(0, 12));
         center.add(toolbar, BorderLayout.NORTH);
         center.add(tableCard, BorderLayout.CENTER);
+        return center;
+    }
 
-        add(center, BorderLayout.CENTER);
+    private JPanel createDetailCard() {
+        JPanel card = new JPanel(new BorderLayout(0, 12));
+        card.setBackground(UIStyles.BG_CARD);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
 
-        // TỰ ĐỘNG LOAD DỮ LIỆU KHI MỞ PANEL
-        loadDataToTable();
+        JPanel header = new JPanel(new BorderLayout(0, 6));
+        header.setOpaque(false);
+        JLabel title = new JLabel("Chi tiết nguyện vọng");
+        title.setFont(UIStyles.FONT_SUBTITLE);
+        title.setForeground(UIStyles.TEXT_DARK);
+        header.add(title, BorderLayout.WEST);
+
+        JPanel rightHeader = new JPanel(new BorderLayout(0, 6));
+        rightHeader.setOpaque(false);
+        selectedLabel.setFont(UIStyles.FONT_SMALL);
+        selectedLabel.setForeground(UIStyles.TEXT_MUTED);
+        rightHeader.add(selectedLabel, BorderLayout.NORTH);
+        rightHeader.add(createDetailActions(), BorderLayout.SOUTH);
+        header.add(rightHeader, BorderLayout.EAST);
+
+        JPanel fields = new JPanel(new GridLayout(0, 1, 0, 8));
+        fields.setOpaque(false);
+        fields.add(labelWithField("ID nguyện vọng", detailIdField));
+        fields.add(labelWithField("CCCD", detailCccdField));
+        fields.add(labelWithField("Mã ngành", detailNganhField));
+        fields.add(labelWithField("Thứ tự nguyện vọng", detailOrderField));
+        fields.add(labelWithField("Phương thức xét tuyển", detailMethodField));
+        fields.add(labelWithField("Mã tổ hợp môn", detailToHopField));
+        fields.add(labelWithField("Điểm (THXT/UTQĐ/Cộng/Xét tuyển)", detailScoreField));
+        fields.add(labelWithField("Kết quả", detailResultField));
+        fields.add(labelWithField("Khóa dữ liệu", detailKeyField));
+
+        JScrollPane fieldsScroll = new JScrollPane(fields);
+        fieldsScroll.setBorder(null);
+        fieldsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        fieldsScroll.getVerticalScrollBar().setUnitIncrement(12);
+
+        configureReadOnlyField(detailIdField);
+        configureReadOnlyField(detailCccdField);
+        configureReadOnlyField(detailNganhField);
+        configureReadOnlyField(detailOrderField);
+        configureReadOnlyField(detailMethodField);
+        configureReadOnlyField(detailToHopField);
+        configureReadOnlyField(detailScoreField);
+        configureReadOnlyField(detailResultField);
+        configureReadOnlyField(detailKeyField);
+        card.setPreferredSize(new Dimension(440, 0));
+        card.setMinimumSize(new Dimension(440, 0));
+
+        card.add(header, BorderLayout.NORTH);
+        card.add(fieldsScroll, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel createDetailActions() {
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
+        importBtn.addActionListener(e -> handleImport());
+        JButton addBtn = createButton("Thêm", UIStyles.INFO);
+        addBtn.addActionListener(e -> handleAdd());
+        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+        editBtn.addActionListener(e -> handleEdit());
+        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
+        deleteBtn.addActionListener(e -> handleDelete());
+
+        actions.add(importBtn);
+        actions.add(addBtn);
+        actions.add(editBtn);
+        actions.add(deleteBtn);
+        return actions;
+    }
+
+    private JPanel labelWithField(String label, JTextField field) {
+        JPanel panel = new JPanel(new BorderLayout(0, 4));
+        panel.setOpaque(false);
+        JLabel text = new JLabel(label);
+        text.setFont(UIStyles.FONT_LABEL);
+        text.setForeground(UIStyles.TEXT_DARK);
+        panel.add(text, BorderLayout.NORTH);
+        panel.add(field, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void configureReadOnlyField(JTextField field) {
+        field.setEditable(false);
+        field.setBackground(new Color(247, 249, 251));
+        field.setFont(UIStyles.FONT_BODY);
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyles.BORDER),
+                new EmptyBorder(6, 10, 6, 10)
+        ));
+    }
+
+    private void updateDetailFromSelection() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            selectedLabel.setText("Chưa chọn bản ghi");
+            detailIdField.setText("");
+            detailCccdField.setText("");
+            detailNganhField.setText("");
+            detailOrderField.setText("");
+            detailMethodField.setText("");
+            detailToHopField.setText("");
+            detailScoreField.setText("");
+            detailResultField.setText("");
+            detailKeyField.setText("");
+            return;
+        }
+
+        selectedLabel.setText("Đang chọn ID: " + String.valueOf(tableModel.getValueAt(row, 0)));
+        detailIdField.setText(String.valueOf(tableModel.getValueAt(row, 0)));
+        detailCccdField.setText(String.valueOf(tableModel.getValueAt(row, 1)));
+        detailNganhField.setText(String.valueOf(tableModel.getValueAt(row, 2)));
+        detailOrderField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
+        detailScoreField.setText(
+                String.valueOf(tableModel.getValueAt(row, 4)) + " / " +
+                        String.valueOf(tableModel.getValueAt(row, 5)) + " / " +
+                        String.valueOf(tableModel.getValueAt(row, 6)) + " / " +
+                        String.valueOf(tableModel.getValueAt(row, 7))
+        );
+        detailResultField.setText(String.valueOf(tableModel.getValueAt(row, 8)));
+        detailKeyField.setText(String.valueOf(tableModel.getValueAt(row, 9)));
+        detailMethodField.setText(String.valueOf(tableModel.getValueAt(row, 10)));
+        detailToHopField.setText(String.valueOf(tableModel.getValueAt(row, 11)));
     }
 
     // ================= CÁC HÀM XỬ LÝ LOGIC =================
@@ -161,6 +310,10 @@ public class NguyenVongPanel extends JPanel {
         currentDataList = nguyenVongService.getAll();
         currentPage = 1; // Reset về trang 1
         renderTablePage();
+    }
+
+    private void handleRefresh() {
+        loadDataToTable();
     }
 
     // Chỉ vẽ đúng 20 dòng của trang hiện tại
@@ -190,6 +343,12 @@ public class NguyenVongPanel extends JPanel {
                     nv.getNvKetqua(), nv.getNvKeys(), nv.getTtPhuongthuc(), nv.getTtThm()
             };
             tableModel.addRow(row);
+        }
+
+        if (tableModel.getRowCount() > 0) {
+            table.setRowSelectionInterval(0, 0);
+        } else {
+            updateDetailFromSelection();
         }
     }
 
