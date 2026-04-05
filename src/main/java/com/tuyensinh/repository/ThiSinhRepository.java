@@ -85,6 +85,29 @@ public class ThiSinhRepository {
         }
     }
 
+    public boolean deleteByCccd(String cccd) {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            ThiSinh existing = session.createQuery("from ThiSinh t where t.cccd = :cccd", ThiSinh.class)
+                    .setParameter("cccd", cccd)
+                    .setMaxResults(1)
+                    .uniqueResult();
+
+            if (existing == null) {
+                tx.commit();
+                return false;
+            }
+
+            session.remove(existing);
+            tx.commit();
+            return true;
+        } catch (Exception ex) {
+            rollbackQuietly(tx);
+            throw ex;
+        }
+    }
+
     /**
      * Import danh sách Thí sinh từ file Excel
      * Tự động lọc các cột cần thiết và bỏ qua các cột điểm/đánh giá

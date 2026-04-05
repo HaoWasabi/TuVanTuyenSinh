@@ -12,13 +12,19 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 
 public class Sidebar extends JPanel {
     private final JPanel navContainer;
     private JButton selectedButton;
+    private final Consumer<String> beforeShow;
 
     public Sidebar(CardLayout cardLayout, JPanel contentPanel) {
+        this(cardLayout, contentPanel, null);
+    }
+
+    public Sidebar(CardLayout cardLayout, JPanel contentPanel, Consumer<String> beforeShow) {
+        this.beforeShow = beforeShow;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(260, 0));
         setBackground(UIStyles.BG_SIDEBAR);
@@ -41,10 +47,11 @@ public class Sidebar extends JPanel {
         addMenuItem("Quản lý thí sinh", "candidate", cardLayout, contentPanel);
         addMenuItem("Ngành & tổ hợp", "major", cardLayout, contentPanel);
         addMenuItem("Quản lý điểm", "diem", cardLayout, contentPanel);
-        addMenuItem("Nguyện vọng & xét", "nguyenVong", cardLayout, contentPanel);
+        addMenuItem("Nguyện vọng & xét tuyển", "nguyenVong", cardLayout, contentPanel);
         addMenuItem("Quản lý điểm cộng", "diemCong", cardLayout, contentPanel);
-        addMenuItem("Quản lý người dùng", "dashboard", cardLayout, contentPanel);
-        addMenuItem("Báo cáo & thống kê", "dashboard", cardLayout, contentPanel);
+        addMenuItem("Quản lý người dùng", "user", cardLayout, contentPanel);
+        addMenuItem("Báo cáo thống kê", "report", cardLayout, contentPanel);
+        addMenuItem("Phân quyền", "permission", cardLayout, contentPanel);
 
         JScrollPane scrollPane = new JScrollPane(navContainer);
         scrollPane.setBorder(null);
@@ -77,6 +84,9 @@ public class Sidebar extends JPanel {
         btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
         btn.addActionListener(e -> {
+            if (beforeShow != null) {
+                beforeShow.accept(pageKey);
+            }
             cardLayout.show(contentPanel, pageKey);
             selectButton(btn);
         });

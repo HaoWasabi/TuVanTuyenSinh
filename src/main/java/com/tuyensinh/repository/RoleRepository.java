@@ -5,6 +5,7 @@ import com.tuyensinh.model.Role;
 import com.tuyensinh.model.RolePermission;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +22,20 @@ public class RoleRepository {
         }
     }
 
+    public List<Role> findAll() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions ORDER BY r.id";
+            return session.createQuery(hql, Role.class).getResultList();
+        }
+    }
+
+    public List<String> findAllPermissionCodes() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "SELECT DISTINCT rp.permission FROM RolePermission rp ORDER BY rp.permission";
+            return session.createQuery(hql, String.class).getResultList();
+        }
+    }
+
     public Role save(Role role) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -34,6 +49,19 @@ public class RoleRepository {
             session.persist(role);
             tx.commit();
             return role;
+        } catch (Exception ex) {
+            if (tx != null) tx.rollback();
+            throw ex;
+        }
+    }
+
+    public Role update(Role role) {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Role merged = (Role) session.merge(role);
+            tx.commit();
+            return merged;
         } catch (Exception ex) {
             if (tx != null) tx.rollback();
             throw ex;
@@ -67,6 +95,40 @@ public class RoleRepository {
                     }
                 }
             }
+            tx.commit();
+        } catch (Exception ex) {
+            if (tx != null) tx.rollback();
+            throw ex;
+        }
+    }
+
+    public void replacePermissions(Integer roleId, List<String> permissionCodes) {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+
+            Role role = session.get(Role.class, roleId);
+            if (role == null) {
+                throw new IllegalArgumentException("Role không tồn tại: " + roleId);
+            }
+
+            session.createNativeQuery("DELETE FROM role_permissions WHERE role_id = :roleId")
+                    .setParameter("roleId", roleId)
+                    .executeUpdate();
+
+            List<String> codes = permissionCodes == null ? new ArrayList<>() : permissionCodes.stream()
+                    .filter(code -> code != null && !code.isBlank())
+                    .distinct()
+                    .toList();
+
+            for (String code : codes) {
+                RolePermission permission = RolePermission.builder()
+                        .role(role)
+                        .permission(code)
+                        .build();
+                session.persist(permission);
+            }
+
             tx.commit();
         } catch (Exception ex) {
             if (tx != null) tx.rollback();

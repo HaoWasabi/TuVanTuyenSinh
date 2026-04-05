@@ -40,6 +40,10 @@ public class ThiSinhService {
         return thiSinhRepository.save(thiSinh);
     }
 
+    public boolean deleteByCccd(String cccd) {
+        return thiSinhRepository.deleteByCccd(cccd);
+    }
+
     public List<ThiSinh> importFromExcel(String filePath) throws IOException {
         return thiSinhRepository.importFromExcel(filePath);
     }

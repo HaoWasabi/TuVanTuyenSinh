@@ -627,8 +627,11 @@ public class MajorManagementPanel extends JPanel {
         item.setTi(hasSubject(mon1, mon2, mon3, "tienganh"));
         item.setKtpl(hasSubject(mon1, mon2, mon3, "kinhtephapluat"));
 
-        boolean hasKnownSubject = item.isTo() || item.isLi() || item.isHo() || item.isSi()
-                || item.isVa() || item.isSu() || item.isDi() || item.isTi() || item.isKtpl();
+        boolean hasKnownSubject = Boolean.TRUE.equals(item.getTo()) || Boolean.TRUE.equals(item.getLi())
+            || Boolean.TRUE.equals(item.getHo()) || Boolean.TRUE.equals(item.getSi())
+            || Boolean.TRUE.equals(item.getVa()) || Boolean.TRUE.equals(item.getSu())
+            || Boolean.TRUE.equals(item.getDi()) || Boolean.TRUE.equals(item.getTi())
+            || Boolean.TRUE.equals(item.getKtpl());
         item.setKhac(!hasKnownSubject);
         item.setDoLech(parseBigDecimal(data != null && data.length > 10 ? data[10] : null));
         return item;

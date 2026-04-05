@@ -4,10 +4,13 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdmissionsDemoFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
+    private final Map<String, LazyPanelCard> lazyCards = new HashMap<>();
 
     public AdmissionsDemoFrame() {
         setTitle("Hệ thống xét tuyển sinh SGU 2026 - Adminty Theme");
@@ -33,17 +36,35 @@ public class AdmissionsDemoFrame extends JFrame {
 
         // Add available panels
         contentPanel.add(new DashboardPanel(), "dashboard");
-        contentPanel.add(new CandidateManagementPanel(), "candidate");
-        contentPanel.add(new MajorManagementPanel(), "major");
-        contentPanel.add(new DiemThiPanel(), "diem");
-        contentPanel.add(new DiemCongPanel(), "diemCong");
-        contentPanel.add(new NguyenVongPanel(), "nguyenVong");
+        registerLazyCard("candidate", CandidateManagementPanel::new);
+        registerLazyCard("major", MajorManagementPanel::new);
+        registerLazyCard("diem", DiemThiPanel::new);
+        registerLazyCard("diemCong", DiemCongPanel::new);
+        registerLazyCard("nguyenVong", NguyenVongPanel::new);
+        registerLazyCard("user", UserManagementPanel::new);
+        registerLazyCard("permission", RoleManagementPanel::new);
+        registerLazyCard("report", ReportsPanel::new);
 
         // Sidebar
-        Sidebar sidebar = new Sidebar(cardLayout, contentPanel);
+        Sidebar sidebar = new Sidebar(cardLayout, contentPanel, this::preparePanel);
         mainPanel.add(sidebar, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         root.add(mainPanel, BorderLayout.CENTER);
+
+        cardLayout.show(contentPanel, "dashboard");
+    }
+
+    private void registerLazyCard(String key, java.util.function.Supplier<JPanel> supplier) {
+        LazyPanelCard card = new LazyPanelCard(supplier);
+        lazyCards.put(key, card);
+        contentPanel.add(card, key);
+    }
+
+    private void preparePanel(String key) {
+        LazyPanelCard card = lazyCards.get(key);
+        if (card != null) {
+            card.ensureLoaded();
+        }
     }
 }

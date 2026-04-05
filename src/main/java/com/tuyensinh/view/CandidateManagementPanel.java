@@ -1,5 +1,8 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.ThiSinh;
+import com.tuyensinh.service.ThiSinhService;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -12,10 +15,16 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class CandidateManagementPanel extends JPanel {
     private final DefaultTableModel tableModel;
     private final JTable table;
+    private final ThiSinhService thiSinhService = new ThiSinhService();
+    private List<ThiSinh> currentData = new ArrayList<>();
 
     public CandidateManagementPanel() {
         setLayout(new BorderLayout(16, 16));
@@ -64,15 +73,7 @@ public class CandidateManagementPanel extends JPanel {
 
         // Table - đầy đủ các trường từ database
         String[] cols = {"CCCD", "Số báo danh", "Họ", "Tên", "Ngày sinh", "Giới tính", "Email", "Điện thoại", "Nơi sinh", "Đối tượng", "Khu vực"};
-        Object[][] data = {
-                {"079123456789", "B0001", "Nguyễn", "Văn A", "12/08/2008", "Nam", "a@gmail.com", "0912 111 222", "TP.HCM", "KV1", "KV1"},
-                {"079123456790", "B0002", "Trần", "Thị B", "20/11/2008", "Nữ", "b@gmail.com", "0903 222 333", "Hà Nội", "KV2", "KV2"},
-                {"079123456791", "B0003", "Lê", "Văn C", "01/03/2008", "Nam", "c@gmail.com", "0907 333 444", "Đà Nẵng", "KV3", "KV3"},
-                {"079123456792", "B0004", "Phạm", "Thị D", "27/05/2008", "Nữ", "d@gmail.com", "0938 555 666", "Cần Thơ", "KV2NT", "KV2NT"},
-                {"079123456793", "B0005", "Hoàng", "Văn E", "15/12/2008", "Nam", "e@gmail.com", "0945 777 888", "Hải Phòng", "KV1", "KV1"}
-        };
-
-        tableModel = new DefaultTableModel(data, cols) {
+        tableModel = new DefaultTableModel(null, cols) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -114,6 +115,33 @@ public class CandidateManagementPanel extends JPanel {
         center.add(tableCard, BorderLayout.CENTER);
 
         add(center, BorderLayout.CENTER);
+
+        loadDataToTable();
+    }
+
+    private void loadDataToTable() {
+        currentData = thiSinhService.getAll();
+        renderTable(currentData);
+    }
+
+    private void renderTable(List<ThiSinh> thiSinhList) {
+        tableModel.setRowCount(0);
+        for (ThiSinh ts : thiSinhList) {
+            Object[] row = {
+                    ts.getCccd(),
+                    ts.getSobaodanh(),
+                    ts.getHo(),
+                    ts.getTen(),
+                    ts.getNgaySinh(),
+                    ts.getGioiTinh(),
+                    ts.getEmail(),
+                    ts.getDienThoai(),
+                    ts.getNoiSinh(),
+                    ts.getDoiTuong(),
+                    ts.getKhuVuc()
+            };
+            tableModel.addRow(row);
+        }
     }
 
     private void handleAdd() {
@@ -122,21 +150,29 @@ public class CandidateManagementPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            Object[] newRow = {
-                    dialog.getCCCD(),
-                    dialog.getSbaodanh(),
-                    dialog.getHo(),
-                    dialog.getTen(),
-                    dialog.getNgaysinh(),
-                    dialog.getGioitinh(),
-                    dialog.getEmail(),
-                    dialog.getDienthoai(),
-                    dialog.getNoisinh(),
-                    dialog.getDoituong(),
-                    dialog.getKhuvuc()
-            };
-            tableModel.addRow(newRow);
-            javax.swing.JOptionPane.showMessageDialog(this, "Thêm thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            try {
+                ThiSinh thiSinh = ThiSinh.builder()
+                        .cccd(dialog.getCCCD())
+                        .sobaodanh(dialog.getSbaodanh())
+                        .ho(dialog.getHo())
+                        .ten(dialog.getTen())
+                        .ngaySinh(dialog.getNgaysinh())
+                        .gioiTinh(dialog.getGioitinh())
+                        .email(dialog.getEmail())
+                        .dienThoai(dialog.getDienthoai())
+                        .noiSinh(dialog.getNoisinh())
+                        .doiTuong(dialog.getDoituong())
+                        .khuVuc(dialog.getKhuvuc())
+                        .updatedAt(LocalDate.now())
+                        .password(dialog.getPassword().isBlank() ? dialog.getCCCD() : dialog.getPassword())
+                        .build();
+
+                thiSinhService.create(thiSinh);
+                loadDataToTable();
+                javax.swing.JOptionPane.showMessageDialog(this, "Thêm thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Lỗi khi thêm thí sinh: " + ex.getMessage(), "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -166,17 +202,36 @@ public class CandidateManagementPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            tableModel.setValueAt(dialog.getSbaodanh(), selectedRow, 1);
-            tableModel.setValueAt(dialog.getHo(), selectedRow, 2);
-            tableModel.setValueAt(dialog.getTen(), selectedRow, 3);
-            tableModel.setValueAt(dialog.getNgaysinh(), selectedRow, 4);
-            tableModel.setValueAt(dialog.getGioitinh(), selectedRow, 5);
-            tableModel.setValueAt(dialog.getEmail(), selectedRow, 6);
-            tableModel.setValueAt(dialog.getDienthoai(), selectedRow, 7);
-            tableModel.setValueAt(dialog.getNoisinh(), selectedRow, 8);
-            tableModel.setValueAt(dialog.getDoituong(), selectedRow, 9);
-            tableModel.setValueAt(dialog.getKhuvuc(), selectedRow, 10);
-            javax.swing.JOptionPane.showMessageDialog(this, "Cập nhật thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            try {
+                String cccd = (String) tableModel.getValueAt(selectedRow, 0);
+                Optional<ThiSinh> optThiSinh = thiSinhService.getByCccd(cccd);
+                if (optThiSinh.isEmpty()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy thí sinh trong CSDL để cập nhật!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                ThiSinh thiSinh = optThiSinh.get();
+                thiSinh.setSobaodanh(dialog.getSbaodanh());
+                thiSinh.setHo(dialog.getHo());
+                thiSinh.setTen(dialog.getTen());
+                thiSinh.setNgaySinh(dialog.getNgaysinh());
+                thiSinh.setGioiTinh(dialog.getGioitinh());
+                thiSinh.setEmail(dialog.getEmail());
+                thiSinh.setDienThoai(dialog.getDienthoai());
+                thiSinh.setNoiSinh(dialog.getNoisinh());
+                thiSinh.setDoiTuong(dialog.getDoituong());
+                thiSinh.setKhuVuc(dialog.getKhuvuc());
+                thiSinh.setUpdatedAt(LocalDate.now());
+                if (!dialog.getPassword().isBlank()) {
+                    thiSinh.setPassword(dialog.getPassword());
+                }
+
+                thiSinhService.update(thiSinh);
+                loadDataToTable();
+                javax.swing.JOptionPane.showMessageDialog(this, "Cập nhật thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật: " + ex.getMessage(), "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -193,8 +248,18 @@ public class CandidateManagementPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            tableModel.removeRow(selectedRow);
-            javax.swing.JOptionPane.showMessageDialog(this, "Xóa thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            try {
+                String cccd = (String) tableModel.getValueAt(selectedRow, 0);
+                boolean deleted = thiSinhService.deleteByCccd(cccd);
+                if (deleted) {
+                    loadDataToTable();
+                    javax.swing.JOptionPane.showMessageDialog(this, "Xóa thí sinh thành công!", "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy thí sinh để xóa!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Lỗi khi xóa: " + ex.getMessage(), "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -204,19 +269,42 @@ public class CandidateManagementPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            javax.swing.JOptionPane.showMessageDialog(this, 
-                    "Import từ file: " + dialog.getSelectedFile().getName() + "\n" +
-                    "Lưu ý: Chức năng import thực sự cần kết nối database và Apache POI library.", 
-                    "Import", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            try {
+            List<ThiSinh> imported = thiSinhService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+            loadDataToTable();
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Đã import " + imported.size() + " thí sinh từ file: " + dialog.getSelectedFile().getName(),
+                "Import thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Lỗi khi import file Excel: " + ex.getMessage(),
+                "Import thất bại", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void handleSearch(String searchTerm) {
-        if (searchTerm.isEmpty() || searchTerm.equals("Tìm CCCD, họ tên...")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng nhập từ khóa tìm kiếm!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+        String keyword = searchTerm == null ? "" : searchTerm.trim().toLowerCase();
+        if (keyword.isEmpty() || keyword.equals("tìm cccd, họ tên...")) {
+            loadDataToTable();
             return;
         }
-        javax.swing.JOptionPane.showMessageDialog(this, "Tìm kiếm: " + searchTerm + "\n(Cần kết nối database)", "Tìm kiếm", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        List<ThiSinh> filtered = currentData.stream()
+                .filter(ts -> containsIgnoreCase(ts.getCccd(), keyword)
+                        || containsIgnoreCase(ts.getHo(), keyword)
+                        || containsIgnoreCase(ts.getTen(), keyword)
+                        || containsIgnoreCase((ts.getHo() == null ? "" : ts.getHo()) + " " + (ts.getTen() == null ? "" : ts.getTen()), keyword))
+                .toList();
+        renderTable(filtered);
+
+        if (filtered.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy thí sinh phù hợp.", "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private boolean containsIgnoreCase(String source, String keyword) {
+        return source != null && source.toLowerCase().contains(keyword);
     }
 
     private JButton createButton(String text, Color color) {

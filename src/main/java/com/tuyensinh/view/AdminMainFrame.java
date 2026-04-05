@@ -21,7 +21,12 @@ public class AdminMainFrame extends JFrame {
 
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new CandidateManagementPanel(), "candidate");
+        contentPanel.add(new MajorManagementPanel(), "major");
+        contentPanel.add(new DiemThiPanel(), "diem");
+        contentPanel.add(new NguyenVongPanel(), "nguyenVong");
+        contentPanel.add(new DiemCongPanel(), "diemCong");
         contentPanel.add(new AccountManagementPanel(), "account");
+        contentPanel.add(new RoleManagementPanel(), "permission");
         contentPanel.add(new UserManagementPanel(), "user");
         contentPanel.add(new ReportsPanel(), "report");
 
