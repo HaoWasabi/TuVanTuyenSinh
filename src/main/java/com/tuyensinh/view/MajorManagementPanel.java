@@ -6,6 +6,7 @@ import com.tuyensinh.model.NganhToHop;
 import com.tuyensinh.service.BQDService;
 import com.tuyensinh.service.NTHService;
 import com.tuyensinh.service.NganhService;
+import com.tuyensinh.service.SessionManager;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -63,62 +64,86 @@ public class MajorManagementPanel extends JPanel {
         tabbedPane.setBackground(UIStyles.BG_APP);
         tabbedPane.setForeground(UIStyles.TEXT_DARK);
 
+        boolean hasVisibleTab = false;
+
         // --- TAB 1: QL Ngành Tuyển Sinh ---
-        String[] colsNganh = {"Mã Ngành", "Tên Ngành", "Chỉ Tiêu", "Ngưỡng Đảm Bảo", "Trạng Thái"};
-        Object[][] dataNganh = {
-                {"7140201", "Giáo dục Mầm non", "100", "19.0", "Đang tuyển"},
-                {"7140202", "Giáo dục Tiểu học", "150", "19.0", "Đang tuyển"},
-                {"7480201", "Công nghệ thông tin", "250", "18.0", "Đang tuyển"},
-                {"7340101", "Quản trị kinh doanh", "200", "16.0", "Đang tuyển"},
-                {"7220201", "Ngôn ngữ Anh", "150", "16.0", "Đang tuyển"},
-                {"7380101", "Luật", "200", "16.0", "Đang tuyển"}
-        };
-        tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo (Trích: Nguong dau vao 2025)", colsNganh, dataNganh, new String[]{"Tất cả trạng thái", "Đang tuyển", "Dừng tuyển"}));
+        if (SessionManager.hasPermission("NGANH_VIEW")) {
+            String[] colsNganh = {"Mã Ngành", "Tên Ngành", "Chỉ Tiêu", "Ngưỡng Đảm Bảo", "Trạng Thái"};
+            Object[][] dataNganh = {
+                    {"7140201", "Giáo dục Mầm non", "100", "19.0", "Đang tuyển"},
+                    {"7140202", "Giáo dục Tiểu học", "150", "19.0", "Đang tuyển"},
+                    {"7480201", "Công nghệ thông tin", "250", "18.0", "Đang tuyển"},
+                    {"7340101", "Quản trị kinh doanh", "200", "16.0", "Đang tuyển"},
+                    {"7220201", "Ngôn ngữ Anh", "150", "16.0", "Đang tuyển"},
+                    {"7380101", "Luật", "200", "16.0", "Đang tuyển"}
+            };
+            tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo (Trích: Nguong dau vao 2025)", colsNganh, dataNganh, new String[]{"Tất cả trạng thái", "Đang tuyển", "Dừng tuyển"}));
+            hasVisibleTab = true;
+        }
 
         // --- TAB 2: QL Tổ Hợp Môn ---
-        String[] colsToHop = {"Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Ghi Chú"};
-        Object[][] dataToHop = {
-                {"A00", "Toán", "Vật lí", "Hóa học", "Khối A truyền thống"},
-                {"A01", "Toán", "Vật lí", "Tiếng Anh", "Khối A1"},
-                {"B00", "Toán", "Hóa học", "Sinh học", "Khối B"},
-                {"C00", "Ngữ văn", "Lịch sử", "Địa lí", "Khối C truyền thống"},
-                {"D01", "Toán", "Ngữ văn", "Tiếng Anh", "Khối D1"},
-                {"M01", "Ngữ văn", "Toán", "Năng khiếu", "Đọc, kể diễn cảm và Hát"}
-        };
-        tabbedPane.addTab("QL Tổ Hợp Môn", createTabPanel("Danh sách Tổ hợp môn xét tuyển (Trích: tohopmon.xlsx)", colsToHop, dataToHop, null));
+        if (SessionManager.hasPermission("TOHOP_VIEW")) {
+            String[] colsToHop = {"Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Ghi Chú"};
+            Object[][] dataToHop = {
+                    {"A00", "Toán", "Vật lí", "Hóa học", "Khối A truyền thống"},
+                    {"A01", "Toán", "Vật lí", "Tiếng Anh", "Khối A1"},
+                    {"B00", "Toán", "Hóa học", "Sinh học", "Khối B"},
+                    {"C00", "Ngữ văn", "Lịch sử", "Địa lí", "Khối C truyền thống"},
+                    {"D01", "Toán", "Ngữ văn", "Tiếng Anh", "Khối D1"},
+                    {"M01", "Ngữ văn", "Toán", "Năng khiếu", "Đọc, kể diễn cảm và Hát"}
+            };
+            tabbedPane.addTab("QL Tổ Hợp Môn", createTabPanel("Danh sách Tổ hợp môn xét tuyển (Trích: tohopmon.xlsx)", colsToHop, dataToHop, null));
+            hasVisibleTab = true;
+        }
 
         // --- TAB 3: QL Danh Sách Ngành - Tổ Hợp ---
-        String[] colsNganhToHop = {
-            "ID bản ghi",
-            "Mã ngành",
-            "Mã tổ hợp",
-            "Môn 1",
-            "Hệ số môn 1",
-            "Môn 2",
-            "Hệ số môn 2",
-            "Môn 3",
-            "Hệ số môn 3",
-            "Mã tổ hợp - ngành",
-            "Độ lệch"
-        };
-        Object[][] dataNganhToHop = buildNganhToHopData();
-        tabbedPane.addTab("QL Ngành - Tổ Hợp", createTabPanel("Map Tổ hợp môn vào Ngành", colsNganhToHop, dataNganhToHop, buildNganhToHopFilterOptions()));
+        if (SessionManager.hasPermission("NGANH_TOHOP_VIEW")) {
+            String[] colsNganhToHop = {
+                "ID bản ghi",
+                "Mã ngành",
+                "Mã tổ hợp",
+                "Môn 1",
+                "Hệ số môn 1",
+                "Môn 2",
+                "Hệ số môn 2",
+                "Môn 3",
+                "Hệ số môn 3",
+                "Mã tổ hợp - ngành",
+                "Độ lệch"
+            };
+            Object[][] dataNganhToHop = buildNganhToHopData();
+            tabbedPane.addTab("QL Ngành - Tổ Hợp", createTabPanel("Map Tổ hợp môn vào Ngành", colsNganhToHop, dataNganhToHop, buildNganhToHopFilterOptions()));
+            hasVisibleTab = true;
+        }
 
         // --- TAB 4: QL Bảng Quy Đổi ---
-        String[] colsQuyDoi = {
-            "ID Quy Đổi",
-            "Phương Thức",
-            "Tổ Hợp",
-            "Môn",
-            "Điểm A",
-            "Điểm B",
-            "Điểm C",
-            "Điểm D",
-            "Mã Quy Đổi",
-            "Phân Vị"
-        };
-        Object[][] dataQuyDoi = buildQuyDoiData();
-        tabbedPane.addTab("QL Bảng Quy Đổi", createTabPanel("Bảng quy đổi điểm Ngoại ngữ & V-SAT", colsQuyDoi, dataQuyDoi, new String[]{"Tất cả", "Ngoại Ngữ (IELTS/VSTEP)", "Kỳ thi V-SAT"}));
+        if (SessionManager.hasPermission("QUYDOI_VIEW")) {
+            String[] colsQuyDoi = {
+                "ID Quy Đổi",
+                "Phương Thức",
+                "Tổ Hợp",
+                "Môn",
+                "Điểm A",
+                "Điểm B",
+                "Điểm C",
+                "Điểm D",
+                "Mã Quy Đổi",
+                "Phân Vị"
+            };
+            Object[][] dataQuyDoi = buildQuyDoiData();
+            tabbedPane.addTab("QL Bảng Quy Đổi", createTabPanel("Bảng quy đổi điểm Ngoại ngữ & V-SAT", colsQuyDoi, dataQuyDoi, new String[]{"Tất cả", "Ngoại Ngữ (IELTS/VSTEP)", "Kỳ thi V-SAT"}));
+            hasVisibleTab = true;
+        }
+
+        if (!hasVisibleTab) {
+            JPanel noPermissionPanel = new JPanel(new BorderLayout());
+            noPermissionPanel.setOpaque(false);
+            JLabel message = new JLabel("Bạn chưa có quyền xem các tab của mục Ngành & tổ hợp.", JLabel.CENTER);
+            message.setFont(UIStyles.FONT_BODY);
+            message.setForeground(UIStyles.TEXT_MUTED);
+            noPermissionPanel.add(message, BorderLayout.CENTER);
+            tabbedPane.addTab("Thông báo", noPermissionPanel);
+        }
 
         add(tabbedPane, BorderLayout.CENTER);
         
@@ -280,11 +305,27 @@ public class MajorManagementPanel extends JPanel {
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
 
         toolbar.add(searchBtn);
-        toolbar.add(new javax.swing.JSeparator(javax.swing.JSeparator.VERTICAL));
-        toolbar.add(importBtn);
-        toolbar.add(addBtn);
-        toolbar.add(editBtn);
-        toolbar.add(deleteBtn);
+
+        String[] permissionCodes = resolveTabActionPermissions(titleStr);
+        boolean canImport = permissionCodes[0] != null && SessionManager.hasPermission(permissionCodes[0]);
+        boolean canCreate = permissionCodes[1] != null && SessionManager.hasPermission(permissionCodes[1]);
+        boolean canEdit = permissionCodes[2] != null && SessionManager.hasPermission(permissionCodes[2]);
+        boolean canDelete = permissionCodes[3] != null && SessionManager.hasPermission(permissionCodes[3]);
+        if (canImport || canCreate || canEdit || canDelete) {
+            toolbar.add(new javax.swing.JSeparator(javax.swing.JSeparator.VERTICAL));
+            if (canImport) {
+                toolbar.add(importBtn);
+            }
+            if (canCreate) {
+                toolbar.add(addBtn);
+            }
+            if (canEdit) {
+                toolbar.add(editBtn);
+            }
+            if (canDelete) {
+                toolbar.add(deleteBtn);
+            }
+        }
 
         // Table
         DefaultTableModel model = new DefaultTableModel(data, columns) {
@@ -510,13 +551,6 @@ public class MajorManagementPanel extends JPanel {
         tableCard.add(tableTitle, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Pagination
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        pagination.setOpaque(false);
-        pagination.add(createButton("Trước", UIStyles.PRIMARY));
-        pagination.add(new JLabel(" Trang 1 / 1 "));
-        pagination.add(createButton("Sau", UIStyles.PRIMARY));
-        tableCard.add(pagination, BorderLayout.SOUTH);
 
         panel.add(toolbar, BorderLayout.NORTH);
         panel.add(tableCard, BorderLayout.CENTER);
@@ -530,6 +564,19 @@ public class MajorManagementPanel extends JPanel {
 
     private boolean isNganhToHopTab(String titleStr) {
         return titleStr != null && titleStr.contains("Map Tổ hợp môn vào Ngành");
+    }
+
+    private String[] resolveTabActionPermissions(String titleStr) {
+        if (isQuyDoiTab(titleStr)) {
+            return new String[]{"QUYDOI_IMPORT", "QUYDOI_CREATE", "QUYDOI_EDIT", "QUYDOI_DELETE"};
+        }
+        if (isNganhToHopTab(titleStr)) {
+            return new String[]{null, "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE"};
+        }
+        if (titleStr != null && titleStr.contains("Tổ hợp môn")) {
+            return new String[]{"TOHOP_IMPORT", "TOHOP_CREATE", "TOHOP_EDIT", "TOHOP_DELETE"};
+        }
+        return new String[]{"NGANH_IMPORT", "NGANH_CREATE", "NGANH_EDIT", "NGANH_DELETE"};
     }
 
     private void refreshTableData(DefaultTableModel model, Object[][] rows) {

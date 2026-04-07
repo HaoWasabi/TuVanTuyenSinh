@@ -47,11 +47,11 @@ public class Sidebar extends JPanel {
         // Add menu items based on permissions
         addMenuItem("Dashboard", "dashboard", cardLayout, contentPanel);
         addMenuItem("Thông tin cá nhân", "personal", cardLayout, contentPanel);
-        addMenuItemIfAllowed("Quản lý thí sinh", "candidate", cardLayout, contentPanel, "THISINH_VIEW");
-        addMenuItemIfAllowed("Ngành & tổ hợp", "major", cardLayout, contentPanel, "NGANH_VIEW", "NGANH_TOHOP_VIEW");
-        addMenuItemIfAllowed("Quản lý điểm thi", "diem", cardLayout, contentPanel, "DIEM_VIEW");
-        addMenuItemIfAllowed("Nguyện vọng & xét tuyển", "nguyenVong", cardLayout, contentPanel, "NGUYENVONG_VIEW");
-        addMenuItemIfAllowed("Quản lý điểm cộng", "diemCong", cardLayout, contentPanel, "DIEMCONG_VIEW");
+        addMenuItemIfAllowed("Ngành & tổ hợp", "major", cardLayout, contentPanel, "NGANH_VIEW", "NGANH_TOHOP_VIEW", "TOHOP_VIEW", "QUYDOI_VIEW");
+        addMenuItemIfAllowed("Quản lý thí sinh", "candidate", cardLayout, contentPanel, "THISINH_VIEW", "THISINH_VIEW_BY_CCCD");
+        addMenuItemIfAllowed("Quản lý điểm thi", "diem", cardLayout, contentPanel, "DIEM_VIEW", "DIEM_VIEW_BY_CCCD");
+        addMenuItemIfAllowed("Quản lý điểm cộng", "diemCong", cardLayout, contentPanel, "DIEMCONG_VIEW", "DIEMCONG_VIEW_BY_CCCD");
+        addMenuItemIfAllowed("Nguyện vọng & xét tuyển", "nguyenVong", cardLayout, contentPanel, "NGUYENVONG_VIEW", "NGUYENVONG_VIEW_BY_CCCD");
         addMenuItemIfAllowed("Quản lý người dùng", "user", cardLayout, contentPanel, "USER_VIEW");
         addMenuItemIfAllowed("Báo cáo thống kê", "report", cardLayout, contentPanel, "DIEM_THONGKE");
         addMenuItemIfAllowed("Phân quyền", "permission", cardLayout, contentPanel, "USER_CHANGE_ROLE");

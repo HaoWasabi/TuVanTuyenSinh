@@ -84,11 +84,11 @@ public class AdmissionsDemoFrame extends JFrame {
 
     private boolean canAccessPage(String key) {
         return switch (key) {
-            case "candidate" -> SessionManager.hasAnyPermission("THISINH_VIEW");
-            case "major" -> SessionManager.hasAnyPermission("NGANH_VIEW", "NGANH_TOHOP_VIEW");
-            case "diem" -> SessionManager.hasAnyPermission("DIEM_VIEW");
-            case "nguyenVong" -> SessionManager.hasAnyPermission("NGUYENVONG_VIEW");
-            case "diemCong" -> SessionManager.hasAnyPermission("DIEMCONG_VIEW");
+            case "candidate" -> SessionManager.hasAnyPermission("THISINH_VIEW", "THISINH_VIEW_BY_CCCD");
+            case "major" -> SessionManager.hasAnyPermission("NGANH_VIEW", "NGANH_TOHOP_VIEW", "TOHOP_VIEW", "QUYDOI_VIEW");
+            case "diem" -> SessionManager.hasAnyPermission("DIEM_VIEW", "DIEM_VIEW_BY_CCCD");
+            case "nguyenVong" -> SessionManager.hasAnyPermission("NGUYENVONG_VIEW", "NGUYENVONG_VIEW_BY_CCCD");
+            case "diemCong" -> SessionManager.hasAnyPermission("DIEMCONG_VIEW", "DIEMCONG_VIEW_BY_CCCD");
             case "user" -> SessionManager.hasAnyPermission("USER_VIEW");
             case "permission" -> SessionManager.hasAnyPermission("USER_CHANGE_ROLE");
             case "report" -> SessionManager.hasAnyPermission("DIEM_THONGKE");

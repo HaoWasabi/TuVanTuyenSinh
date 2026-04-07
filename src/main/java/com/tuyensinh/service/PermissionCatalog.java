@@ -19,6 +19,7 @@ public final class PermissionCatalog {
             new PermissionGroup("Quản lý thí sinh", List.of(
                     new PermissionItem("THISINH_IMPORT", "Import danh sách thí sinh"),
                     new PermissionItem("THISINH_VIEW", "Xem danh sách, tìm kiếm"),
+                    new PermissionItem("THISINH_VIEW_BY_CCCD", "Xem thí sinh theo CCCD từ username đăng nhập"),
                     new PermissionItem("THISINH_CREATE", "Thêm thí sinh mới"),
                     new PermissionItem("THISINH_EDIT", "Sửa thông tin thí sinh"),
                     new PermissionItem("THISINH_DELETE", "Xóa thí sinh")
@@ -26,6 +27,7 @@ public final class PermissionCatalog {
             new PermissionGroup("Quản lý điểm", List.of(
                     new PermissionItem("DIEM_IMPORT", "Import điểm"),
                     new PermissionItem("DIEM_VIEW", "Xem danh sách điểm"),
+                    new PermissionItem("DIEM_VIEW_BY_CCCD", "Xem điểm thi theo CCCD từ username đăng nhập"),
                     new PermissionItem("DIEM_CREATE", "Thêm điểm"),
                     new PermissionItem("DIEM_EDIT", "Sửa điểm"),
                     new PermissionItem("DIEM_DELETE", "Xóa điểm"),
@@ -34,6 +36,7 @@ public final class PermissionCatalog {
             new PermissionGroup("Quản lý điểm cộng", List.of(
                     new PermissionItem("DIEMCONG_IMPORT", "Import điểm cộng"),
                     new PermissionItem("DIEMCONG_VIEW", "Xem điểm cộng"),
+                    new PermissionItem("DIEMCONG_VIEW_BY_CCCD", "Xem điểm cộng theo CCCD từ username đăng nhập"),
                     new PermissionItem("DIEMCONG_CREATE", "Thêm điểm cộng"),
                     new PermissionItem("DIEMCONG_EDIT", "Sửa điểm cộng"),
                     new PermissionItem("DIEMCONG_DELETE", "Xóa điểm cộng")
@@ -49,6 +52,7 @@ public final class PermissionCatalog {
             )),
             new PermissionGroup("Quản lý nguyện vọng", List.of(
                     new PermissionItem("NGUYENVONG_VIEW", "Xem nguyện vọng"),
+                    new PermissionItem("NGUYENVONG_VIEW_BY_CCCD", "Xem nguyện vọng theo CCCD từ username đăng nhập"),
                     new PermissionItem("NGUYENVONG_MANAGE", "Quản lý xét nguyện vọng")
             )),
             new PermissionGroup("Quản lý tổ hợp môn", List.of(

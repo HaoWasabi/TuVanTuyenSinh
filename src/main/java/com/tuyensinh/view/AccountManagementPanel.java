@@ -109,14 +109,6 @@ public class AccountManagementPanel extends JPanel {
         tableCard.add(listHeader, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Pagination
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        pagination.setOpaque(false);
-        pagination.add(createButton("Trước", UIStyles.PRIMARY));
-        pagination.add(new JLabel(" Trang 1 / 10 "));
-        pagination.add(createButton("Sau", UIStyles.PRIMARY));
-        tableCard.add(pagination, BorderLayout.SOUTH);
-
         JPanel center = new JPanel();
         center.setOpaque(false);
         center.setLayout(new BorderLayout(0, 12));

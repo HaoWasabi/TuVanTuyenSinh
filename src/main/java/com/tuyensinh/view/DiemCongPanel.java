@@ -2,6 +2,7 @@ package com.tuyensinh.view;
 
 import com.tuyensinh.model.DiemCong;
 import com.tuyensinh.service.DiemCongService;
+import com.tuyensinh.service.SessionManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,15 +25,7 @@ public class DiemCongPanel extends JPanel {
     private final JTextField detailKeyField = new JTextField();
     private final JLabel selectedLabel = new JLabel("Chưa chọn bản ghi");
 
-    // CÁC BIẾN NÀY ĐỂ QUẢN LÝ PHÂN TRANG
     private List<DiemCong> currentDataList = new java.util.ArrayList<>();
-    private int currentPage = 1;
-    private final int pageSize = 20; // 20 dòng 1 trang
-    private int totalPages = 1;
-
-    private JLabel pageLabel;
-    private JButton prevBtn;
-    private JButton nextBtn;
 
 
     // GỌI SERVICE Ở ĐÂY
@@ -139,34 +132,6 @@ public class DiemCongPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
         tableCard.add(scrollPane, BorderLayout.CENTER);
 
-        // Pagination UI
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        pagination.setOpaque(false);
-
-        prevBtn = createButton("Trước", UIStyles.PRIMARY);
-        nextBtn = createButton("Sau", UIStyles.PRIMARY);
-        pageLabel = new JLabel(" Trang 1 / 1 ");
-        pageLabel.setFont(UIStyles.FONT_BODY);
-
-        // Sự kiện chuyển trang
-        prevBtn.addActionListener(e -> {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTablePage();
-            }
-        });
-
-        nextBtn.addActionListener(e -> {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderTablePage();
-            }
-        });
-
-        pagination.add(prevBtn);
-        pagination.add(pageLabel);
-        pagination.add(nextBtn);
-        tableCard.add(pagination, BorderLayout.SOUTH);
 
         JPanel center = new JPanel();
         center.setOpaque(false);
@@ -237,19 +202,26 @@ public class DiemCongPanel extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
-        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
-        importBtn.addActionListener(e -> handleImport());
-        JButton addBtn = createButton("Thêm", UIStyles.INFO);
-        addBtn.addActionListener(e -> handleAdd());
-        JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-        editBtn.addActionListener(e -> handleEdit());
-        JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-        deleteBtn.addActionListener(e -> handleDelete());
-
-        actions.add(importBtn);
-        actions.add(addBtn);
-        actions.add(editBtn);
-        actions.add(deleteBtn);
+        if (SessionManager.hasPermission("DIEMCONG_IMPORT")) {
+            JButton importBtn = createButton("Import", UIStyles.SUCCESS);
+            importBtn.addActionListener(e -> handleImport());
+            actions.add(importBtn);
+        }
+        if (SessionManager.hasPermission("DIEMCONG_CREATE")) {
+            JButton addBtn = createButton("Thêm", UIStyles.INFO);
+            addBtn.addActionListener(e -> handleAdd());
+            actions.add(addBtn);
+        }
+        if (SessionManager.hasPermission("DIEMCONG_EDIT")) {
+            JButton editBtn = createButton("Sửa", UIStyles.WARNING);
+            editBtn.addActionListener(e -> handleEdit());
+            actions.add(editBtn);
+        }
+        if (SessionManager.hasPermission("DIEMCONG_DELETE")) {
+            JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
+            deleteBtn.addActionListener(e -> handleDelete());
+            actions.add(deleteBtn);
+        }
         return actions;
     }
 
@@ -308,9 +280,16 @@ public class DiemCongPanel extends JPanel {
     // ================= CÁC HÀM XỬ LÝ LOGIC =================
 
     private void loadDataToTable() {
+        if (isCccdOnlyMode()) {
+            String cccd = getLoginUsernameAsCccd();
+            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemCongService.getByCccd(cccd);
+            renderTablePage();
+            selectedLabel.setText("Đang lọc theo CCCD đăng nhập");
+            return;
+        }
+
         // Lấy toàn bộ dữ liệu từ Service cất vào danh sách hiện tại
         currentDataList = diemCongService.getAll();
-        currentPage = 1; // Reset về trang 1
         renderTablePage();
     }
 
@@ -318,26 +297,11 @@ public class DiemCongPanel extends JPanel {
         loadDataToTable();
     }
 
-    // Chỉ vẽ đúng 20 dòng của trang hiện tại
+    // Vẽ toàn bộ dữ liệu hiện tại
     private void renderTablePage() {
         tableModel.setRowCount(0);
 
-        // Tính toán tổng số trang
-        totalPages = (int) Math.ceil((double) currentDataList.size() / pageSize);
-        if (totalPages == 0) totalPages = 1;
-
-        // Cập nhật text và trạng thái nút bấm
-        pageLabel.setText(" Trang " + currentPage + " / " + totalPages + " ");
-        prevBtn.setEnabled(currentPage > 1);
-        nextBtn.setEnabled(currentPage < totalPages);
-
-        // Tính vị trí cắt list
-        int start = (currentPage - 1) * pageSize;
-        int end = Math.min(start + pageSize, currentDataList.size());
-
-        // Đổ 20 dòng ra bảng
-        for (int i = start; i < end; i++) {
-            DiemCong dc = currentDataList.get(i);
+        for (DiemCong dc : currentDataList) {
             Object[] row = {
                     dc.getIddiemcong(), dc.getTsCccd(), dc.getManganh(), dc.getMatohop(), dc.getPhuongthuc(),
                     dc.getDiemCC(), dc.getDiemUtxt(), dc.getDiemTong(), dc.getGhichu(), dc.getDcKeys()
@@ -375,6 +339,16 @@ public class DiemCongPanel extends JPanel {
     }
 
     private void handleSearch(String keyword) {
+        if (isCccdOnlyMode()) {
+            String cccd = getLoginUsernameAsCccd();
+            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemCongService.getByCccd(cccd);
+            renderTablePage();
+            if (currentDataList.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Không có dữ liệu cho CCCD đăng nhập hiện tại.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            }
+            return;
+        }
+
         // Nếu ô tìm kiếm trống, load lại toàn bộ danh sách gốc
         if (keyword.isEmpty() || keyword.equals("Tìm CCCD, mã ngành...")) {
             loadDataToTable();
@@ -395,8 +369,6 @@ public class DiemCongPanel extends JPanel {
                 )
                 .collect(java.util.stream.Collectors.toList());
 
-        // Reset về trang 1 và vẽ lại bảng
-        currentPage = 1;
         renderTablePage();
 
         // Thông báo nếu không tìm thấy
@@ -548,5 +520,16 @@ public class DiemCongPanel extends JPanel {
                 }
             }
         });
+    }
+
+    private boolean isCccdOnlyMode() {
+        return !SessionManager.hasPermission("DIEMCONG_VIEW") && SessionManager.hasPermission("DIEMCONG_VIEW_BY_CCCD");
+    }
+
+    private String getLoginUsernameAsCccd() {
+        if (SessionManager.getCurrentUser() == null || SessionManager.getCurrentUser().getUsername() == null) {
+            return "";
+        }
+        return SessionManager.getCurrentUser().getUsername().trim();
     }
 }

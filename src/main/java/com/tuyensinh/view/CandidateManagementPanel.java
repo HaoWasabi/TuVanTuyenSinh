@@ -135,13 +135,6 @@ public class CandidateManagementPanel extends JPanel {
         tableCard.add(listHeader, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        pagination.setOpaque(false);
-        pagination.add(createButton("Trước", UIStyles.PRIMARY));
-        pagination.add(new JLabel(" Trang 1 / 10 "));
-        pagination.add(createButton("Sau", UIStyles.PRIMARY));
-        tableCard.add(pagination, BorderLayout.SOUTH);
-
         JPanel card = new JPanel(new BorderLayout(0, 12));
         card.setBackground(UIStyles.BG_CARD);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -293,6 +286,18 @@ public class CandidateManagementPanel extends JPanel {
     }
 
     private void loadDataToTable() {
+        if (isCccdOnlyMode()) {
+            String loginCccd = getSessionUsernameAsCccd();
+            if (loginCccd.isEmpty()) {
+                currentData = new ArrayList<>();
+            } else {
+                Optional<ThiSinh> thiSinh = thiSinhService.getByCccd(loginCccd);
+                currentData = thiSinh.map(List::of).orElseGet(ArrayList::new);
+            }
+            renderTable(currentData);
+            return;
+        }
+
         currentData = thiSinhService.getAll();
         renderTable(currentData);
     }
@@ -353,9 +358,12 @@ public class CandidateManagementPanel extends JPanel {
 
                 // Tạo tài khoản student tương ứng
                 String generatedPassword = generatePasswordFromDOB(dialog.getNgaysinh());
-                // Kiểm tra xem người dùng đã tồn tại chưa
+                // Username học sinh dùng CCCD để luôn duy nhất và đồng bộ đăng nhập.
                 boolean userCreated = false;
-                String username = safeTrim(dialog.getSbaodanh());
+                String username = safeTrim(dialog.getCCCD());
+                if (username.isEmpty()) {
+                    throw new IllegalArgumentException("CCCD không hợp lệ để tạo username.");
+                }
                 if (userService.getByUsername(username).isEmpty()) {
                     User studentUser = User.builder()
                         .username(username)
@@ -537,7 +545,7 @@ public class CandidateManagementPanel extends JPanel {
                     try {
                         String generatedPassword = generatePasswordFromDOB(thiSinh.getNgaySinh());
                         // Kiểm tra xem người dùng đã tồn tại chưa
-                        String username = safeTrim(thiSinh.getSobaodanh());
+                        String username = safeTrim(thiSinh.getCccd());
                         if (username.isEmpty()) {
                             continue;
                         }
@@ -576,6 +584,11 @@ public class CandidateManagementPanel extends JPanel {
     }
 
     private void handleSearch(String searchTerm) {
+        if (isCccdOnlyMode()) {
+            loadDataToTable();
+            return;
+        }
+
         String keyword = searchTerm == null ? "" : searchTerm.trim().toLowerCase();
         if (keyword.isEmpty() || keyword.equals("tìm cccd, họ tên...")) {
             loadDataToTable();
@@ -597,6 +610,18 @@ public class CandidateManagementPanel extends JPanel {
 
     private boolean containsIgnoreCase(String source, String keyword) {
         return source != null && source.toLowerCase().contains(keyword);
+    }
+
+    private boolean isCccdOnlyMode() {
+        return !SessionManager.hasPermission("THISINH_VIEW") && SessionManager.hasPermission("THISINH_VIEW_BY_CCCD");
+    }
+
+    private String getSessionUsernameAsCccd() {
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser == null || currentUser.getUsername() == null) {
+            return "";
+        }
+        return currentUser.getUsername().trim();
     }
 
     private void applySearchPlaceholder(JTextField field, String placeholderText) {
