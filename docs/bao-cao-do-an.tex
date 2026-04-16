@@ -1,0 +1,178 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------- Encoding & Language ----------
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+
+% ---------- Page setup ----------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% ---------- Useful packages ----------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+% ---------- Hyperlink style ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+% ---------- Numbering depth ----------
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\begin{document}
+
+% ================== TITLE PAGE ==================
+\begin{titlepage}
+  \centering
+  {\large \textbf{BỘ GIÁO DỤC VÀ ĐÀO TẠO}}\par
+  {\large \textbf{TRƯỜNG ĐẠI HỌC SÀI GÒN}}\par
+  {\normalsize \textbf{KHOA CÔNG NGHỆ THÔNG TIN}}\par
+  \vspace{0.2cm}
+  \rule{0.35\textwidth}{0.8pt}\par
+
+  \vspace{0.6cm}
+  \includegraphics[width=0.24\textwidth]{Logo_IT_SGU.png}\par
+
+  \vspace{0.8cm}
+  {\Large \textbf{BÁO CÁO ĐỒ ÁN}}\par
+  \vspace{0.2cm}
+  {\LARGE \textbf{PHẦN MỀM TƯ VẤN TUYỂN SINH}}\par
+  \vspace{0.15cm}
+  \rule{0.72\textwidth}{0.8pt}\par
+
+  \vspace{1cm}
+  \begin{flushleft}
+  \begin{tabular}{p{6.0cm}p{9.0cm}}
+    \textbf{Giảng viên hướng dẫn:} & ThS. Cao Minh Thành \\
+    \textbf{Nhóm thực hiện:} & Nhóm 15
+  \end{tabular}
+  \end{flushleft}
+
+  \vspace{0.35cm}
+  \begin{center}
+  \begin{tabular}{p{8.5cm}p{4.0cm}}
+    Đinh Thị Lan Trinh & 3120410014 \\
+    Trương Gia Hào & 3122410100 \\
+    Phạm Tấn Khương & 3122410191 \\
+    Phạm Ngọc Phước Khang & 3122410173 \\
+    Nguyễn Thanh Phát & 3120410386 \\
+    Lê Minh Thắng & 3121410461 \\
+    Cao Minh Thuận & 3123410364
+  \end{tabular}
+  \end{center}
+
+  \vfill
+  {\large TP. Hồ Chí Minh, tháng 04 năm 2026\par}
+\end{titlepage}
+
+% ================== FRONT MATTER ==================
+\pagenumbering{arabic}
+
+\tableofcontents
+\newpage
+
+% ================== PART 1 ==================
+\part*{PHẦN 1: TỔNG QUAN}
+\addcontentsline{toc}{part}{PHẦN 1: TỔNG QUAN}
+
+\chapter{Giới thiệu}
+\section{Bối cảnh và động lực}
+Nội dung trình bày bối cảnh thực tiễn, vấn đề tồn tại và động lực hình thành đề tài.
+
+\section{Mục tiêu dự án}
+Nêu rõ mục tiêu tổng quát và mục tiêu cụ thể của đồ án.
+
+\section{Phạm vi dự án}
+Trình bày phạm vi chức năng, phạm vi kỹ thuật và các giới hạn của hệ thống.
+
+\section{Công nghệ sử dụng}
+Tổng quan các công nghệ chính: Java, Maven, Hibernate, cơ sở dữ liệu, UI Desktop.
+
+\chapter{Cơ sở lý thuyết}
+\section{Các khái niệm nền tảng}
+Bổ sung cơ sở lý thuyết liên quan đến tuyển sinh, quản trị dữ liệu, và kiến trúc phần mềm.
+
+% ================== PART 2 ==================
+\part*{PHẦN 2: NỘI DUNG CỐT LÕI}
+\addcontentsline{toc}{part}{PHẦN 2: NỘI DUNG CỐT LÕI}
+
+\chapter{Thiết kế hệ thống}
+\section{Kiến trúc tổng quan}
+Mô tả kiến trúc tổng thể, mô hình phân lớp, và quan hệ giữa các module.
+
+\section{Luồng dữ liệu}
+Trình bày luồng xử lý dữ liệu chính của hệ thống từ nhập liệu đến truy xuất kết quả.
+
+\section{Chi tiết các thành phần}
+Phân tích chi tiết từng thành phần: model, repository, service, view.
+
+\chapter{Triển khai hệ thống}
+\section{Công nghệ sử dụng}
+Mô tả cụ thể vai trò của từng công nghệ trong quá trình triển khai.
+
+\section{Cài đặt môi trường}
+Hướng dẫn cấu hình JDK, Maven, cơ sở dữ liệu và các phụ thuộc cần thiết.
+
+\section{Cấu trúc thư mục}
+Trình bày cấu trúc source code và ý nghĩa từng thư mục chính.
+
+\section{Cấu hình chi tiết}
+Mô tả các tệp cấu hình quan trọng như hibernate.cfg.xml, pom.xml, script chạy dự án.
+
+\chapter{Giao diện người dùng}
+\section{Thiết kế UX/UI}
+Mô tả nguyên tắc thiết kế giao diện, trải nghiệm và tính nhất quán.
+
+\section{User flow}
+Trình bày các luồng thao tác tiêu biểu của người dùng trong hệ thống.
+
+\section{Features}
+Liệt kê và mô tả các tính năng chính đã triển khai.
+
+% ================== PART 3 ==================
+\part*{PHẦN 3: TỔNG KẾT}
+\addcontentsline{toc}{part}{PHẦN 3: TỔNG KẾT}
+
+\chapter{Kết quả đánh giá}
+\section{Kết quả đạt được}
+Tổng hợp các kết quả đầu ra và mức độ hoàn thành mục tiêu ban đầu.
+
+\section{Testing}
+Trình bày chiến lược kiểm thử, test case chính và kết quả kiểm thử.
+
+\section{Ưu và nhược điểm}
+Đánh giá khách quan các điểm mạnh, điểm hạn chế của giải pháp hiện tại.
+
+\section{So sánh với các giải pháp khác}
+So sánh định tính/định lượng với các hướng giải quyết tương tự.
+
+\chapter{Kết luận}
+\section{Hướng phát triển cho đồ án}
+Đề xuất các hướng mở rộng trong tương lai.
+
+\section{Tổng kết}
+Khái quát lại toàn bộ quá trình thực hiện và bài học kinh nghiệm.
+
+% ================== REFERENCES ==================
+\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
+\begin{thebibliography}{99}
+\bibitem{ref1} Tác giả, \textit{Tên tài liệu}, Nhà xuất bản/Hội nghị, năm.
+\bibitem{ref2} Oracle, \textit{Java Documentation}. \url{https://docs.oracle.com/}
+\bibitem{ref3} Hibernate, \textit{Hibernate ORM Documentation}. \url{https://hibernate.org/orm/documentation/}
+\end{thebibliography}
+
+\end{document}
