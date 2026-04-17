@@ -38,9 +38,8 @@
 % ================== TITLE PAGE ==================
 \begin{titlepage}
   \centering
-  {\large \textbf{BỘ GIÁO DỤC VÀ ĐÀO TẠO}}\par
   {\large \textbf{TRƯỜNG ĐẠI HỌC SÀI GÒN}}\par
-  {\normalsize \textbf{KHOA CÔNG NGHỆ THÔNG TIN}}\par
+  {\large \textbf{KHOA CÔNG NGHỆ THÔNG TIN}}\par 
   \vspace{0.2cm}
   \rule{0.35\textwidth}{0.8pt}\par
 
@@ -48,7 +47,7 @@
   \includegraphics[width=0.24\textwidth]{Logo_IT_SGU.png}\par
 
   \vspace{0.8cm}
-  {\Large \textbf{BÁO CÁO ĐỒ ÁN}}\par
+  {\LARGE \textbf{BÁO CÁO ĐỒ ÁN}}\par
   \vspace{0.2cm}
   {\LARGE \textbf{PHẦN MỀM TƯ VẤN TUYỂN SINH}}\par
   \vspace{0.15cm}
@@ -57,6 +56,7 @@
   \vspace{1cm}
   \begin{flushleft}
   \begin{tabular}{p{6.0cm}p{9.0cm}}
+    \textbf{Môn học:} & Mô hình phân lớp \\
     \textbf{Giảng viên hướng dẫn:} & ThS. Cao Minh Thành \\
     \textbf{Nhóm thực hiện:} & Nhóm 15
   \end{tabular}
@@ -91,20 +91,76 @@
 
 \chapter{Giới thiệu}
 \section{Bối cảnh và động lực}
-Nội dung trình bày bối cảnh thực tiễn, vấn đề tồn tại và động lực hình thành đề tài.
+Trong giai đoạn tuyển sinh đại học hiện nay, dữ liệu của thí sinh thường phân tán ở nhiều nguồn khác nhau: điểm thi, thông tin cá nhân, điểm ưu tiên, nguyện vọng, tổ hợp môn và danh mục ngành. Nếu quản lý thủ công bằng bảng tính rời rạc, cán bộ tuyển sinh gặp nhiều khó khăn trong việc tổng hợp dữ liệu, kiểm tra tính nhất quán và đưa ra kết quả tư vấn nhanh chóng.
+
+Từ thực tế đó, nhóm xây dựng phần mềm ``Tư vấn tuyển sinh'' nhằm số hóa quy trình tiếp nhận và xử lý dữ liệu tuyển sinh. Hệ thống được thiết kế theo hướng hỗ trợ đồng thời hai nhóm người dùng chính:
+\begin{itemize}
+  \item Quản trị viên/cán bộ tuyển sinh: quản lý dữ liệu tập trung, thực hiện CRUD, import Excel, phân quyền và theo dõi thống kê.
+  \item Thí sinh/người dùng cuối: tra cứu và cập nhật thông tin cá nhân, đăng nhập theo tài khoản được cấp.
+\end{itemize}
+
+Nhờ cơ chế phân quyền linh động, dự án có thể dễ dàng cập nhật quyền hạn và triển khai các nhóm người dùng khác. Động lực quan trọng của đề tài là tạo một nền tảng quản lý tuyển sinh có tính mở rộng, minh bạch trong xử lý dữ liệu và phù hợp với môi trường triển khai tại trường.
 
 \section{Mục tiêu dự án}
-Nêu rõ mục tiêu tổng quát và mục tiêu cụ thể của đồ án.
+\textbf{Mục tiêu tổng quát:} Xây dựng hệ thống WebApp Java hỗ trợ quản lý và tư vấn tuyển sinh, có khả năng vận hành ổn định với dữ liệu thực tế.
+
+\textbf{Mục tiêu cụ thể:}
+\begin{itemize}
+  \item Thiết kế mô hình dữ liệu tuyển sinh đầy đủ cho các thực thể: người dùng, vai trò, thí sinh, điểm thi, điểm cộng, ngành, tổ hợp môn, nguyện vọng và bảng quy đổi.
+  \item Xây dựng nghiệp vụ CRUD cho từng phân hệ và cơ chế phân quyền theo mã quyền (permission code).
+  \item Hỗ trợ import dữ liệu từ file Excel để giảm thao tác nhập thủ công.
+  \item Cung cấp các chức năng thống kê điểm phục vụ đánh giá chất lượng dữ liệu tuyển sinh.
+  \item Triển khai giao diện với luồng sử dụng rõ ràng, dễ thao tác cho cán bộ tuyển sinh và sinh viên.
+\end{itemize}
 
 \section{Phạm vi dự án}
-Trình bày phạm vi chức năng, phạm vi kỹ thuật và các giới hạn của hệ thống.
+\textbf{A. Desktop\\}
+\textbf{Phạm vi chức năng:}
+\begin{itemize}
+  \item Quản lý tài khoản, vai trò và quyền truy cập.
+  \item Quản lý thí sinh, điểm thi, điểm cộng, ngành, tổ hợp môn, ngành--tổ hợp, nguyện vọng.
+  \item Import dữ liệu Excel cho các phân hệ chính.
+  \item Xem thống kê điểm theo môn, theo phương thức và theo khoảng điểm.
+\end{itemize}
+
+\textbf{Phạm vi kỹ thuật:}
+\begin{itemize}
+  \item Ứng dụng desktop Java (JDK 25), build bằng Maven.
+  \item ORM sử dụng Hibernate và chuẩn Jakarta Persistence.
+  \item Cơ sở dữ liệu MySQL/MariaDB với schema \texttt{xettuyen2026}.
+\end{itemize}
+
+\textbf{Giới hạn hiện tại:}
+\begin{itemize}
+  \item Hệ thống triển khai theo mô hình desktop cục bộ, chưa hỗ trợ đa người dùng thời gian thực qua web.
+  \item Cơ chế bảo mật mật khẩu trong một số luồng test/mẫu vẫn ở dạng plain text để thuận tiện kiểm thử chức năng.
+  \item Chưa tích hợp đầy đủ báo cáo BI nâng cao (dashboard động, drill-down theo nhiều chiều dữ liệu).
+\end{itemize}
+\textbf{B. Website\\}
 
 \section{Công nghệ sử dụng}
-Tổng quan các công nghệ chính: Java, Maven, Hibernate, cơ sở dữ liệu, UI Desktop.
+Các công nghệ chính được sử dụng trong đồ án:
+\begin{itemize}
+  \item \textbf{Java 25}: ngôn ngữ lập trình chính, triển khai logic nghiệp vụ và giao diện desktop.
+  \item \textbf{Maven}: quản lý phụ thuộc, tiêu chuẩn hóa quá trình build.
+  \item \textbf{Hibernate ORM 6}: ánh xạ đối tượng--quan hệ (ORM), đơn giản hóa truy vấn và thao tác dữ liệu.
+  \item \textbf{MySQL Connector/J}: kết nối CSDL MySQL.
+  \item \textbf{Jakarta Persistence API}: chuẩn annotation cho entity/relation.
+  \item \textbf{Apache POI}: đọc dữ liệu từ file Excel để import hàng loạt.
+  \item \textbf{Java Swing}: xây dựng giao diện quản trị và luồng sử dụng cho người dùng.
+\end{itemize}
 
 \chapter{Cơ sở lý thuyết}
 \section{Các khái niệm nền tảng}
-Bổ sung cơ sở lý thuyết liên quan đến tuyển sinh, quản trị dữ liệu, và kiến trúc phần mềm.
+Đồ án dựa trên các nền tảng lý thuyết sau:
+\begin{itemize}
+  \item \textbf{Quản trị dữ liệu tuyển sinh}: dữ liệu thí sinh cần được chuẩn hóa theo định danh thống nhất (CCCD), đảm bảo liên kết xuyên suốt giữa điểm thi, điểm cộng và nguyện vọng.
+  \item \textbf{Mô hình phân quyền RBAC}: người dùng được gán vai trò, vai trò chứa danh sách quyền; hệ thống kiểm tra quyền trước khi truy cập chức năng.
+  \item \textbf{Kiến trúc phân lớp}: tách \textit{model -- repository -- service -- view} giúp giảm phụ thuộc trực tiếp giữa giao diện và truy cập dữ liệu.
+  \item \textbf{ORM (Object Relational Mapping)}: ánh xạ bảng CSDL sang lớp Java giúp viết mã rõ ràng, dễ bảo trì và giảm thao tác SQL thủ công.
+\end{itemize}
+
+Ngoài ra, bài toán tư vấn tuyển sinh còn liên quan đến chuẩn hóa thang điểm giữa các phương thức xét tuyển (THPT, ĐGNL, V-SAT). Bảng quy đổi được sử dụng để đưa về thang điểm so sánh thống nhất, hỗ trợ quyết định tư vấn khách quan hơn.
 
 % ================== PART 2 ==================
 \part*{PHẦN 2: NỘI DUNG CỐT LÕI}
@@ -112,36 +168,151 @@ Bổ sung cơ sở lý thuyết liên quan đến tuyển sinh, quản trị d�
 
 \chapter{Thiết kế hệ thống}
 \section{Kiến trúc tổng quan}
-Mô tả kiến trúc tổng thể, mô hình phân lớp, và quan hệ giữa các module.
+Hệ thống được thiết kế theo kiến trúc phân lớp 4 tầng:
+\begin{enumerate}
+  \item \textbf{Model}: định nghĩa thực thể miền nghiệp vụ (\texttt{User}, \texttt{Role}, \texttt{ThiSinh}, \texttt{DiemThi}, \texttt{NguyenVong}, ...).
+  \item \textbf{Repository}: đóng gói thao tác dữ liệu (CRUD, truy vấn theo điều kiện, import).
+  \item \textbf{Service}: xử lý nghiệp vụ và kiểm tra điều kiện đầu vào, điều phối repository.
+  \item \textbf{View}: giao diện Java Swing gồm các frame/panel cho quản trị và người dùng.
+\end{enumerate}
+
+Mô hình này giúp đảm bảo nguyên tắc phân tách trách nhiệm (Separation of Concerns), giảm rủi ro khi thay đổi một thành phần gây ảnh hưởng dây chuyền toàn hệ thống.
 
 \section{Luồng dữ liệu}
-Trình bày luồng xử lý dữ liệu chính của hệ thống từ nhập liệu đến truy xuất kết quả.
+Luồng xử lý điển hình của hệ thống gồm các bước:
+\begin{enumerate}
+  \item Người dùng đăng nhập tại \texttt{RoleSelectionFrame}.
+  \item \texttt{AuthService} xác thực tài khoản, trạng thái hoạt động và khởi tạo phiên làm việc qua \texttt{SessionManager}.
+  \item Giao diện chính (\texttt{AdmissionsDemoFrame}) nạp các panel theo \texttt{CardLayout}, đồng thời kiểm tra quyền trước khi chuyển trang.
+  \item Người dùng thực hiện thao tác (thêm/sửa/xóa/import), request được gửi xuống lớp service.
+  \item Service gọi repository, repository thao tác CSDL qua Hibernate session/transaction.
+  \item Kết quả xử lý được trả về giao diện để cập nhật bảng dữ liệu và thông báo trạng thái.
+\end{enumerate}
+
+Luồng này được áp dụng thống nhất cho hầu hết phân hệ nên dễ mở rộng và dễ kiểm soát lỗi.
 
 \section{Chi tiết các thành phần}
-Phân tích chi tiết từng thành phần: model, repository, service, view.
+\textbf{Thành phần Model:}
+\begin{itemize}
+  \item Quản lý dữ liệu người dùng và bảo mật: \texttt{User}, \texttt{Role}, \texttt{RolePermission}.
+  \item Quản lý dữ liệu tuyển sinh: \texttt{ThiSinh}, \texttt{DiemThi}, \texttt{DiemCong}, \texttt{NguyenVong}.
+  \item Danh mục học thuật: \texttt{Nganh}, \texttt{TohopMonthi}, \texttt{NganhToHop}, \texttt{BangQuyDoi}.
+\end{itemize}
+
+\textbf{Thành phần Repository:}
+\begin{itemize}
+  \item Cung cấp CRUD chuẩn và truy vấn theo CCCD, mã ngành, mã tổ hợp.
+  \item Hỗ trợ import dữ liệu từ Excel với Apache POI cho các bảng nghiệp vụ.
+  \item Thực hiện truy vấn thống kê điểm (avg/min/max/count, phân bố điểm, phương thức xét tuyển).
+\end{itemize}
+
+\textbf{Thành phần Service:}
+\begin{itemize}
+  \item Xử lý đăng nhập, cập nhật thời gian đăng nhập cuối, quản lý session.
+  \item Sinh key nghiệp vụ tự động cho điểm cộng/nguyện vọng khi thiếu dữ liệu đầu vào.
+  \item Kiểm tra hợp lệ dữ liệu khi tạo/cập nhật vai trò, phân quyền.
+\end{itemize}
+
+\textbf{Thành phần View:}
+\begin{itemize}
+  \item \texttt{AdmissionsDemoFrame} là màn hình điều phối chính với sidebar và topbar.
+  \item Các panel chức năng: quản lý thí sinh, ngành, điểm thi, điểm cộng, nguyện vọng, tài khoản, quyền, báo cáo.
+  \item \texttt{UserMainFrame} hỗ trợ người dùng cập nhật thông tin cá nhân và đổi mật khẩu.
+\end{itemize}
 
 \chapter{Triển khai hệ thống}
 \section{Công nghệ sử dụng}
-Mô tả cụ thể vai trò của từng công nghệ trong quá trình triển khai.
+Vai trò cụ thể của từng công nghệ trong triển khai:
+\begin{itemize}
+  \item \textbf{Hibernate}: mapping entity và quản lý transaction.
+  \item \textbf{MySQL}: lưu trữ dữ liệu tuyển sinh tập trung.
+  \item \textbf{Maven}: khai báo dependency như Hibernate, MySQL Connector, Apache POI, Lombok, Log4j.
+  \item \textbf{Swing}: xây dựng giao diện quản trị dạng desktop, tối ưu cho môi trường phòng máy/đơn vị hành chính.
+  \item \textbf{PowerShell script}: chuẩn hóa thao tác compile và chạy dự án trên Windows.
+\end{itemize}
 
 \section{Cài đặt môi trường}
-Hướng dẫn cấu hình JDK, Maven, cơ sở dữ liệu và các phụ thuộc cần thiết.
+\textbf{Yêu cầu môi trường:}
+\begin{itemize}
+  \item JDK 25
+  \item Maven 3.9+
+  \item MySQL/MariaDB (khuyến nghị MySQL 8 hoặc MariaDB 10+)
+  \item Hệ điều hành Windows (hỗ trợ tốt qua script \texttt{.ps1})
+\end{itemize}
+
+\textbf{Các bước cài đặt:}
+\begin{enumerate}
+  \item Tạo CSDL \texttt{xettuyen2026} và nạp script \texttt{src/main/java/com/tuyensinh/database/xettuyen2026.sql}.
+  \item Chỉnh thông tin kết nối trong \texttt{src/main/resources/hibernate.cfg.xml} (username/password).
+  \item Tại thư mục gốc dự án, chạy lệnh Maven để tải dependency:
+  \begin{verbatim}
+mvn clean compile
+  \end{verbatim}
+  \item Compile bằng script:
+  \begin{verbatim}
+./compile-java.ps1
+  \end{verbatim}
+  \item Chạy ứng dụng:
+  \begin{verbatim}
+./run-java.ps1
+  \end{verbatim}
+\end{enumerate}
 
 \section{Cấu trúc thư mục}
-Trình bày cấu trúc source code và ý nghĩa từng thư mục chính.
+Các thư mục chính của dự án:
+\begin{itemize}
+  \item \texttt{src/main/java/com/tuyensinh/model}: định nghĩa entity.
+  \item \texttt{src/main/java/com/tuyensinh/repository}: thao tác dữ liệu với Hibernate.
+  \item \texttt{src/main/java/com/tuyensinh/service}: logic nghiệp vụ.
+  \item \texttt{src/main/java/com/tuyensinh/view}: giao diện người dùng Java Swing.
+  \item \texttt{src/main/resources}: file cấu hình, tài nguyên runtime.
+  \item \texttt{src/test/java}: lớp kiểm thử nghiệp vụ theo từng module.
+  \item \texttt{docs}: tài liệu báo cáo và hồ sơ đồ án.
+\end{itemize}
 
 \section{Cấu hình chi tiết}
-Mô tả các tệp cấu hình quan trọng như hibernate.cfg.xml, pom.xml, script chạy dự án.
+\textbf{File cấu hình quan trọng:}
+\begin{itemize}
+  \item \texttt{pom.xml}: khai báo phiên bản Java, plugin biên dịch, dependency ORM/Excel/logging.
+  \item \texttt{hibernate.cfg.xml}: URL kết nối DB, username/password, chế độ \texttt{hbm2ddl.auto}, danh sách entity mapping.
+  \item \texttt{compile-java.ps1}: thu thập classpath từ Maven repository và biên dịch toàn bộ source vào \texttt{target/classes}.
+  \item \texttt{run-java.ps1}: chạy main class mặc định \texttt{com.tuyensinh.Main} hoặc class chỉ định.
+\end{itemize}
+
+Nhờ tách rõ cấu hình, nhóm có thể thay đổi môi trường chạy (DB account, main class, dependency) mà không sửa trực tiếp vào logic nghiệp vụ.
 
 \chapter{Giao diện người dùng}
 \section{Thiết kế UX/UI}
-Mô tả nguyên tắc thiết kế giao diện, trải nghiệm và tính nhất quán.
+Giao diện được thiết kế theo các nguyên tắc:
+\begin{itemize}
+  \item \textbf{Nhất quán thao tác}: mọi phân hệ đều có pattern bảng danh sách + form nhập liệu + nút thao tác CRUD.
+  \item \textbf{Dễ học}: đặt tên chức năng gần ngữ cảnh nghiệp vụ tuyển sinh (Điểm thi, Nguyện vọng, Ngành, ...).
+  \item \textbf{Phản hồi rõ ràng}: hiển thị hộp thoại xác nhận/xử lý lỗi ngay tại hành động người dùng.
+  \item \textbf{Kiểm soát truy cập}: trang chức năng được kiểm tra quyền trước khi hiển thị.
+\end{itemize}
 
 \section{User flow}
-Trình bày các luồng thao tác tiêu biểu của người dùng trong hệ thống.
+Các luồng thao tác tiêu biểu:
+\begin{enumerate}
+  \item \textbf{Đăng nhập và điều hướng}: người dùng nhập tài khoản, hệ thống xác thực, nạp quyền và điều hướng tới dashboard.
+  \item \textbf{Quản lý thí sinh}: tìm theo CCCD/họ tên, thêm mới hồ sơ, cập nhật thông tin, import danh sách từ Excel.
+  \item \textbf{Quản lý điểm thi}: nhập điểm theo môn/phương thức, chỉnh sửa sai sót, xem thống kê phân bố.
+  \item \textbf{Quản lý nguyện vọng}: tạo/sửa thứ tự nguyện vọng và theo dõi trạng thái kết quả.
+  \item \textbf{Quản trị hệ thống}: quản lý role, gán quyền, quản lý tài khoản người dùng.
+\end{enumerate}
 
 \section{Features}
-Liệt kê và mô tả các tính năng chính đã triển khai.
+Các tính năng đã triển khai trong phiên bản hiện tại:
+\begin{itemize}
+  \item Đăng nhập hệ thống, kiểm tra trạng thái tài khoản, lưu phiên làm việc.
+  \item Phân quyền theo vai trò với danh mục quyền chi tiết (user, thí sinh, điểm, ngành, nguyện vọng, tổ hợp, quy đổi).
+  \item Quản lý dữ liệu thí sinh (CRUD + tìm kiếm + import Excel).
+  \item Quản lý điểm thi xét tuyển, điểm cộng xét tuyển (CRUD + import Excel).
+  \item Quản lý ngành, tổ hợp môn, bảng quy đổi, liên kết ngành--tổ hợp.
+  \item Quản lý nguyện vọng và theo dõi kết quả xét tuyển.
+  \item Thống kê điểm theo môn, theo phương thức, theo khoảng điểm.
+  \item Giao diện người dùng cuối để cập nhật thông tin cá nhân và đổi mật khẩu.
+\end{itemize}
 
 % ================== PART 3 ==================
 \part*{PHẦN 3: TỔNG KẾT}
@@ -149,30 +320,86 @@ Liệt kê và mô tả các tính năng chính đã triển khai.
 
 \chapter{Kết quả đánh giá}
 \section{Kết quả đạt được}
-Tổng hợp các kết quả đầu ra và mức độ hoàn thành mục tiêu ban đầu.
+Dựa trên mục tiêu đặt ra ban đầu, nhóm đã đạt được các kết quả chính:
+\begin{itemize}
+  \item Hoàn thiện hệ thống quản lý tuyển sinh dạng desktop có thể chạy thực tế.
+  \item Xây dựng đầy đủ các module dữ liệu cốt lõi và luồng nghiệp vụ liên kết.
+  \item Áp dụng thành công mô hình phân quyền theo mã quyền, hỗ trợ quản trị truy cập linh hoạt.
+  \item Triển khai import Excel cho nhiều phân hệ, rút ngắn thời gian nhập liệu.
+  \item Thiết lập bộ kiểm thử nghiệp vụ theo từng dịch vụ để xác minh thao tác CRUD và import.
+\end{itemize}
+
+Mức độ hoàn thành tổng thể được đánh giá ở mức tốt so với phạm vi đồ án và thời gian triển khai.
 
 \section{Testing}
-Trình bày chiến lược kiểm thử, test case chính và kết quả kiểm thử.
+\textbf{Chiến lược kiểm thử:}
+\begin{itemize}
+  \item Kiểm thử theo module service độc lập (thí sinh, điểm thi, điểm cộng, ngành, nguyện vọng, tổ hợp).
+  \item Kiểm thử theo kịch bản CRUD đầy đủ: tạo mới, đọc, cập nhật, xóa.
+  \item Kiểm thử import dữ liệu từ Excel với trường hợp thành công/lỗi định dạng.
+  \item Kiểm thử truy vấn thống kê đối với dữ liệu điểm thi.
+\end{itemize}
+
+\textbf{Một số lớp test tiêu biểu:}
+\begin{itemize}
+  \item \texttt{DiemThiTest}: CRUD + thống kê + import Excel.
+  \item \texttt{NguyenVongTest}: CRUD + truy vấn theo CCCD + import.
+  \item \texttt{NganhTest}, \texttt{DiemCongTest}, \texttt{TohopMonthiTest}, \texttt{ServiceTestBQD}, \texttt{ServiceTestNTH}.
+\end{itemize}
+
+\textbf{Kết quả kiểm thử:}
+\begin{itemize}
+  \item Các luồng CRUD hoạt động đúng với dữ liệu mẫu.
+  \item Luồng import Excel xử lý được dữ liệu hàng loạt theo định dạng đúng.
+  \item Các hàm thống kê điểm trả kết quả nhất quán với dữ liệu trong CSDL.
+\end{itemize}
 
 \section{Ưu và nhược điểm}
-Đánh giá khách quan các điểm mạnh, điểm hạn chế của giải pháp hiện tại.
+\textbf{Ưu điểm:}
+\begin{itemize}
+  \item Kiến trúc phân lớp rõ ràng, dễ bảo trì và mở rộng.
+  \item Bao phủ tốt nghiệp vụ tuyển sinh cốt lõi trong một hệ thống thống nhất.
+  \item Phân quyền chi tiết, hỗ trợ kiểm soát truy cập theo chức năng.
+  \item Có script hỗ trợ compile/run thuận tiện trên môi trường Windows.
+\end{itemize}
+
+\textbf{Nhược điểm:}
+\begin{itemize}
+  \item Bảo mật mật khẩu cần nâng cấp đồng bộ (hash + salt + chính sách mật khẩu mạnh).
+  \item Chưa có bộ kiểm thử tự động chuẩn JUnit CI/CD đầy đủ.
+  \item Chưa có cơ chế logging/auditing theo chuẩn vận hành sản phẩm thực tế.
+\end{itemize}
 
 \section{So sánh với các giải pháp khác}
-So sánh định tính/định lượng với các hướng giải quyết tương tự.
+So với cách làm thủ công bằng bảng tính, giải pháp của nhóm có các cải tiến rõ rệt:
+\begin{itemize}
+  \item \textbf{Tập trung dữ liệu}: giảm trùng lặp và sai lệch thông tin giữa các file.
+  \item \textbf{Tăng tốc xử lý}: CRUD và import nhanh hơn so với nhập tay từng dòng.
+  \item \textbf{Kiểm soát truy cập}: có phân quyền thay vì chia sẻ file dùng chung.
+\end{itemize}
+
+So với các hệ thống web tuyển sinh quy mô lớn, phiên bản hiện tại có ưu điểm là dễ triển khai nội bộ, chi phí thấp; tuy nhiên hạn chế ở khả năng mở rộng người dùng đồng thời và tích hợp liên hệ thống.
 
 \chapter{Kết luận}
 \section{Hướng phát triển cho đồ án}
-Đề xuất các hướng mở rộng trong tương lai.
+Các hướng mở rộng đề xuất trong giai đoạn tiếp theo:
+\begin{itemize}
+  \item Bổ sung cơ chế xác thực token để tích hợp cổng thông tin tuyển sinh.
+  \item Chuẩn hóa bảo mật: mã hóa mật khẩu bằng BCrypt toàn hệ thống, quản lý phiên đăng nhập an toàn hơn.
+  \item Tích hợp dashboard trực quan (biểu đồ, phân tích xu hướng) phục vụ ra quyết định.
+  \item Tự động hóa kiểm thử bằng JUnit + pipeline CI để tăng độ tin cậy phát hành.
+\end{itemize}
 
 \section{Tổng kết}
-Khái quát lại toàn bộ quá trình thực hiện và bài học kinh nghiệm.
+Trong quá trình thực hiện đồ án, nhóm đã trải qua đầy đủ các bước của một chu trình phát triển phần mềm: phân tích nghiệp vụ, thiết kế dữ liệu, triển khai chức năng, kiểm thử và hoàn thiện tài liệu. Kết quả đạt được cho thấy định hướng lựa chọn công nghệ Java + Hibernate + Swing là phù hợp với mục tiêu xây dựng hệ thống quản lý tuyển sinh nội bộ.
+
+Bên cạnh sản phẩm phần mềm, giá trị quan trọng của đồ án là kinh nghiệm làm việc nhóm, chuẩn hóa quy trình triển khai, và khả năng chuyển hóa yêu cầu nghiệp vụ thành giải pháp kỹ thuật khả thi. Đây là nền tảng để nhóm tiếp tục phát triển hệ thống theo hướng hoàn thiện và chuyên nghiệp hơn trong tương lai.
 
 % ================== REFERENCES ==================
 \addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
 \begin{thebibliography}{99}
-\bibitem{ref1} Tác giả, \textit{Tên tài liệu}, Nhà xuất bản/Hội nghị, năm.
-\bibitem{ref2} Oracle, \textit{Java Documentation}. \url{https://docs.oracle.com/}
-\bibitem{ref3} Hibernate, \textit{Hibernate ORM Documentation}. \url{https://hibernate.org/orm/documentation/}
+\bibitem{ref1} Oracle, \textit{Java Documentation}. \url{https://docs.oracle.com/}
+\bibitem{ref2} Hibernate, \textit{Hibernate ORM Documentation}. \url{https://hibernate.org/orm/documentation/}
 \end{thebibliography}
 
 \end{document}
