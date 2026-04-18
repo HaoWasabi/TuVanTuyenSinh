@@ -95,86 +95,142 @@ Mục tiêu chính:
 
 ### 6.1 Use Case Diagram (Tổng quan vai trò)
 ```mermaid
+---
+config:
+  layout: elk
+  theme: redux
+---
 flowchart LR
+  subgraph Roles [Vai trò hệ thống]
     Admin([ADMIN])
-    Officer([Cán bộ tuyển sinh])
-    Candidate([Thí sinh])
+    OtherRoles([Vai trò động])
+    CandidatePortal([Thí sinh])
+  end
 
-    UC1(Đăng nhập hệ thống)
-    UC2(Quản lý thí sinh)
-    UC3(Quản lý điểm thi/điểm cộng)
-    UC4(Quản lý ngành, tổ hợp, quy đổi)
-    UC5(Quản lý nguyện vọng)
-    UC6(Quản lý user và phân quyền)
-    UC7(Xem báo cáo thống kê)
-    UC8(Xem/Cập nhật thông tin cá nhân)
+  subgraph Actions [Danh sách chức năng]
+    subgraph Admin_Only [Vùng đặc quyền Admin]
+      UC6(Quản lý User và Phân quyền)
+    end
 
-    Admin --> UC1
-    Admin --> UC2
-    Admin --> UC3
-    Admin --> UC4
-    Admin --> UC5
-    Admin --> UC6
-    Admin --> UC7
+    subgraph Business_UCs [Nhóm chức năng nghiệp vụ]
+      UC2(Quản lý thí sinh)
+      UC3(Quản lý điểm và điểm cộng)
+      UC4(Quản lý ngành/tổ hợp/quy đổi)
+      UC5(Quản lý nguyện vọng)
+      UC7(Báo cáo thống kê)
+    end
 
-    Officer --> UC1
-    Officer --> UC2
-    Officer --> UC3
-    Officer --> UC4
-    Officer --> UC5
-    Officer --> UC7
+    UC1A(Đăng nhập hệ thống nội bộ)
+    UC1B(Đăng nhập cổng thí sinh)
+    UC8(Thông tin cá nhân và đổi mật khẩu)
+  end
 
-    Candidate --> UC1
-    Candidate --> UC8
-    Candidate --> UC5
+  Admin -- Toàn quyền --> Admin_Only
+  Admin -- Toàn quyền --> Business_UCs
+  Admin --> UC1A
+
+  OtherRoles -- Được gán tùy biến --> Business_UCs
+  OtherRoles --> UC1A
+
+  CandidatePortal --> UC1B
+  CandidatePortal --> UC8
+  OtherRoles --> UC8
+  Admin --> UC8
+
+  UC6 -. Khởi tạo và gán quyền .-> OtherRoles
+
+  style Admin_Only fill:#ffcccc,stroke:#ff0000,stroke-width:2px
+  style UC6 fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 ### 6.2 Activity Diagram (Luồng quản trị dữ liệu tuyển sinh)
 ```mermaid
 flowchart TD
-    Start([Bắt đầu]) --> Login[Đăng nhập]
-    Login --> CheckRole{Xác thực + nạp quyền}
+  Start([Bắt đầu]) --> SelectActor{Người dùng là ai?}
 
-    CheckRole -->|Hợp lệ| Dashboard[Mở Dashboard]
-    CheckRole -->|Không hợp lệ| Fail[Thông báo lỗi] --> End([Kết thúc])
+  SelectActor -->|ADMIN / Vai trò động| InternalLogin[Đăng nhập hệ thống nội bộ]
+  SelectActor -->|Thí sinh| CandidateLogin[Đăng nhập cổng thí sinh theo CCCD]
 
-    Dashboard --> Action{Chọn chức năng}
+  InternalLogin --> AuthInternal{Xác thực users + trạng thái active}
+  AuthInternal -->|Thất bại| FailInternal[Thông báo lỗi đăng nhập] --> End([Kết thúc])
+  AuthInternal -->|Thành công| InitSession[Khởi tạo session và nạp permissions]
+  InitSession --> OpenDashboard[Mở Admissions Dashboard]
 
-    Action -->|Quản lý thí sinh| CandidateFlow[CRUD/Import thí sinh]
-    Action -->|Quản lý điểm| ScoreFlow[CRUD/Import điểm thi và điểm cộng]
-    Action -->|Quản lý ngành| MajorFlow[CRUD ngành, tổ hợp, bảng quy đổi]
-    Action -->|Nguyện vọng| WishFlow[Quản lý xét nguyện vọng]
-    Action -->|Báo cáo| ReportFlow[Thống kê và xem biểu đồ]
+  OpenDashboard --> InternalAction{Chọn chức năng theo quyền}
+  InternalAction -->|Quản lý thí sinh| CandidateFlow[CRUD/Import thí sinh]
+  InternalAction -->|Quản lý điểm| ScoreFlow[CRUD/Import điểm thi và điểm cộng]
+  InternalAction -->|Quản lý ngành| MajorFlow[CRUD ngành, tổ hợp, bảng quy đổi]
+  InternalAction -->|Quản lý nguyện vọng| WishFlow[Quản lý xét nguyện vọng]
+  InternalAction -->|Báo cáo| ReportFlow[Thống kê và xem biểu đồ]
+  InternalAction -->|Thông tin cá nhân| InternalProfile[Đổi thông tin và mật khẩu tài khoản nội bộ]
 
-    CandidateFlow --> Save[Kiểm tra quyền và lưu DB]
-    ScoreFlow --> Save
-    MajorFlow --> Save
-    WishFlow --> Save
-    ReportFlow --> End
+  CandidateFlow --> SaveInternal[Kiểm tra quyền và lưu DB]
+  ScoreFlow --> SaveInternal
+  MajorFlow --> SaveInternal
+  WishFlow --> SaveInternal
+  InternalProfile --> SaveInternal
+  ReportFlow --> End
+  SaveInternal --> End
 
-    Save --> End
+  CandidateLogin --> AuthCandidate{Tìm thí sinh theo CCCD + kiểm tra mật khẩu}
+  AuthCandidate -->|Thất bại| FailCandidate[Thông báo sai CCCD/mật khẩu] --> End
+  AuthCandidate -->|Thành công| OpenCandidatePortal[Mở UserMainFrame]
+  OpenCandidatePortal --> CandidateAction{Thao tác cổng thí sinh}
+  CandidateAction -->|Cập nhật email/sđt| UpdateContact[Cập nhật thông tin liên hệ]
+  didateAction -->|Cập nhật nguyện vọng| UpdateNguyenVong[Cập nhật nguyện vọng]
+  CandidateAction -->|Đổi mật khẩu| ChangePassword[Đổi mật khẩu]
+  UpdateContact --> SaveCandidate[Lưu hồ sơ thí sinh]
+  UpdateNguyenVong--> SaveCandidate
+  ChangePassword --> SaveCandidate
+  SaveCandidate --> End
 ```
 
 ### 6.3 Sequence Diagram (Đăng nhập và kiểm tra quyền)
 ```mermaid
 sequenceDiagram
-    actor User as Người dùng
-    participant UI as RoleSelectionFrame
-    participant Auth as AuthService
-    participant Repo as UserRepository
-    participant Session as SessionManager
-    participant App as AdmissionsDemoFrame
+  actor InternalUser as ADMIN / Vai trò động
+  actor Candidate as Thí sinh (CCCD)
 
-    User->>UI: Nhập username/password
-    UI->>Auth: login(username, password)
-    Auth->>Repo: findByUsername(username)
-    Repo-->>Auth: User + Role + Permissions
+  participant RoleUI as RoleSelectionFrame
+  participant Auth as AuthService
+  participant UserRepo as UserRepository
+  participant Session as SessionManager
+  participant Dashboard as AdmissionsDemoFrame
+
+  participant CandidateUI as UserLoginFrame
+  participant ThiSinhSvc as ThiSinhService
+  participant CandidateFrame as UserMainFrame
+
+  par Luồng nội bộ
+    InternalUser->>RoleUI: Nhập username/password
+    RoleUI->>Auth: login(username, password)
+    Auth->>UserRepo: findByUsername(username)
+    UserRepo-->>Auth: User + Role + Permissions
     Auth->>Session: initialize(user)
-    Auth->>Repo: updateLastLogin(userId)
-    Auth-->>UI: Trả kết quả thành công
-    UI->>App: Mở dashboard
-    App->>Session: hasAnyPermission(...)
-    Session-->>App: Kết quả cho phép/không cho phép
+    Auth->>UserRepo: updateLastLogin(userId)
+    Auth-->>RoleUI: Thành công / thất bại
+
+    alt Đăng nhập thành công
+      RoleUI->>Dashboard: Mở màn hình dashboard
+      Dashboard->>Session: hasAnyPermission(code)
+      Session-->>Dashboard: Cho phép / từ chối chức năng
+    else Đăng nhập thất bại
+      RoleUI-->>InternalUser: Hiển thị thông báo lỗi
+    end
+  and Luồng thí sinh
+    Candidate->>CandidateUI: Nhập CCCD/password
+    CandidateUI->>ThiSinhSvc: getByCccd(cccd)
+    ThiSinhSvc-->>CandidateUI: ThiSinh hoặc rỗng
+
+    alt CCCD tồn tại và mật khẩu đúng
+      CandidateUI->>CandidateFrame: Mở trang cá nhân
+      Candidate->>CandidateFrame: Cập nhật liên hệ / đổi mật khẩu
+      CandidateFrame->>ThiSinhSvc: update(thiSinh)
+      ThiSinhSvc-->>CandidateFrame: Kết quả lưu
+    else Sai CCCD hoặc mật khẩu
+      CandidateUI-->>Candidate: Hiển thị thông báo lỗi
+    end
+  end
 ```
 
 ## 7. Kiến trúc vận hành (System Architecture Flow)
@@ -185,29 +241,42 @@ flowchart LR
     style Data fill:#fff8e1,stroke:#f9a825,stroke-width:2px
 
     subgraph Presentation [Presentation Layer]
-        LoginUI[RoleSelectionFrame / Login Frames]
-        DashboardUI[AdmissionsDemoFrame + Panels]
-        CandidateUI[UserMainFrame]
+    InternalLoginUI[RoleSelectionFrame]
+    CandidateLoginUI[UserLoginFrame]
+    DashboardUI[AdmissionsDemoFrame + Sidebar/Panels]
+    CandidatePortalUI[UserMainFrame]
     end
 
     subgraph Service [Service Layer]
         AuthSvc[AuthService]
-        DomainSvc[ThiSinh/Diem/Nganh/NguyenVong Services]
+    ThiSinhSvc[ThiSinhService]
+    DomainSvc[Diem/Nganh/NguyenVong/BQD/Tohop Services]
         RBAC[SessionManager + PermissionCatalog]
     end
 
     subgraph Data [Data Layer]
+    UserRepo[UserRepository]
+    ThiSinhRepo[ThiSinhRepository]
         Repo[Repository Layer]
         DB[(MySQL - xettuyen2026)]
         ORM[Hibernate ORM]
     end
 
-    LoginUI --> AuthSvc
+  InternalLoginUI --> AuthSvc
+  CandidateLoginUI --> ThiSinhSvc
+
     DashboardUI --> DomainSvc
     DashboardUI --> RBAC
-    CandidateUI --> DomainSvc
+  CandidatePortalUI --> ThiSinhSvc
 
-    AuthSvc --> Repo
+  AuthSvc --> RBAC
+  RBAC --> DashboardUI
+
+  AuthSvc --> UserRepo
+  ThiSinhSvc --> ThiSinhRepo
+
+  UserRepo --> Repo
+  ThiSinhRepo --> Repo
     DomainSvc --> Repo
     Repo --> ORM
     ORM --> DB
@@ -216,7 +285,7 @@ flowchart LR
 ## 8. Quy tắc nghiệp vụ chính (Business Rules)
 - Chỉ người dùng có permission phù hợp mới được thao tác trên module tương ứng.
 - Dữ liệu tuyển sinh liên kết chủ yếu qua khóa nghiệp vụ (CCCD, mã ngành, mã tổ hợp).
-- Với thí sinh đăng nhập cổng cá nhân, chỉ được cập nhật thông tin liên hệ và mật khẩu của chính mình.
+- Với thí sinh đăng nhập cổng cá nhân, chỉ được cập nhật nguyện vọng và thông tin liên hệ và mật khẩu của chính mình.
 - Báo cáo thống kê chỉ hiển thị khi có đủ dữ liệu đầu vào hợp lệ.
 - Tài khoản có trạng thái không active không được đăng nhập.
 
