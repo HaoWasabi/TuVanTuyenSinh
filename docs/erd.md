@@ -2,7 +2,7 @@
 
 Tài liệu này được xây dựng dựa trên:
 
-- Schema trong file SQL rỗng bạn cung cấp (nhóm bảng tuyển sinh).
+- Schema trong file SQL được giảng viên cung cấp (nhóm bảng tuyển sinh).
 - Model/repository trong đồ án Java (bổ sung cụm bảng phân quyền).
 
 ## Sơ đồ Mermaid ERD
@@ -192,6 +192,44 @@ erDiagram
         VARCHAR d_phanvi
     }
 ```
+
+    ## Mô hình dữ liệu quan hệ (RDM)
+
+    Mô hình dữ liệu quan hệ của hệ thống được tổ chức thành 2 nhóm chính:
+
+    - Nhóm phân quyền: quản lý tài khoản, vai trò và quyền truy cập.
+    - Nhóm tuyển sinh: quản lý thí sinh, điểm thi, ngành, tổ hợp môn, nguyện vọng và bảng quy đổi.
+
+    ### 1. Các quan hệ chính
+
+    | Bảng | Khóa chính | Khóa ngoại / liên kết | Ghi chú |
+    |---|---|---|---|
+    | roles | id | - | Bảng vai trò hệ thống |
+    | role_permissions | (role_id, permission) | role_id -> roles.id | Bảng ánh xạ quyền theo vai trò |
+    | users | user_id | role_id -> roles.id; id_role -> roles.id | Tài khoản người dùng |
+    | xt_thisinhxettuyen25 | idthisinh | cccd là định danh nghiệp vụ duy nhất | Hồ sơ thí sinh |
+    | xt_diemthixettuyen | iddiemthi | cccd liên kết logic với thí sinh | Điểm thi xét tuyển |
+    | xt_nganh | idnganh | - | Danh mục ngành |
+    | xt_tohop_monthi | idtohop | matohop là mã duy nhất | Danh mục tổ hợp môn |
+    | xt_nganh_tohop | id | manganh, matohop liên kết logic | Ánh xạ ngành - tổ hợp |
+    | xt_diemcongxetuyen | iddiemcong | ts_cccd, manganh, matohop liên kết logic | Điểm cộng xét tuyển |
+    | xt_nguyenvongxettuyen | idnv | nn_cccd, nv_manganh liên kết logic | Nguyện vọng xét tuyển |
+    | xt_bangquydoi | idqd | d_tohop liên kết logic | Bảng quy đổi điểm |
+
+    ### 2. Mô tả quan hệ giữa các bảng
+
+    - Một vai trò có thể gán cho nhiều người dùng, nhưng mỗi người dùng chỉ gắn với một vai trò chính thông qua `role_id`.
+    - Một vai trò có nhiều quyền truy cập khác nhau trong `role_permissions`.
+    - Một thí sinh có thể phát sinh một bản ghi điểm thi và nhiều bản ghi nguyện vọng.
+    - Một ngành có thể gắn với nhiều tổ hợp môn thông qua bảng trung gian `xt_nganh_tohop`.
+    - Một tổ hợp môn có thể được dùng để quy đổi hoặc xét tuyển cho nhiều ngành.
+    - Bảng `xt_diemcongxetuyen` và `xt_nguyenvongxettuyen` dùng các mã nghiệp vụ như CCCD, mã ngành và mã tổ hợp để liên kết dữ liệu giữa các phân hệ.
+
+    ### 3. Đặc điểm mô hình
+
+    - Cụm bảng phân quyền có đầy đủ FK vật lý trong database.
+    - Cụm bảng tuyển sinh chủ yếu dùng liên kết logic bằng mã nghiệp vụ, phù hợp với cách nhập dữ liệu và xử lý trong đồ án.
+    - Thiết kế này giúp hệ thống dễ mở rộng, đồng thời giữ được tính linh hoạt khi import dữ liệu từ Excel hoặc đồng bộ từ nguồn ngoài.
 
 ## Chi tiết các Module
 
