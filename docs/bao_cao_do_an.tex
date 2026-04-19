@@ -13,7 +13,7 @@
 \setlength{\parskip}{6pt}
 
 % ---------- Useful packages ----------
-\usepackage{graphicx}
+\usepackage{graphicx}	
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -179,7 +179,18 @@ Hệ thống được thiết kế theo kiến trúc phân lớp 4 tầng:
 Mô hình này giúp đảm bảo nguyên tắc phân tách trách nhiệm (Separation of Concerns), giảm rủi ro khi thay đổi một thành phần gây ảnh hưởng dây chuyền toàn hệ thống.\\
 
 \textbf{System Architecture Flow \\}
-Cần bổ sung
+a. Admin\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{saf_admin.png}
+	\caption{Sơ đồ System Architecture Flow admin}
+\end{figure}
+b. Sinh viên (Thí sinh)\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{saf_thi_sinh.png}
+	\caption{Sơ đồ System Architecture Flow thí sinh}
+\end{figure}
 
 \section{Mô hình dữ liệu}
 \textbf{Entity Relationship Diagram\\}
@@ -230,9 +241,17 @@ Luồng này được áp dụng thống nhất cho hầu hết phân hệ nên 
 
 \textbf{Sequence Diagram:\\} 
 a. Admin:\\
-Cần bổ sung\\\\
-a. Sinh viên:\\
-Cần bổ sung
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{sd_admin.png}
+	\caption{Sơ đồ Sequence admin}
+\end{figure}
+b. Sinh viên (Thí sinh):
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{sd_thi_sinh.png}
+	\caption{Sơ đồ Sequence thí sinh}
+\end{figure}
 
 \section{Chi tiết các thành phần}
 \textbf{Thành phần Model:}
@@ -338,13 +357,13 @@ Giao diện được thiết kế theo các nguyên tắc:
 \textbf{Color Palette\\}
 Hệ thống sử dụng bảng màu được tối ưu hóa cho accessibility:
 \begin{itemize}
-  \item \textbf{Example}: \#007BFF (Blue) - Buttons và highlightt
-  \item \textbf{Primary Color}: \#... - ...
-  \item \textbf{Secondary Color}: \#... - ...
-  \item \textbf{Background}: \#... - ...
-  \item \textbf{Sidebar}: \#... - ...
-  \item \textbf{Text}: \#... - ...
-  \item \textbf{Sidebar Text}: \#... - ...
+\item \textbf{Buttons và highlight}: dùng tông xanh chủ đạo để tạo điểm nhấn thao tác chính.
+\item \textbf{Primary Color}: \#3696F0 - Xanh dương chủ đạo cho nút hành động chính, trạng thái active/highlight.
+\item \textbf{Secondary Color}: \#F7F9FB - Xám rất nhạt cho vùng phụ, header bảng và các bề mặt trung tính.
+\item \textbf{Background}: \#F2F4F8 - Nền tổng thể ứng dụng, giúp tăng tương phản với card trắng.
+\item \textbf{Sidebar}: \#2D3442 - Nền sidebar tối, hỗ trợ phân tách vùng điều hướng rõ ràng.
+\item \textbf{Text}: \#212532 - Màu chữ chính, đảm bảo độ đọc cao trên nền sáng.
+\item \textbf{Sidebar Text}: \#F5F9FC - Màu chữ sáng cho sidebar, tương phản tốt trên nền tối.
 \end{itemize}
 
 \textbf{Layout Structure\\}
@@ -364,11 +383,33 @@ Main Area (Chính giữa):
 \end{itemize}
 
 \section{User flow}
-\textbf{UseCase Diagram\\}
+\textbf{Functional Flowchart\\}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{ff.png}
+	\caption{Sơ đồ Functional Flowchart tổng quát}
+\end{figure}
+
+\textbf{Usecase Diagram\\}
 a. Admin\\
-(Cần bổ sung)\\
-a. Sinh viên\\
-(Cần bổ sung)\\\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{ud_admin.png}
+	\caption{Sơ đồ Usecase Diagram admin}
+\end{figure}
+b. Sinh viên (Thí sinh)\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{ud_thi_sinh.png}
+	\caption{Sơ đồ Usecase Diagram thí sinh}
+\end{figure}
+c. Vai trò động\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{ud_vai_tro_dong.png}
+	\caption{Sơ đồ Usecase Diagram vai trò động}
+\end{figure}
+
 \textbf{Các luồng thao tác tiêu biểu:}
 \begin{enumerate}
   \item \textbf{Đăng nhập và điều hướng}: người dùng nhập tài khoản, hệ thống xác thực, nạp quyền và điều hướng tới dashboard.

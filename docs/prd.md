@@ -93,7 +93,7 @@ Mục tiêu chính:
 
 ## 6. Use Case & Activity Diagram
 
-### 6.1 Use Case Diagram (Tổng quan vai trò)
+### 6.1 Functional Flowchart
 ```mermaid
 ---
 config:
@@ -101,49 +101,42 @@ config:
   theme: redux
 ---
 flowchart LR
-  subgraph Roles [Vai trò hệ thống]
-    Admin([ADMIN])
-    OtherRoles([Vai trò động])
-    CandidatePortal([Thí sinh])
-  end
+  Start([Bắt đầu]) --> Login{Loại đăng nhập}
 
-  subgraph Actions [Danh sách chức năng]
-    subgraph Admin_Only [Vùng đặc quyền Admin]
-      UC6(Quản lý User và Phân quyền)
-    end
+  Login -->|Nội bộ| AuthInternal[AuthService: login users]
+  Login -->|Thí sinh| AuthCandidate[ThiSinhService: xác thực CCCD/mật khẩu]
 
-    subgraph Business_UCs [Nhóm chức năng nghiệp vụ]
-      UC2(Quản lý thí sinh)
-      UC3(Quản lý điểm và điểm cộng)
-      UC4(Quản lý ngành/tổ hợp/quy đổi)
-      UC5(Quản lý nguyện vọng)
-      UC7(Báo cáo thống kê)
-    end
+  AuthInternal --> RBAC[SessionManager + PermissionCatalog]
+  RBAC --> Menu{Menu theo permission}
 
-    UC1A(Đăng nhập hệ thống nội bộ)
-    UC1B(Đăng nhập cổng thí sinh)
-    UC8(Thông tin cá nhân và đổi mật khẩu)
-  end
+  Menu --> MUser[Quản lý User & Role]
+  Menu --> MCandidate[Quản lý thí sinh]
+  Menu --> MScore[Quản lý điểm thi + điểm cộng]
+  Menu --> MMajor[Quản lý ngành + tổ hợp + quy đổi]
+  Menu --> MWish[Quản lý nguyện vọng]
+  Menu --> MReport[Báo cáo thống kê]
+  Menu --> MProfile[Thông tin cá nhân / đổi mật khẩu]
 
-  Admin -- Toàn quyền --> Admin_Only
-  Admin -- Toàn quyền --> Business_UCs
-  Admin --> UC1A
+  MUser --> Save[(Hibernate + MySQL)]
+  MCandidate --> Save
+  MScore --> Save
+  MMajor --> Save
+  MWish --> Save
+  MProfile --> Save
 
-  OtherRoles -- Được gán tùy biến --> Business_UCs
-  OtherRoles --> UC1A
-
-  CandidatePortal --> UC1B
-  CandidatePortal --> UC8
-  OtherRoles --> UC8
-  Admin --> UC8
-
-  UC6 -. Khởi tạo và gán quyền .-> OtherRoles
-
-  style Admin_Only fill:#ffcccc,stroke:#ff0000,stroke-width:2px
-  style UC6 fill:#f9f,stroke:#333,stroke-width:2px
+  AuthCandidate --> CandidatePortal[UserMainFrame]
+  CandidatePortal --> CUpdate[Cập nhật liên hệ / nguyện vọng / mật khẩu]
+  CUpdate --> Save
+  MReport --> End([Kết thúc])
+  Save --> End
 ```
 
-### 6.2 Activity Diagram (Luồng quản trị dữ liệu tuyển sinh)
+### 6.2 Use Case Diagram
+![Admin](./ud_admin.png)
+![Thí sinh](./ud_thi_sinh.png)
+![Vai trò động](./ud_vai_tro_dong.png)
+
+### 6.3 Activity Diagram
 ```mermaid
 flowchart TD
   Start([Bắt đầu]) --> SelectActor{Người dùng là ai?}
@@ -185,7 +178,7 @@ flowchart TD
   SaveCandidate --> End
 ```
 
-### 6.3 Sequence Diagram (Đăng nhập và kiểm tra quyền)
+### 6.4 Sequence Diagram (Đăng nhập và kiểm tra quyền)
 ```mermaid
 sequenceDiagram
   actor InternalUser as ADMIN / Vai trò động
