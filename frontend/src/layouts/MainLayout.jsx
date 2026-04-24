@@ -32,7 +32,7 @@ const MainLayout = ({ children }) => {
             <Link to="/tra-cuu-nganh" className="hover:text-blue-600">Tra cứu Ngành</Link>
             <Link to="/tra-cuu-diem" className="hover:text-blue-600">Tra cứu Điểm</Link>
             <Link to="/bang-quy-doi" className="hover:text-blue-600">Bảng quy đổi</Link>
-
+            <Link to="/cong-cu-tinh-diem" className="hover:text-blue-600">Công cụ tính điểm</Link>
             {/* Phân vùng Private (Chỉ hiện menu này khi đã đăng nhập) */}
             {user && (
               <>

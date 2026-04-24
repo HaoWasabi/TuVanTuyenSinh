@@ -10,6 +10,7 @@ import NguyenVong from './pages/NguyenVong';
 import BangQuyDoi from './pages/BangQuyDoi';
 import TraCuuDiem from './pages/TraCuuDiem';
 import DiemThiCaNhan from './pages/DiemThiCaNhan';
+import CongCuTinhDiem from './pages/CongCuTinhDiem';
 
 // Trang chủ được thiết kế lại
 const Home = () => (
@@ -125,6 +126,7 @@ function App() {
           <Route path="/bang-quy-doi" element={<BangQuyDoi />} />
           <Route path="/tra-cuu-diem" element={<TraCuuDiem />} />
           <Route path="/diem-cua-toi" element={<DiemThiCaNhan />} />
+          <Route path="/cong-cu-tinh-diem" element={<CongCuTinhDiem />} />
           <Route path="*" element={<div className="p-10 text-center text-gray-500 font-bold text-xl">404 - Trang không tồn tại</div>} />
         </Routes>
       </MainLayout>
