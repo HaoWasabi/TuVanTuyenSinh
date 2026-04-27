@@ -1,4 +1,4 @@
-package com.tuyensinh.util;
+package com.tuyensinh.utilWeb;
 
 import com.tuyensinh.model.DiemThi;
 import java.math.BigDecimal;
@@ -241,4 +241,94 @@ public class CongThucUtil {
             ));
         return matrix;
     }
+
+/**
+ * Quy đổi điểm ĐGNL (thang 1200 → 30)
+ * Công thức: điểm * 30 / 1200
+ */
+public static BigDecimal quyDoiDgnl1200Sang30(BigDecimal diem1200) {
+    if (diem1200 == null) return ZERO;
+
+    return diem1200
+            .multiply(new BigDecimal("30"))
+            .divide(new BigDecimal("1200"), SCALE_SCORE, RoundingMode.HALF_UP);
+}
+
+
+/**
+ * Quy đổi điểm VSAT (thang 150 → 10)
+ * Công thức: điểm * 10 / 150
+ */
+public static BigDecimal quyDoiVsat150Sang10(BigDecimal diem150) {
+    if (diem150 == null) return ZERO;
+
+    return diem150
+            .multiply(new BigDecimal("10"))
+            .divide(new BigDecimal("150"), SCALE_SCORE, RoundingMode.HALF_UP);
+}
+
+
+/**
+ * Quy đổi điểm bất kỳ về thang 10
+ */
+public static BigDecimal quyDoiVeThang10(BigDecimal diem, BigDecimal maxInput) {
+    if (diem == null || maxInput == null || maxInput.compareTo(ZERO) == 0) {
+        return ZERO;
+    }
+
+    return diem
+            .multiply(new BigDecimal("10"))
+            .divide(maxInput, SCALE_SCORE, RoundingMode.HALF_UP);
+}
+
+
+/**
+ * Điểm N1 = max(thi, chứng chỉ)
+ */
+public static BigDecimal tinhDiemN1(BigDecimal n1Thi, BigDecimal n1Cc) {
+    BigDecimal thi = safe(n1Thi);
+    BigDecimal cc = safe(n1Cc);
+
+    return thi.max(cc).setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+}
+
+
+/**
+ * Kiểm tra đạt ngưỡng
+ */
+public static boolean datNguong(BigDecimal dxt, BigDecimal nguong) {
+    if (dxt == null || nguong == null) return false;
+    return dxt.compareTo(nguong) >= 0;
+}
+
+
+/**
+ * Kiểm tra trúng tuyển
+ */
+public static boolean datTrungTuyen(BigDecimal dxt, BigDecimal diemChuan) {
+    if (dxt == null || diemChuan == null) return false;
+    return dxt.compareTo(diemChuan) >= 0;
+}
+
+
+/**
+ * Tổng điểm 3 môn (không hệ số)
+ */
+public static BigDecimal tinhTong3Mon(BigDecimal d1, BigDecimal d2, BigDecimal d3) {
+    return safe(d1)
+            .add(safe(d2))
+            .add(safe(d3))
+            .setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+}
+
+
+/**
+ * Giới hạn điểm tối đa
+ */
+public static BigDecimal gioiHanDiem(BigDecimal diem, BigDecimal max) {
+    if (diem == null) return ZERO;
+    return diem.compareTo(max) > 0 ? max : diem;
+}
+
+    
 }

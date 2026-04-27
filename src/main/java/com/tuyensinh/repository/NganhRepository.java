@@ -74,6 +74,20 @@ public class NganhRepository {
         }
     }
 
+    // Tìm ngành theo tên ngành (tìm kiếm gần đúng)
+    public Optional<Nganh> findByTenNganh(String tennganh) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Nganh result = session.createQuery(
+                    "from Nganh n where n.tennganh = :tennganh",
+                    Nganh.class)
+                    .setParameter("tennganh", tennganh)
+                    .setMaxResults(1)
+                    .uniqueResult();
+
+            return Optional.ofNullable(result);
+        }
+    }
+
     public Nganh update(Nganh nganh) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

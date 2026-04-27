@@ -49,6 +49,15 @@ public class DiemThiRepository {
         }
     }
 
+    // Hàm lấy điểm thi theo số báo danh
+    public List<DiemThi> findBySoBaoDanh(String sobaodanh) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from DiemThi d where d.sobaodanh = :sobaodanh", DiemThi.class)
+                    .setParameter("sobaodanh", sobaodanh)
+                    .list();
+        }
+    }
+
     public boolean add(DiemThi dt) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

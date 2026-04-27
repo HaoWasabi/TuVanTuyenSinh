@@ -37,6 +37,41 @@ public class ThiSinhRepository {
         }
     }
 
+    // Tìm kiếm thí sinh theo CCCD và ngày sinh (định dạng ddMMyyyy)
+    public Optional<ThiSinh> findByCccdAndNgaySinh(String cccd, String ngaySinh) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // Tìm theo CCCD trước
+            ThiSinh result = session.createQuery(
+                    "from ThiSinh t where t.cccd = :cccd", ThiSinh.class)
+                    .setParameter("cccd", cccd)
+                    .setMaxResults(1)
+                    .uniqueResult();
+            
+            if (result == null) {
+                return Optional.empty();
+            }
+            
+            // Nếu có ngày sinh, kiểm tra khớp (so sánh không dấu)
+            if (ngaySinh != null && !ngaySinh.isEmpty()) {
+                String ngaySinhInput = ngaySinh.trim();
+                String ngaySinhDb = result.getNgaySinh();
+                
+                // So sánh không dấu, bỏ qua các ký tự phân cách
+                String inputNormalized = ngaySinhInput.replaceAll("[^0-9]", "");
+                String dbNormalized = (ngaySinhDb != null) ? ngaySinhDb.replaceAll("[^0-9]", "") : "";
+                
+                if (inputNormalized.equals(dbNormalized)) {
+                    return Optional.of(result);
+                } else {
+                    return Optional.empty();
+                }
+            }
+            
+            // Không có ngày sinh → trả về kết quả theo CCCD
+            return Optional.ofNullable(result);
+        }
+    }
+
     // Tìm kiếm thí sinh theo Họ Tên (tìm kiếm gần đúng)
     public List<ThiSinh> findByHoTen(String keyword) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

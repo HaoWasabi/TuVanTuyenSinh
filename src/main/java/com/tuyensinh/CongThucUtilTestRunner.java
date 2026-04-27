@@ -1,7 +1,7 @@
 package com.tuyensinh;
 
 import com.tuyensinh.model.DiemThi;
-import com.tuyensinh.util.CongThucUtil;
+import com.tuyensinh.utilWeb.CongThucUtil;
 import java.math.BigDecimal;
 
 /**
