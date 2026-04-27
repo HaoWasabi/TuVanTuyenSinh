@@ -5,6 +5,7 @@ import com.tuyensinh.serviceWeb.NganhServiceWeb;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -12,6 +13,13 @@ import java.util.Optional;
 public class NganhControllerWeb {
 
     private final NganhServiceWeb nganhServiceWeb = new NganhServiceWeb();
+
+    // Lấy danh sách tất cả tennganh
+    @GetMapping
+    public ResponseEntity<List<String>> getAllTenNganh() {
+        List<String> list = nganhServiceWeb.getAllTenNganh();
+        return ResponseEntity.ok(list);
+    }
 
     @GetMapping("/{tennganh}")
     public ResponseEntity<Nganh> getByTenNganh(@PathVariable("tennganh") String tennganh) {
