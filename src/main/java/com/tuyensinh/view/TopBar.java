@@ -1,5 +1,8 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -51,7 +54,13 @@ public class TopBar extends JPanel {
         notifBtn.setBorderPainted(false);
         notifBtn.setContentAreaFilled(false);
 
-        JLabel userLabel = new JLabel("Admin User");
+        User currentUser = SessionManager.getCurrentUser();
+        String displayName = "Guest";
+        if (currentUser != null) {
+			displayName = currentUser.getUsername();
+        }
+
+        JLabel userLabel = new JLabel(displayName);
         userLabel.setFont(UIStyles.FONT_BODY);
         userLabel.setForeground(UIStyles.TEXT_DARK);
 
