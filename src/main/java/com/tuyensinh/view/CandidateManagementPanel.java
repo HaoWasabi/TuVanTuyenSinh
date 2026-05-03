@@ -351,7 +351,7 @@ public class CandidateManagementPanel extends JPanel {
                         .doiTuong(dialog.getDoituong())
                         .khuVuc(dialog.getKhuvuc())
                         .updatedAt(LocalDate.now())
-                    .password(generatePasswordFromDOB(dialog.getNgaysinh())) // Mật khẩu mặc định DDMMYY từ ngày sinh
+                        .password(generatePasswordFromDOB(dialog.getNgaysinh())) // Mật khẩu mặc định DDMMYY từ ngày sinh
                         .build();
 
                 thiSinhService.create(thiSinh);
