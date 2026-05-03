@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, CheckCircle, XCircle, Info, GraduationCap, ClipboardList, ChevronRight, Loader2 } from 'lucide-react';
+import { Calculator, CheckCircle, XCircle, Info, GraduationCap, ClipboardList, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { apiTinhDiemDGNL, apiTinhDiemVSAT, apiTinhDiemTHPT, apiGetDanhSachNganh, apiGetChiTietNganh } from '../api/services';
 
 const CongCuTinhDiem = () => {
@@ -112,10 +112,21 @@ const CongCuTinhDiem = () => {
           diemUuTien: uuTien
         });
         
+        // Kiểm tra lỗi từ API
+        if (res.error) {
+           setResult({ type: 'ERROR', message: res.errorMessage || "Lỗi dữ liệu từ hệ thống" });
+           setIsCalculating(false);
+           return;
+        }
+
+        // Tự động tính toán Đạt ngưỡng để đảm bảo chính xác 100% so với Ngành đang chọn
+        const isDatNguong = Number(res.diemXetTuyen || 0) >= Number(selectedMajor.diemNguong);
+
         setResult({
           type: 'DGNL',
           data: res,
-          diemNguong: selectedMajor.diemNguong
+          diemNguong: selectedMajor.diemNguong,
+          isDat: isDatNguong
         });
       } 
       else {
@@ -148,19 +159,30 @@ const CongCuTinhDiem = () => {
 
         const listResults = await Promise.all(toHopPromises);
         
-        listResults.sort((a,b) => b.diemXetTuyen - a.diemXetTuyen);
-        const bestResult = listResults[0];
+        // Lọc bỏ những kết quả bị lỗi từ API
+        const validResults = listResults.filter(r => !r.error);
+        
+        if (validResults.length === 0) {
+           setResult({ type: 'ERROR', message: listResults[0]?.errorMessage || "Dữ liệu nhập vào không hợp lệ để tính toán." });
+           setIsCalculating(false);
+           return;
+        }
+
+        validResults.sort((a,b) => Number(b.diemXetTuyen || 0) - Number(a.diemXetTuyen || 0));
+        const bestResult = validResults[0];
+        const isDatNguong = Number(bestResult.diemXetTuyen || 0) >= Number(selectedMajor.diemNguong);
 
         setResult({
           type: 'THPT',
           bestData: bestResult,
-          allResults: listResults,
-          diemNguong: selectedMajor.diemNguong
+          allResults: validResults,
+          diemNguong: selectedMajor.diemNguong,
+          isDat: isDatNguong
         });
       }
     } catch (error) {
       console.error("Lỗi API tính điểm:", error);
-      alert(error.errorMessage || "Có lỗi xảy ra khi kết nối hệ thống tính điểm!");
+      setResult({ type: 'ERROR', message: error.errorMessage || "Có lỗi xảy ra khi kết nối hệ thống tính điểm!" });
     } finally {
       setIsCalculating(false);
     }
@@ -314,24 +336,35 @@ const CongCuTinhDiem = () => {
                 <Info size={56} className="mb-4" />
                 <p className="text-center">Vui lòng nhập điểm và bấm nút<br/>để xem phân tích kết quả.</p>
               </div>
+            ) : result.type === 'ERROR' ? (
+              // HIỂN THỊ LỖI NẾU API TRẢ VỀ LỖI
+              <div className="bg-red-900/40 p-6 rounded-2xl border border-red-500/50 flex flex-col items-center text-center">
+                <AlertCircle size={48} className="text-red-400 mb-4" />
+                <p className="font-bold text-lg text-white mb-2">Không thể tính toán</p>
+                <p className="text-sm text-red-300">{result.message}</p>
+              </div>
             ) : (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 z-10">
                 
                 {/* 1. KẾT QUẢ ĐGNL */}
-                {result.type === 'DGNL' && (
+                {result.type === 'DGNL' && result.data && (
                   <>
                     <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-inner">
                       <p className="text-sm text-gray-400 font-medium mb-2 uppercase tracking-wide">Điểm quy đổi (Thang 30)</p>
-                      <p className="text-6xl font-black text-white tracking-tight mb-3">{result.data.diemXetTuyen?.toFixed(2)}</p>
-                      <p className="text-sm text-blue-300 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-800/50 leading-relaxed">{result.data.thongBao}</p>
+                      <p className="text-6xl font-black text-white tracking-tight mb-3">
+                        {Number(result.data.diemXetTuyen || 0).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-blue-300 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-800/50 leading-relaxed">
+                        {result.data.thongBao || 'Thành công'}
+                      </p>
                     </div>
 
-                    <div className={`p-5 rounded-2xl flex items-center gap-4 border ${result.data.datNguong ? 'bg-green-900/30 border-green-500/40' : 'bg-red-900/30 border-red-500/40'} shadow-lg`}>
-                      {result.data.datNguong ? <CheckCircle size={32} className="text-green-400" /> : <XCircle size={32} className="text-red-400" />}
+                    <div className={`p-5 rounded-2xl flex items-center gap-4 border ${result.isDat ? 'bg-green-900/30 border-green-500/40' : 'bg-red-900/30 border-red-500/40'} shadow-lg`}>
+                      {result.isDat ? <CheckCircle size={32} className="text-green-400" /> : <XCircle size={32} className="text-red-400" />}
                       <div>
                         <p className="font-bold text-lg text-white">So với Điểm Ngưỡng ({result.diemNguong})</p>
-                        <p className={`text-sm mt-1 font-medium ${result.data.datNguong ? 'text-green-300' : 'text-red-300'}`}>
-                          {result.data.datNguong ? 'ĐẠT điều kiện nộp hồ sơ' : 'KHÔNG ĐẠT điều kiện nộp hồ sơ'}
+                        <p className={`text-sm mt-1 font-medium ${result.isDat ? 'text-green-300' : 'text-red-300'}`}>
+                          {result.isDat ? 'ĐẠT điều kiện nộp hồ sơ' : 'KHÔNG ĐẠT điều kiện nộp hồ sơ'}
                         </p>
                       </div>
                     </div>
@@ -339,20 +372,24 @@ const CongCuTinhDiem = () => {
                 )}
 
                 {/* 2. KẾT QUẢ VSAT / THPT */}
-                {result.type === 'THPT' && (
+                {result.type === 'THPT' && result.bestData && (
                   <>
                     <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-inner">
                       <p className="text-sm text-gray-400 font-medium mb-2 uppercase tracking-wide">Tổ hợp cao điểm nhất ({result.bestData.maToHop})</p>
-                      <p className="text-6xl font-black text-white tracking-tight mb-3">{result.bestData.diemXetTuyen?.toFixed(2)}</p>
-                      <p className="text-sm text-blue-300 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-800/50 leading-relaxed">{result.bestData.thongBao}</p>
+                      <p className="text-6xl font-black text-white tracking-tight mb-3">
+                        {Number(result.bestData.diemXetTuyen || 0).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-blue-300 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-800/50 leading-relaxed">
+                        {result.bestData.thongBao || 'Thành công'}
+                      </p>
                     </div>
 
-                    <div className={`p-5 rounded-2xl flex items-center gap-4 border ${result.bestData.datNguong ? 'bg-green-900/30 border-green-500/40' : 'bg-red-900/30 border-red-500/40'} shadow-lg`}>
-                      {result.bestData.datNguong ? <CheckCircle size={32} className="text-green-400" /> : <XCircle size={32} className="text-red-400" />}
+                    <div className={`p-5 rounded-2xl flex items-center gap-4 border ${result.isDat ? 'bg-green-900/30 border-green-500/40' : 'bg-red-900/30 border-red-500/40'} shadow-lg`}>
+                      {result.isDat ? <CheckCircle size={32} className="text-green-400" /> : <XCircle size={32} className="text-red-400" />}
                       <div>
                         <p className="font-bold text-lg text-white">So với Điểm Ngưỡng ({result.diemNguong})</p>
-                        <p className={`text-sm mt-1 font-medium ${result.bestData.datNguong ? 'text-green-300' : 'text-red-300'}`}>
-                          {result.bestData.datNguong ? 'ĐẠT điều kiện nộp hồ sơ' : 'KHÔNG ĐẠT điều kiện nộp hồ sơ'}
+                        <p className={`text-sm mt-1 font-medium ${result.isDat ? 'text-green-300' : 'text-red-300'}`}>
+                          {result.isDat ? 'ĐẠT điều kiện nộp hồ sơ' : 'KHÔNG ĐẠT điều kiện nộp hồ sơ'}
                         </p>
                       </div>
                     </div>
@@ -377,7 +414,7 @@ const CongCuTinhDiem = () => {
                         {result.allResults.map((th, idx) => (
                           <div key={idx} className={`px-4 py-3 rounded-xl flex justify-between items-center ${idx === 0 ? 'bg-blue-600 border border-blue-500 text-white shadow-md' : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 transition'}`}>
                             <span className="font-bold text-sm">Tổ hợp {th.maToHop}</span>
-                            <span className="font-bold text-base">{th.diemXetTuyen?.toFixed(2)}</span>
+                            <span className="font-bold text-base">{Number(th.diemXetTuyen || 0).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
