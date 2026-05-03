@@ -1,23 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, KeyRound, Save, BadgeCheck, Contact, MapPin, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { apiGetThiSinh } from '../api/services';
 
 const Profile = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('info');
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Quản lý trạng thái dữ liệu Form Hồ Sơ
   const [profileData, setProfileData] = useState({
-    hoTen: user?.name || 'Nguyễn Văn An',
-    cccd: user?.cccd || '001205000123',
-    sbd: 'BKA0001',
-    ngaySinh: '15/08/2008',
+    hoTen: user?.name || '',
+    cccd: user?.cccd || '',
+    sbd: '',
+    ngaySinh: '',
     gioiTinh: 'Nam',
-    email: 'an.nguyen@gmail.com',
-    sdt: '0333444555',
-    tinhThanh: 'Hà Nội',
-    khuVuc: 'KV1',
+    email: '',
+    sdt: '',
+    tinhThanh: '',
+    khuVuc: '',
   });
+
+  // Tích hợp API lấy thông tin thí sinh khi load trang
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchProfileData = async () => {
+      setIsLoadingData(true);
+      try {
+        const dob = user.password || user.dob || '01012007'; // Mật khẩu mặc định hoặc từ context
+        const response = await apiGetThiSinh(user.cccd, dob);
+
+        if (response && response.thiSinh) {
+          const ts = response.thiSinh;
+          setProfileData({
+            hoTen: `${ts.ho} ${ts.ten}`,
+            cccd: ts.cccd,
+            sbd: ts.sobaodanh || 'Chưa cập nhật',
+            ngaySinh: ts.ngaySinh || '',
+            gioiTinh: ts.gioiTinh || 'Nam',
+            email: ts.email || '',
+            sdt: ts.dienThoai || '',
+            tinhThanh: ts.noiSinh || 'Chưa cập nhật',
+            khuVuc: ts.khuVuc || 'KV3',
+          });
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải thông tin hồ sơ:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [user]);
 
   // Quản lý trạng thái dữ liệu Form Mật khẩu
   const [passwordData, setPasswordData] = useState({
@@ -42,7 +78,7 @@ const Profile = () => {
     setPasswordData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Hàm mô phỏng việc lưu Hồ sơ lên Server
+  // Hàm mô phỏng việc lưu Hồ sơ lên Server (Chưa có API thật)
   const handleSaveProfile = (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -58,7 +94,7 @@ const Profile = () => {
     }, 1000);
   };
 
-  // Hàm mô phỏng việc Đổi mật khẩu
+  // Hàm mô phỏng việc Đổi mật khẩu (Chưa có API thật)
   const handleSavePassword = (e) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
@@ -83,6 +119,8 @@ const Profile = () => {
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }, 1000);
   };
+
+  if (!user) return <div className="text-center py-10 text-red-600 font-bold">Vui lòng đăng nhập.</div>;
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-6">
@@ -126,80 +164,87 @@ const Profile = () => {
               <p className="text-sm text-gray-500">Thông tin được đồng bộ từ cơ sở dữ liệu tuyển sinh.</p>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-6">
-              {/* PHẦN 1: THÔNG TIN ĐỊNH DANH (READ-ONLY) */}
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex items-center gap-2 mb-4 text-blue-800 font-bold text-sm uppercase tracking-wider">
-                  <BadgeCheck size={16} /> Thông tin định danh
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">SỐ CCCD (TÀI KHOẢN)</label>
-                    <input type="text" disabled value={profileData.cccd} className="w-full px-4 py-2 rounded-lg border bg-white text-gray-400 cursor-not-allowed font-mono" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">SỐ BÁO DANH (SBD)</label>
-                    <input type="text" disabled value={profileData.sbd} className="w-full px-4 py-2 rounded-lg border bg-white text-gray-400 cursor-not-allowed font-mono" />
-                  </div>
-                </div>
+            {isLoadingData ? (
+              <div className="flex justify-center items-center py-10 text-blue-500">
+                 <Loader2 size={32} className="animate-spin" />
+                 <span className="ml-2 font-semibold">Đang tải hồ sơ...</span>
               </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in">
+                {/* PHẦN 1: THÔNG TIN ĐỊNH DANH (READ-ONLY) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2 mb-4 text-blue-800 font-bold text-sm uppercase tracking-wider">
+                    <BadgeCheck size={16} /> Thông tin định danh
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">SỐ CCCD (TÀI KHOẢN)</label>
+                      <input type="text" disabled value={profileData.cccd} className="w-full px-4 py-2 rounded-lg border bg-white text-gray-400 cursor-not-allowed font-mono" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">SỐ BÁO DANH (SBD)</label>
+                      <input type="text" disabled value={profileData.sbd} className="w-full px-4 py-2 rounded-lg border bg-white text-gray-400 cursor-not-allowed font-mono" />
+                    </div>
+                  </div>
+                </div>
 
-              {/* PHẦN 2: THÔNG TIN CÁ NHÂN & LIÊN LẠC */}
-              <div>
-                <div className="flex items-center gap-2 mb-4 text-gray-700 font-bold text-sm uppercase tracking-wider">
-                  <Contact size={16} /> Thông tin cá nhân
+                {/* PHẦN 2: THÔNG TIN CÁ NHÂN & LIÊN LẠC */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4 text-gray-700 font-bold text-sm uppercase tracking-wider">
+                    <Contact size={16} /> Thông tin cá nhân
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Họ và tên</label>
+                      <input type="text" name="hoTen" value={profileData.hoTen} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Giới tính</label>
+                      <select name="gioiTinh" value={profileData.gioiTinh} onChange={handleProfileChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Ngày sinh</label>
+                      <input type="text" name="ngaySinh" value={profileData.ngaySinh} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Số điện thoại</label>
+                      <input type="text" name="sdt" value={profileData.sdt} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Email</label>
+                      <input type="email" name="email" value={profileData.email} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Họ và tên</label>
-                    <input type="text" name="hoTen" value={profileData.hoTen} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Giới tính</label>
-                    <select name="gioiTinh" value={profileData.gioiTinh} onChange={handleProfileChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Ngày sinh</label>
-                    <input type="text" name="ngaySinh" value={profileData.ngaySinh} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Số điện thoại</label>
-                    <input type="text" name="sdt" value={profileData.sdt} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Email</label>
-                    <input type="email" name="email" value={profileData.email} onChange={handleProfileChange} required className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                </div>
-              </div>
 
-              {/* PHẦN 3: ĐỊA BÀN XÉT TUYỂN (READ-ONLY) */}
-              <div>
-                <div className="flex items-center gap-2 mb-4 text-gray-700 font-bold text-sm uppercase tracking-wider">
-                  <MapPin size={16} /> Địa bàn Xét tuyển
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Tỉnh/Thành phố</label>
-                    <input type="text" disabled value={profileData.tinhThanh} className="w-full px-4 py-2 rounded-lg border bg-gray-50 text-gray-500 cursor-not-allowed" />
+                {/* PHẦN 3: ĐỊA BÀN XÉT TUYỂN (READ-ONLY) */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4 text-gray-700 font-bold text-sm uppercase tracking-wider">
+                    <MapPin size={16} /> Địa bàn Xét tuyển
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">Khu vực ưu tiên</label>
-                    <input type="text" disabled value={profileData.khuVuc} className="w-full px-4 py-2 rounded-lg border bg-gray-50 text-gray-500 cursor-not-allowed" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Tỉnh/Thành phố (Nơi sinh)</label>
+                      <input type="text" disabled value={profileData.tinhThanh} className="w-full px-4 py-2 rounded-lg border bg-gray-50 text-gray-500 cursor-not-allowed" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1">Khu vực ưu tiên</label>
+                      <input type="text" disabled value={profileData.khuVuc} className="w-full px-4 py-2 rounded-lg border bg-gray-50 text-gray-500 cursor-not-allowed" />
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="pt-4 border-t">
-                <button type="submit" disabled={isSaving} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-70 disabled:cursor-not-allowed">
-                  {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                  {isSaving ? 'Đang lưu hệ thống...' : 'Lưu thay đổi hồ sơ'}
-                </button>
-              </div>
-            </form>
+                
+                <div className="pt-4 border-t">
+                  <button type="submit" disabled={isSaving} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-70 disabled:cursor-not-allowed">
+                    {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                    {isSaving ? 'Đang lưu hệ thống...' : 'Lưu thay đổi hồ sơ'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
 
@@ -210,7 +255,7 @@ const Profile = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Bảo mật tài khoản</h2>
               <p className="text-sm text-gray-500">Thay đổi mật khẩu định kỳ để bảo vệ thông tin cá nhân</p>
             </div>
-            <form onSubmit={handleSavePassword} className="max-w-md space-y-5">
+            <form onSubmit={handleSavePassword} className="max-w-md space-y-5 animate-in fade-in">
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-1">Mật khẩu hiện tại</label>
                 <input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={handlePasswordChange} required placeholder="••••••••" className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none" />

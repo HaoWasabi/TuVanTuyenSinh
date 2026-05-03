@@ -1,17 +1,26 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: '/api', // Vite proxy sẽ chuyển cái này thành http://localhost:8080/api
+  baseURL: 'http://localhost:8081/api', // Trỏ đúng vào backend Spring Boot
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor xử lý response chung
+// Interceptors (Bộ đánh chặn response)
 axiosClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Nếu backend trả về HTTP 200 nhưng bên trong có báo lỗi (dựa theo tài liệu API)
+    if (response.data && response.data.error === true) {
+      return Promise.reject(response.data);
+    }
+    return response.data;
+  },
   (error) => {
-    console.error("Lỗi gọi API:", error);
+    // Xử lý lỗi HTTP (400, 401, 500...)
+    if (error.response && error.response.data) {
+      return Promise.reject(error.response.data);
+    }
     return Promise.reject(error);
   }
 );

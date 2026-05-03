@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, ArrowUp, ArrowDown, X, Save, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+// import { apiGetNguyenVong, apiSaveNguyenVong, apiDeleteNguyenVong } from '../api/services'; // TODO: Sẵn sàng Import khi có API
 
 const NguyenVong = () => {
   const { user } = useAuth();
   
   // Dữ liệu mô phỏng bảng xt_nguyenvong
+  // TODO: Tương lai sẽ thay bằng useEffect gọi apiGetNguyenVong(user.cccd)
   const [danhSachNV, setDanhSachNV] = useState([
     { id: 1, thuTu: 1, maNganh: '7480201', tenNganh: 'Công nghệ thông tin', maToHop: 'A00' },
     { id: 2, thuTu: 2, maNganh: '7340101', tenNganh: 'Quản trị kinh doanh', maToHop: 'A01' },
@@ -16,6 +18,7 @@ const NguyenVong = () => {
 
   const handleDelete = (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa nguyện vọng này?')) {
+      // TODO: Gọi API apiDeleteNguyenVong(id) tại đây trước khi setDanhSachNV
       const newList = danhSachNV.filter(nv => nv.id !== id);
       setDanhSachNV(newList.map((nv, index) => ({ ...nv, thuTu: index + 1 })));
     }
@@ -27,7 +30,10 @@ const NguyenVong = () => {
     const temp = newList[index];
     newList[index] = newList[index + direction];
     newList[index + direction] = temp;
-    setDanhSachNV(newList.map((nv, idx) => ({ ...nv, thuTu: idx + 1 })));
+    
+    const updatedList = newList.map((nv, idx) => ({ ...nv, thuTu: idx + 1 }));
+    setDanhSachNV(updatedList);
+    // TODO: Gọi API apiUpdateThuTuNguyenVong(updatedList) tại đây để đồng bộ xuống DB
   };
 
   const handleOpenAdd = () => {
@@ -42,6 +48,7 @@ const NguyenVong = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
+    // TODO: Gọi API apiSaveNguyenVong(formData) tại đây
     if (formData.id) {
       setDanhSachNV(danhSachNV.map(nv => nv.id === formData.id ? { ...nv, ...formData } : nv));
     } else {
