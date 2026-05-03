@@ -338,8 +338,13 @@ public class CandidateManagementPanel extends JPanel {
 
         if (dialog.isConfirmed()) {
             try {
+                String cccd = safeTrim(dialog.getCCCD());
+                if (cccd.isEmpty()) {
+                    throw new IllegalArgumentException("CCCD không hợp lệ để tạo username.");
+                }
+
                 ThiSinh thiSinh = ThiSinh.builder()
-                        .cccd(dialog.getCCCD())
+                        .cccd(cccd)
                         .sobaodanh(dialog.getSbaodanh())
                         .ho(dialog.getHo())
                         .ten(dialog.getTen())
@@ -360,10 +365,7 @@ public class CandidateManagementPanel extends JPanel {
                 String generatedPassword = generatePasswordFromDOB(dialog.getNgaysinh());
                 // Username học sinh dùng CCCD để luôn duy nhất và đồng bộ đăng nhập.
                 boolean userCreated = false;
-                String username = safeTrim(dialog.getCCCD());
-                if (username.isEmpty()) {
-                    throw new IllegalArgumentException("CCCD không hợp lệ để tạo username.");
-                }
+                String username = cccd;
                 if (userService.getByUsername(username).isEmpty()) {
                     User studentUser = User.builder()
                         .username(username)
