@@ -5,7 +5,9 @@ import com.tuyensinh.serviceWeb.NganhServiceWeb;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -22,8 +24,16 @@ public class NganhControllerWeb {
     }
 
     @GetMapping("/{tennganh}")
-    public ResponseEntity<Nganh> getByTenNganh(@PathVariable("tennganh") String tennganh) {
+    public ResponseEntity<?> getByTenNganh(@PathVariable("tennganh") String tennganh) {
         Optional<Nganh> nganh = nganhServiceWeb.getByTenNganh(tennganh);
-        return nganh.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        
+        if (nganh.isEmpty()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", true);
+            errorResponse.put("errorMessage", "Không tìm thấy ngành: " + tennganh);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
+        
+        return ResponseEntity.ok(nganh.get());
     }
 }

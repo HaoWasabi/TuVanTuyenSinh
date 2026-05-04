@@ -209,6 +209,8 @@ public class DiemXetTuyenServiceWeb {
                 .diemXetTuyen(BigDecimal.ZERO)
                 .thongBao(message)
                 .datNguong(false)
+                .error(true)
+                .errorMessage(message)
                 .build();
     }
 

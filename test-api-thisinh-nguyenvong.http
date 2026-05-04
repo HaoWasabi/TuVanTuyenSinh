@@ -1,0 +1,76 @@
+### ============================================================
+### API Test: GET /api/thisinh/{cccd}/{ngaySinh}
+### Lấy thông tin thí sinh + danh sách nguyên vọng xét tuyển
+### ============================================================
+
+### Test 1: Lấy thông tin điểm thí sinh với CCCD: 0792110965 và ngày sinh: 01/01/2007
+GET http://localhost:8081/api/thisinh/0792110965/01012007
+Accept: application/json
+
+### Test 1b: Lấy thông tin nguyên vọng của thí sinh với CCCD: 0792110965 và ngày sinh: 01/01/2007
+GET http://localhost:8081/api/thisinh/0792110965/01012007/nguyenvong
+Accept: application/json
+
+### Test 2: Lấy thông tin điểm thí sinh với CCCD: 07920013495 và ngày sinh: 01/01/2007
+GET http://localhost:8081/api/thisinh/07920013495/01012007
+Accept: application/json
+
+### Test 2b: Lấy thông tin nguyên vọng của thí sinh với CCCD: 07920013495 và ngày sinh: 01/01/2007
+GET http://localhost:8081/api/thisinh/07920013495/01012007/nguyenvong
+Accept: application/json
+
+### Test 3: Lấy thông tin điểm thí sinh với CCCD: 07920113495 và ngày sinh: 15/05/2007
+GET http://localhost:8081/api/thisinh/07920113495/15052007
+Accept: application/json
+
+### Test 3b: Lấy thông tin nguyên vọng của thí sinh với CCCD: 07920113495 và ngày sinh: 15/05/2007
+GET http://localhost:8081/api/thisinh/07920113495/15052007/nguyenvong
+Accept: application/json
+
+### Test 4: Lấy thông tin thí sinh với CCCD không tồn tại (test error)
+GET http://localhost:8081/api/thisinh/9999999999/01012007
+Accept: application/json
+
+### ============================================================
+### Danh sách CCCD và ngày sinh từ database:
+### ============================================================
+
+# CCCD: 0792110965, ngày sinh: 01/01/2007 → TS999 (Lê Văn Luyện)
+# CCCD: 07920013495, ngày sinh: 01/01/2007 → TS001 (Nguyễn Văn An)
+# CCCD: 07920113495, ngày sinh: 15/05/2007 → TS002 (Trần Thị Bình)
+# CCCD: 07920213495, ngày sinh: 20/10/2007 → TS003 (Lê Hoàng Anh)
+# CCCD: 0792696815, ngày sinh: 01/01/2007 → TS999 (Lê Văn Luyện)
+# CCCD: 07920099396, ngày sinh: 01/01/2007 → TS001 (Nguyễn Văn An)
+
+### ============================================================
+### Response Structure:
+### ============================================================
+
+# {
+#   "cccd": "0792110965",
+#   "sobaodanh": "TS999",
+#   "ho": "Lê Văn",
+#   "ten": "Luyện",
+#   "ngaySinh": "01/01/2007",
+#   "dienThoai": "0909123456",
+#   "gioiTinh": "Nam",
+#   "email": "ts999@xettuyen.edu.vn",
+#   "noiSinh": null,
+#   "doiTuong": "01",
+#   "khuVuc": "KV1",
+#   "nguyenVongList": [
+#     {
+#       "idnv": 1,
+#       "nv_manganh": "A00",
+#       "nv_tt": 1,
+#       "diem_thxt": 25.12345,
+#       "diem_utqd": 1.50000,
+#       "diem_cong": 0.00,
+#       "diem_xettuyen": 26.62345,
+#       "nv_ketqua": "Đỗ",
+#       "nv_keys": null,
+#       "tt_phuongthuc": "THPT",
+#       "tt_thm": null
+#     }
+#   ]
+# }
