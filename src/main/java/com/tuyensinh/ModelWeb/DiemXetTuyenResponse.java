@@ -29,6 +29,10 @@ public class DiemXetTuyenResponse {
     private String thongBao;
     private Boolean datNguong;
     
+    // Thông tin lỗi (nếu có)
+    private Boolean error;
+    private String errorMessage;
+    
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

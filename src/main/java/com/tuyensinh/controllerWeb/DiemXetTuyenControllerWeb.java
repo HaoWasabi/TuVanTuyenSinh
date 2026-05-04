@@ -22,7 +22,11 @@ public class DiemXetTuyenControllerWeb {
      */
     @PostMapping("/thpt")
     public ResponseEntity<DiemXetTuyenResponse> tinhDiemTHPT(@RequestBody DiemXetTuyenRequest request) {
-        return ResponseEntity.ok(service.tinhDiemTHPT(request));
+        DiemXetTuyenResponse response = service.tinhDiemTHPT(request);
+        if (Boolean.TRUE.equals(response.getError())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -34,7 +38,11 @@ public class DiemXetTuyenControllerWeb {
      */
     @PostMapping("/vsat")
     public ResponseEntity<DiemXetTuyenResponse> tinhDiemVSAT(@RequestBody DiemXetTuyenRequest request) {
-        return ResponseEntity.ok(service.tinhDiemVSAT(request));
+        DiemXetTuyenResponse response = service.tinhDiemVSAT(request);
+        if (Boolean.TRUE.equals(response.getError())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -46,6 +54,10 @@ public class DiemXetTuyenControllerWeb {
      */
     @PostMapping("/DGNL")
     public ResponseEntity<DiemXetTuyenResponse> tinhDiemDGNL(@RequestBody DiemXetTuyenRequest request) {
-        return ResponseEntity.ok(service.tinhDiemDGNL(request));
+        DiemXetTuyenResponse response = service.tinhDiemDGNL(request);
+        if (Boolean.TRUE.equals(response.getError())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 }
