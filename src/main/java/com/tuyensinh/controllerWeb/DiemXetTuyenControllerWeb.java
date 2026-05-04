@@ -6,6 +6,7 @@ import com.tuyensinh.serviceWeb.DiemXetTuyenServiceWeb;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/diemxettuyenweb")
 public class DiemXetTuyenControllerWeb {
@@ -43,7 +44,7 @@ public class DiemXetTuyenControllerWeb {
      * Input: Điểm ĐGNL (thang 1200)
      * Output: Điểm quy đổi (thang 30)
      */
-    @PostMapping("/dgnl")
+    @PostMapping("/DGNL")
     public ResponseEntity<DiemXetTuyenResponse> tinhDiemDGNL(@RequestBody DiemXetTuyenRequest request) {
         return ResponseEntity.ok(service.tinhDiemDGNL(request));
     }
