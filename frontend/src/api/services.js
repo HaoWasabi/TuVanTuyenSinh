@@ -1,8 +1,13 @@
 import axiosClient from './axiosClient';
 
-// 1. Lấy thông tin & điểm của Thí sinh (Dùng cho trang Tra cứu kết quả)
+// 1. Lấy thông tin & điểm của Thí sinh (Dùng cho trang Tra cứu điểm)
 export const apiGetThiSinh = (cccd, dob) => {
   return axiosClient.get(`/thisinh/${cccd}/${dob}`);
+};
+
+// MỚI THÊM: Lấy thông tin & danh sách nguyện vọng xét tuyển (Dùng cho kết quả xét tuyển)
+export const apiTraCuuNguyenVong = (cccd, dob) => {
+  return axiosClient.get(`/thisinh/${cccd}/${dob}/nguyenvong`);
 };
 
 // 2. Tính điểm - Phương thức Đánh giá năng lực (DGNL)
@@ -31,6 +36,7 @@ export const apiGetChiTietNganh = (tenNganh) => {
   return axiosClient.get(`/nganh/${encodeURIComponent(tenNganh)}`);
 };
 
+// 7. Dịch vụ xác thực (Mock Login)
 export const authService = {
   login: async (cccd, password) => {
     // Giả lập API Login thành công nếu nhập đúng
