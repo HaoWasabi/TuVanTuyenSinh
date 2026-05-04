@@ -1,5 +1,7 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
 import com.tuyensinh.model.NguyenVong;
 import com.tuyensinh.service.NguyenVongService;
 import com.tuyensinh.service.SessionManager;
@@ -317,7 +319,7 @@ public class NguyenVongPanel extends JPanel {
     }
 
     private void handleImport() {
-        ImportExcelDialog dialog = new ImportExcelDialog(getTopLevelAncestor() instanceof Frame ?
+        ImportNVExcelDialog dialog = new ImportNVExcelDialog(getTopLevelAncestor() instanceof Frame ?
                 (Frame) getTopLevelAncestor() : null);
         dialog.setVisible(true);
 
@@ -325,7 +327,14 @@ public class NguyenVongPanel extends JPanel {
             File selectedFile = dialog.getSelectedFile();
             try {
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                nguyenVongService.importFromExcel(selectedFile.getAbsolutePath());
+				User currentUser = SessionManager.getCurrentUser();
+				int is_hs;
+				if(currentUser.getIdRoleValue() == 3){
+					is_hs = 1;
+				}else{
+					is_hs = 0;
+				}
+                nguyenVongService.importFromExcel(selectedFile.getAbsolutePath(),is_hs);
                 loadDataToTable();
                 setCursor(Cursor.getDefaultCursor());
 

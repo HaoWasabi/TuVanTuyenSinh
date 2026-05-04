@@ -138,47 +138,52 @@ public class ReportsPanel extends JPanel {
                 new EmptyBorder(16, 16, 16, 16)
         ));
 
-            JLabel tableTitle = new JLabel("Phân bố số lượng theo khoảng điểm");
+        JLabel tableTitle = new JLabel("Phân bố số lượng theo khoảng điểm");
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
         tableCard.add(tableTitle, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
 
-            chartPanel = new BarChartPanel();
-            chartPanel.setPreferredSize(new Dimension(500, 280));
+        chartPanel = new BarChartPanel();
+        chartPanel.setPreferredSize(new Dimension(500, 280));
 
-            JPanel chartCard = new JPanel(new BorderLayout(0, 12));
-            chartCard.setBackground(UIStyles.BG_CARD);
-            chartCard.setBorder(BorderFactory.createCompoundBorder(
+        JPanel chartCard = new JPanel(new BorderLayout(0, 12));
+        chartCard.setBackground(UIStyles.BG_CARD);
+        chartCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
                 new EmptyBorder(16, 16, 16, 16)
-            ));
+        ));
 
-            JLabel chartTitle = new JLabel("Biểu đồ cột số lượng thí sinh/điểm");
-            chartTitle.setFont(UIStyles.FONT_SUBTITLE);
-            chartTitle.setForeground(UIStyles.TEXT_DARK);
-            chartCard.add(chartTitle, BorderLayout.NORTH);
-            chartCard.add(chartPanel, BorderLayout.CENTER);
+        JLabel chartTitle = new JLabel("Biểu đồ cột số lượng thí sinh/điểm");
+        chartTitle.setFont(UIStyles.FONT_SUBTITLE);
+        chartTitle.setForeground(UIStyles.TEXT_DARK);
+        chartCard.add(chartTitle, BorderLayout.NORTH);
+        chartCard.add(chartPanel, BorderLayout.CENTER);
 
-            JPanel bottom = new JPanel(new java.awt.GridLayout(1, 2, 12, 0));
-            bottom.setOpaque(false);
-            bottom.add(tableCard);
-            bottom.add(chartCard);
+        JPanel bottom = new JPanel(new java.awt.GridLayout(1, 2, 12, 0));
+        bottom.setOpaque(false);
+        bottom.add(tableCard);
+        bottom.add(chartCard);
 
         JPanel center = new JPanel();
         center.setOpaque(false);
         center.setLayout(new BorderLayout(0, 12));
         center.add(reportsPanel, BorderLayout.NORTH);
-            center.add(bottom, BorderLayout.CENTER);
+        center.add(bottom, BorderLayout.CENTER);
 
         add(center, BorderLayout.CENTER);
 
-            loaiDiemCombo.addActionListener(e -> updateMonStateByLoaiDiem());
+        loaiDiemCombo.addActionListener(e -> {
             updateMonStateByLoaiDiem();
             runStatistics();
+        });
+        monCombo.addActionListener(e -> runStatistics());
+
+        updateMonStateByLoaiDiem();
+        runStatistics();
     }
 
-            private JPanel createReportCard(String title, JLabel valueLabel, Color color) {
+    private JPanel createReportCard(String title, JLabel valueLabel, Color color) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(UIStyles.BG_CARD);
         card.setBorder(BorderFactory.createCompoundBorder(

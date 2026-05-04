@@ -317,7 +317,7 @@ public class DiemCongPanel extends JPanel {
     }
 
     private void handleImport() {
-        ImportExcelDialog dialog = new ImportExcelDialog(getTopLevelAncestor() instanceof Frame ?
+        ImportDCExcelDialog dialog = new ImportDCExcelDialog(getTopLevelAncestor() instanceof Frame ?
                 (Frame) getTopLevelAncestor() : null);
         dialog.setVisible(true);
 

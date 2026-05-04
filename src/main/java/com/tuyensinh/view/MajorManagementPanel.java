@@ -3,10 +3,12 @@ package com.tuyensinh.view;
 import com.tuyensinh.model.BangQuyDoi;
 import com.tuyensinh.model.Nganh;
 import com.tuyensinh.model.NganhToHop;
+import com.tuyensinh.model.TohopMonthi;
 import com.tuyensinh.service.BQDService;
 import com.tuyensinh.service.NTHService;
 import com.tuyensinh.service.NganhService;
 import com.tuyensinh.service.SessionManager;
+import com.tuyensinh.service.TohopMonthiService;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -42,11 +44,13 @@ public class MajorManagementPanel extends JPanel {
     private final NTHService nthService;
     private final NganhService nganhService;
     private final BQDService bqdService;
+    private final TohopMonthiService tohopService;
 
     public MajorManagementPanel() {
         this.nthService = new NTHService();
         this.nganhService = new NganhService();
         this.bqdService = new BQDService();
+        this.tohopService = new TohopMonthiService();
 
         setLayout(new BorderLayout(16, 16));
         setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -68,31 +72,17 @@ public class MajorManagementPanel extends JPanel {
 
         // --- TAB 1: QL Ngành Tuyển Sinh ---
         if (SessionManager.hasPermission("NGANH_VIEW")) {
-            String[] colsNganh = {"Mã Ngành", "Tên Ngành", "Chỉ Tiêu", "Ngưỡng Đảm Bảo", "Trạng Thái"};
-            Object[][] dataNganh = {
-                    {"7140201", "Giáo dục Mầm non", "100", "19.0", "Đang tuyển"},
-                    {"7140202", "Giáo dục Tiểu học", "150", "19.0", "Đang tuyển"},
-                    {"7480201", "Công nghệ thông tin", "250", "18.0", "Đang tuyển"},
-                    {"7340101", "Quản trị kinh doanh", "200", "16.0", "Đang tuyển"},
-                    {"7220201", "Ngôn ngữ Anh", "150", "16.0", "Đang tuyển"},
-                    {"7380101", "Luật", "200", "16.0", "Đang tuyển"}
-            };
-            tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo (Trích: Nguong dau vao 2025)", colsNganh, dataNganh, new String[]{"Tất cả trạng thái", "Đang tuyển", "Dừng tuyển"}));
+            String[] colsNganh = {"ID Ngành", "Mã Ngành", "Tên Ngành", "Chỉ Tiêu", "Ngưỡng Đảm Bảo"};
+            Object[][] dataNganh = buildNganhData();
+            tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo", colsNganh, dataNganh, null));
             hasVisibleTab = true;
         }
 
         // --- TAB 2: QL Tổ Hợp Môn ---
         if (SessionManager.hasPermission("TOHOP_VIEW")) {
-            String[] colsToHop = {"Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Ghi Chú"};
-            Object[][] dataToHop = {
-                    {"A00", "Toán", "Vật lí", "Hóa học", "Khối A truyền thống"},
-                    {"A01", "Toán", "Vật lí", "Tiếng Anh", "Khối A1"},
-                    {"B00", "Toán", "Hóa học", "Sinh học", "Khối B"},
-                    {"C00", "Ngữ văn", "Lịch sử", "Địa lí", "Khối C truyền thống"},
-                    {"D01", "Toán", "Ngữ văn", "Tiếng Anh", "Khối D1"},
-                    {"M01", "Ngữ văn", "Toán", "Năng khiếu", "Đọc, kể diễn cảm và Hát"}
-            };
-            tabbedPane.addTab("QL Tổ Hợp Môn", createTabPanel("Danh sách Tổ hợp môn xét tuyển (Trích: tohopmon.xlsx)", colsToHop, dataToHop, null));
+            String[] colsToHop = {"ID Tổ Hợp", "Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Tên Tổ Hợp"};
+            Object[][] dataToHop = buildToHopData();
+            tabbedPane.addTab("QL Tổ Hợp Môn", createTabPanel("Danh sách Tổ hợp môn xét tuyển", colsToHop, dataToHop, null));
             hasVisibleTab = true;
         }
 
@@ -147,6 +137,47 @@ public class MajorManagementPanel extends JPanel {
 
         add(tabbedPane, BorderLayout.CENTER);
         
+    }
+
+    private Object[][] buildNganhData() {
+        try {
+            List<Nganh> nganhList = nganhService.getAll();
+            Object[][] rows = new Object[nganhList.size()][5];
+            for (int i = 0; i < nganhList.size(); i++) {
+                Nganh item = nganhList.get(i);
+                rows[i] = new Object[] {
+                        safeNumber(item.getIdnganh()),
+                        safeText(item.getManganh()),
+                        safeText(item.getTennganh()),
+                        safeNumber(item.getNChitieu()),
+                        formatDecimal(item.getNDiemsan())
+                };
+            }
+            return rows;
+        } catch (Exception ex) {
+            return new Object[0][0];
+        }
+    }
+
+    private Object[][] buildToHopData() {
+        try {
+            List<TohopMonthi> tohopList = tohopService.getAll();
+            Object[][] rows = new Object[tohopList.size()][6];
+            for (int i = 0; i < tohopList.size(); i++) {
+                TohopMonthi item = tohopList.get(i);
+                rows[i] = new Object[] {
+                        safeNumber(item.getIdtohop()),
+                        safeText(item.getMatohop()),
+                        safeText(item.getMon1()),
+                        safeText(item.getMon2()),
+                        safeText(item.getMon3()),
+                        safeText(item.getTentohop())
+                };
+            }
+            return rows;
+        } catch (Exception ex) {
+            return new Object[0][0];
+        }
     }
 
     private Object[][] buildNganhToHopData() {
@@ -379,6 +410,18 @@ public class MajorManagementPanel extends JPanel {
                             JOptionPane.showMessageDialog(panel,
                                 "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
                                 "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
+                        } else if (isToHopTab(titleStr)) {
+                            List<TohopMonthi> imported = tohopService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            refreshTableData(model, buildToHopData());
+                            JOptionPane.showMessageDialog(panel,
+                                "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
+                                "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
+                        } else if (isNganhTab(titleStr)) {
+                            List<Nganh> imported = nganhService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            refreshTableData(model, buildNganhData());
+                            JOptionPane.showMessageDialog(panel,
+                                "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
+                                "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
                         } else {
                             JOptionPane.showMessageDialog(panel,
                                     "Import dữ liệu thành công từ file: " + dialog.getSelectedFile().getName(),
@@ -420,6 +463,16 @@ public class MajorManagementPanel extends JPanel {
                             created.setId(null);
                             nthService.create(created);
                             refreshTableData(model, buildNganhToHopData());
+                        } else if (isToHopTab(titleStr)) {
+                            TohopMonthi created = mapToTohopMonthi(formData);
+                            created.setIdtohop(null);
+                            tohopService.create(created);
+                            refreshTableData(model, buildToHopData());
+                        } else if (isNganhTab(titleStr)) {
+                            Nganh created = mapToNganh(formData);
+                            created.setIdnganh(null);
+                            nganhService.create(created);
+                            refreshTableData(model, buildNganhData());
                         } else {
                             model.addRow(formData);
                         }
@@ -469,6 +522,20 @@ public class MajorManagementPanel extends JPanel {
                                 }
                                 nthService.update(updated);
                                 refreshTableData(model, buildNganhToHopData());
+                            } else if (isToHopTab(titleStr)) {
+                                TohopMonthi updated = mapToTohopMonthi(newData);
+                                if (updated.getIdtohop() == null) {
+                                    updated.setIdtohop(parseInteger(rowData[0]));
+                                }
+                                tohopService.update(updated);
+                                refreshTableData(model, buildToHopData());
+                            } else if (isNganhTab(titleStr)) {
+                                Nganh updated = mapToNganh(newData);
+                                if (updated.getIdnganh() == null) {
+                                    updated.setIdnganh(parseInteger(rowData[0]));
+                                }
+                                nganhService.update(updated);
+                                refreshTableData(model, buildNganhData());
                             } else {
                                 for (int i = 0; i < columns.length; i++) {
                                     model.setValueAt(newData[i], selectedRow, i);
@@ -521,6 +588,20 @@ public class MajorManagementPanel extends JPanel {
                                     throw new IllegalStateException("Không tìm thấy bản ghi để xóa.");
                                 }
                                 refreshTableData(model, buildNganhToHopData());
+                            } else if (isToHopTab(titleStr)) {
+                                Integer id = parseInteger(table.getValueAt(selectedRow, 0));
+                                boolean deleted = tohopService.delete(id);
+                                if (!deleted) {
+                                    throw new IllegalStateException("Không tìm thấy bản ghi để xóa.");
+                                }
+                                refreshTableData(model, buildToHopData());
+                            } else if (isNganhTab(titleStr)) {
+                                Integer id = parseInteger(table.getValueAt(selectedRow, 0));
+                                boolean deleted = nganhService.delete(id);
+                                if (!deleted) {
+                                    throw new IllegalStateException("Không tìm thấy bản ghi để xóa.");
+                                }
+                                refreshTableData(model, buildNganhData());
                             } else {
                                 model.removeRow(selectedRow);
                             }
@@ -564,6 +645,14 @@ public class MajorManagementPanel extends JPanel {
 
     private boolean isNganhToHopTab(String titleStr) {
         return titleStr != null && titleStr.contains("Map Tổ hợp môn vào Ngành");
+    }
+
+    private boolean isNganhTab(String titleStr) {
+        return titleStr != null && titleStr.contains("Ngành đào tạo");
+    }
+
+    private boolean isToHopTab(String titleStr) {
+        return titleStr != null && titleStr.contains("Tổ hợp môn xét tuyển");
     }
 
     private String[] resolveTabActionPermissions(String titleStr) {
@@ -640,6 +729,27 @@ public class MajorManagementPanel extends JPanel {
         item.setDDiemd(parseBigDecimal(data[7]));
         item.setDMaquydoi(safeText(data[8] == null ? null : data[8].toString()));
         item.setDPhanvi(safeText(data[9] == null ? null : data[9].toString()));
+        return item;
+    }
+
+    private Nganh mapToNganh(Object[] data) {
+        Nganh item = new Nganh();
+        item.setIdnganh(parseInteger(data[0]));
+        item.setManganh(safeText(data[1] == null ? null : data[1].toString()));
+        item.setTennganh(safeText(data[2] == null ? null : data[2].toString()));
+        item.setNChitieu(parseInteger(data[3]));
+        item.setNDiemsan(parseBigDecimal(data[4]));
+        return item;
+    }
+
+    private TohopMonthi mapToTohopMonthi(Object[] data) {
+        TohopMonthi item = new TohopMonthi();
+        item.setIdtohop(parseInteger(data[0]));
+        item.setMatohop(safeText(data[1] == null ? null : data[1].toString()));
+        item.setMon1(safeText(data[2] == null ? null : data[2].toString()));
+        item.setMon2(safeText(data[3] == null ? null : data[3].toString()));
+        item.setMon3(safeText(data[4] == null ? null : data[4].toString()));
+        item.setTentohop(safeText(data[5] == null ? null : data[5].toString()));
         return item;
     }
 

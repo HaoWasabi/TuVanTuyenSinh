@@ -351,10 +351,11 @@ public class CandidateManagementPanel extends JPanel {
                         .doiTuong(dialog.getDoituong())
                         .khuVuc(dialog.getKhuvuc())
                         .updatedAt(LocalDate.now())
-                    .password(generatePasswordFromDOB(dialog.getNgaysinh())) // Mật khẩu mặc định DDMMYY từ ngày sinh
+						.password(generatePasswordFromDOB(dialog.getNgaysinh())) // Mật khẩu mặc định DDMMYY từ ngày sinh
                         .build();
 
                 thiSinhService.create(thiSinh);
+				
 
                 // Tạo tài khoản student tương ứng
                 String generatedPassword = generatePasswordFromDOB(dialog.getNgaysinh());
@@ -405,7 +406,7 @@ public class CandidateManagementPanel extends JPanel {
 
     private String generatePasswordFromDOB(String ngaySinh) {
         if (ngaySinh == null || ngaySinh.isEmpty()) {
-            return "000000";
+            return "00000000";
         }
         try {
             String[] parts = ngaySinh.split("/");
@@ -413,15 +414,12 @@ public class CandidateManagementPanel extends JPanel {
                 String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
                 String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
                 String year = parts[2];
-                if (year.length() == 4) {
-                    year = year.substring(2);
-                }
                 return day + month + year;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "000000";
+        return "00000000";
     }
 
     private String blankToNull(String value) {

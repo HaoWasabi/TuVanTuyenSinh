@@ -1,5 +1,7 @@
 package com.tuyensinh.repository;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
 import com.tuyensinh.database.HibernateUtil;
 import com.tuyensinh.model.NguyenVong;
 import java.io.FileInputStream;
@@ -130,7 +132,7 @@ public class NguyenVongRepository {
      * 9 tt_phuongthuc
      * 10 tt_thm
      */
-    public List<NguyenVong> importFromExcel(String filePath) throws IOException {
+    public List<NguyenVong> importFromExcel(String filePath, int is_hs) throws IOException {
         List<NguyenVong> list = new ArrayList<>();
         Transaction tx = null;
 
@@ -146,7 +148,12 @@ public class NguyenVongRepository {
                 if (row.getRowNum() == 0 || isRowEmpty(row)) continue;
 
                 try {
-                    NguyenVong nguyenVong = parseRow(row);
+                    NguyenVong nguyenVong;
+					if(is_hs==1){
+						nguyenVong = parseRow1(row);
+					}else{
+						nguyenVong = parseRow(row);
+					}
                     session.persist(nguyenVong); // Đẩy vào bộ nhớ đệm của Hibernate
                     list.add(nguyenVong);
 
@@ -180,6 +187,24 @@ public class NguyenVongRepository {
                 .nvKeys(getString(row, 8))
                 .ttPhuongthuc(getString(row, 9))
                 .ttThm(getString(row, 10))
+                .build();
+    }
+	
+    private NguyenVong parseRow1(Row row) {
+		// User học sinh đưa file danh sách nguyện vọng mà không có thông tin cccd
+		User currentUser = SessionManager.getCurrentUser();
+        return NguyenVong.builder()
+                .nnCccd(currentUser.getUsername())
+                .nvManganh(getString(row, 0))
+                .nvTt(getInt(row, 1))
+                .diemThxt(getDecimal(row, 2))
+                .diemUtqd(getDecimal(row, 3))
+                .diemCong(getDecimal(row, 4))
+                .diemXettuyen(getDecimal(row, 5))
+                .nvKetqua(getString(row, 6))
+                .nvKeys(getString(row, 7))
+                .ttPhuongthuc(getString(row, 8))
+                .ttThm(getString(row, 9))
                 .build();
     }
 

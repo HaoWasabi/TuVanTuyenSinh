@@ -56,7 +56,7 @@ public class NguyenVongService {
         return repository.deleteById(id);
     }
 
-    public List<NguyenVong> importFromExcel(String filePath) throws IOException {
-        return repository.importFromExcel(filePath);
+    public List<NguyenVong> importFromExcel(String filePath, int is_hs) throws IOException {
+        return repository.importFromExcel(filePath,is_hs);
     }
 }

@@ -115,7 +115,7 @@ public class NguyenVongTest {
 
         try {
             String filePath = "src/main/resources/nguyenvong_test.xlsx";
-            List<NguyenVong> imported = service.importFromExcel(filePath);
+            List<NguyenVong> imported = service.importFromExcel(filePath,0);
             System.out.println("Import thành công: " + imported.size() + " dòng");
         } catch (Exception e) {
             System.out.println("Lỗi import: " + e.getMessage());

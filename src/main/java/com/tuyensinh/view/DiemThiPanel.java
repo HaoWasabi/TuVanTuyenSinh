@@ -332,7 +332,7 @@ public class DiemThiPanel extends JPanel {
     }
 
     private void handleImport() {
-        ImportExcelDialog dialog = new ImportExcelDialog(getTopLevelAncestor() instanceof Frame ?
+        ImportDTExcelDialog dialog = new ImportDTExcelDialog(getTopLevelAncestor() instanceof Frame ?
                 (Frame) getTopLevelAncestor() : null);
         dialog.setVisible(true);
 

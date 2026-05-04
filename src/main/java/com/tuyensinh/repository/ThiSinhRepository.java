@@ -143,40 +143,37 @@ public class ThiSinhRepository {
         return importedList;
     }
 
-    private ThiSinh parseExcelRow(Row row) {
-        ThiSinh ts = new ThiSinh();
-        
-        String cccd = truncateString(getCellAsString(row, 1), 20);
-        ts.setCccd(cccd);
-        
-        // Xử lý tách Họ và Tên từ cột 2
-        String hoTen = getCellAsString(row, 2);
-        if (hoTen != null && !hoTen.isEmpty()) {
-            hoTen = hoTen.trim();
-            int lastSpaceIndex = hoTen.lastIndexOf(" ");
-            if (lastSpaceIndex > 0) {
-                ts.setHo(truncateString(hoTen.substring(0, lastSpaceIndex).trim(), 100));
-                ts.setTen(truncateString(hoTen.substring(lastSpaceIndex + 1).trim(), 100));
-            } else {
-                ts.setTen(truncateString(hoTen, 100));
-                ts.setHo("");
-            }
-        }
-        
-        ts.setNgaySinh(truncateString(getCellAsString(row, 3), 45));
-        ts.setGioiTinh(truncateString(getCellAsString(row, 4), 10));
-        ts.setDoiTuong(truncateString(getCellAsString(row, 5), 45));
-        ts.setKhuVuc(truncateString(getCellAsString(row, 6), 45));
-        
-        // Lấy Nơi sinh ở cột 35 (Index 35 trong Java do đếm từ 0)
-        ts.setNoiSinh(truncateString(getCellAsString(row, 35), 45));
-        
-        // Thiết lập các giá trị mặc định cho các cột không có trong Excel
-        ts.setUpdatedAt(LocalDate.now());
-        ts.setPassword(cccd); // Mật khẩu mặc định là CCCD
-        
-        return ts;
-    }
+	private ThiSinh parseExcelRow(Row row) {
+		ThiSinh ts = new ThiSinh();
+
+		String cccd = truncateString(getCellAsString(row, 0), 20);
+		ts.setCccd(cccd);
+
+		ts.setSobaodanh(truncateString(getCellAsString(row, 1), 45));
+		ts.setHo(truncateString(getCellAsString(row, 2), 100));
+		ts.setTen(truncateString(getCellAsString(row, 3), 100));
+
+		String ngaySinh = getCellAsString(row, 4);
+		ts.setNgaySinh(truncateString(ngaySinh, 45));
+
+		ts.setGioiTinh(truncateString(getCellAsString(row, 5), 10));
+		ts.setEmail(truncateString(getCellAsString(row, 6), 100));
+		ts.setDienThoai(truncateString(getCellAsString(row, 7), 20));
+		ts.setNoiSinh(truncateString(getCellAsString(row, 8), 45));
+		ts.setDoiTuong(truncateString(getCellAsString(row, 9), 45));
+		ts.setKhuVuc(truncateString(getCellAsString(row, 10), 45));
+
+		ts.setUpdatedAt(LocalDate.now());
+
+		// Password là 8 chữ số ngày sinh, bỏ dấu "/" hoặc "-"
+		// Ví dụ: "01/07/2006" → "01072006"
+		String password = (ngaySinh != null && !ngaySinh.isEmpty())
+				? truncateString(ngaySinh.replace("/", "").replace("-", ""), 8)
+				: cccd; // fallback về CCCD nếu không có ngày sinh
+		ts.setPassword(password);
+
+		return ts;
+	}
 
     private String getCellAsString(Row row, int cellIndex) {
         Cell cell = row.getCell(cellIndex);
