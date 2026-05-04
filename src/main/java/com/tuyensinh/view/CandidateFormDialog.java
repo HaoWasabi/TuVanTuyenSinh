@@ -4,17 +4,21 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Form dialog để thêm/sửa thông tin thí sinh
@@ -26,7 +30,8 @@ public class CandidateFormDialog extends JDialog {
     private final JTextField sbaodanhField = new JTextField(20);
     private final JTextField hoField = new JTextField(20);
     private final JTextField tenField = new JTextField(20);
-    private final JTextField ngaysinhField = new JTextField(20); // Format: dd/MM/yyyy
+    private final JSpinner ngaysinhSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private final JComboBox<String> gioitinhCombo = new JComboBox<>(new String[]{"Nam", "Nữ"});
     private final JTextField emailField = new JTextField(20);
     private final JTextField dienthoaiField = new JTextField(20);
@@ -39,7 +44,8 @@ public class CandidateFormDialog extends JDialog {
 
     public CandidateFormDialog(Frame owner, String title, boolean isEditing) {
         super(owner, title, true);
-        setSize(600, 500);
+        dateFormat.setLenient(false);
+        setSize(600, isEditing ? 520 : 480);
         setLocationRelativeTo(owner);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
@@ -49,18 +55,30 @@ public class CandidateFormDialog extends JDialog {
         setContentPane(contentPane);
 
         // Form fields
-        JPanel formPanel = new JPanel(new java.awt.GridLayout(12, 2, 12, 8));
+        int gridRows = isEditing ? 12 : 11; // 1 row less when not editing (no password field)
+        JPanel formPanel = new JPanel(new java.awt.GridLayout(gridRows, 2, 12, 8));
         formPanel.setOpaque(false);
 
         addFormField(formPanel, "CCCD *:", cccdField);
-        addFormField(formPanel, "Số báo danh:", sbaodanhField);
+        addFormField(formPanel, "Số báo danh *:", sbaodanhField);
         addFormField(formPanel, "Họ *:", hoField);
         addFormField(formPanel, "Tên *:", tenField);
-        addFormField(formPanel, "Ngày sinh (dd/MM/yyyy):", ngaysinhField);
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(ngaysinhSpinner, "dd/MM/yyyy");
+        ngaysinhSpinner.setEditor(dateEditor);
+        Date yesterday = Date.from(LocalDate.now().minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        javax.swing.SpinnerDateModel model = (javax.swing.SpinnerDateModel) ngaysinhSpinner.getModel();
+        model.setEnd(yesterday);
+        ngaysinhSpinner.setValue(new Date());
+        addFormField(formPanel, "Ngày sinh:", ngaysinhSpinner);
         addFormField(formPanel, "Giới tính:", gioitinhCombo);
         addFormField(formPanel, "Email:", emailField);
         addFormField(formPanel, "Điện thoại:", dienthoaiField);
-        addFormField(formPanel, "Mật khẩu" + (isEditing ? " (để trống nếu không đổi):" : " *:"), passwordField);
+        
+        // Chỉ hiển thị trường mật khẩu khi sửa (isEditing=true)
+        if (isEditing) {
+            addFormField(formPanel, "Mật khẩu (để trống nếu không đổi):", passwordField);
+        }
+        
         addFormField(formPanel, "Nơi sinh:", noisinhField);
         addFormField(formPanel, "Đối tượng:", doituongCombo);
         addFormField(formPanel, "Khu vực:", khuvucCombo);
@@ -103,6 +121,8 @@ public class CandidateFormDialog extends JDialog {
 
         if (component instanceof JComboBox) {
             panel.add((JComboBox<?>) component);
+        } else if (component instanceof JSpinner) {
+            panel.add((JSpinner) component);
         } else if (component instanceof JPasswordField) {
             panel.add((JPasswordField) component);
         } else {
@@ -115,8 +135,18 @@ public class CandidateFormDialog extends JDialog {
             javax.swing.JOptionPane.showMessageDialog(this, "CCCD không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
+        if (sbaodanhField.getText().trim().isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Số báo danh không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
         if (hoField.getText().trim().isEmpty() || tenField.getText().trim().isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Họ và tên không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        Date selectedDate = (Date) ngaysinhSpinner.getValue();
+        LocalDate dob = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        if (!dob.isBefore(LocalDate.now())) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Ngày sinh phải thuộc quá khứ!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
         return true;
@@ -130,7 +160,10 @@ public class CandidateFormDialog extends JDialog {
     public String getSbaodanh() { return sbaodanhField.getText(); }
     public String getHo() { return hoField.getText(); }
     public String getTen() { return tenField.getText(); }
-    public String getNgaysinh() { return ngaysinhField.getText(); }
+    public String getNgaysinh() {
+        Date date = (Date) ngaysinhSpinner.getValue();
+        return dateFormat.format(date);
+    }
     public String getGioitinh() { return (String) gioitinhCombo.getSelectedItem(); }
     public String getEmail() { return emailField.getText(); }
     public String getDienthoai() { return dienthoaiField.getText(); }
@@ -147,7 +180,13 @@ public class CandidateFormDialog extends JDialog {
         sbaodanhField.setText(sbaodanh);
         hoField.setText(ho);
         tenField.setText(ten);
-        ngaysinhField.setText(ngaysinh);
+        try {
+            if (ngaysinh != null && !ngaysinh.trim().isEmpty()) {
+                ngaysinhSpinner.setValue(dateFormat.parse(ngaysinh));
+            }
+        } catch (ParseException ignored) {
+            ngaysinhSpinner.setValue(new Date());
+        }
         gioitinhCombo.setSelectedItem(gioitinh);
         emailField.setText(email);
         dienthoaiField.setText(dienthoai);

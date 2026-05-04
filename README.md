@@ -10,15 +10,15 @@
 
 ### Team Members
 
-|**No.**|**Student ID**|**Full Name**|
-|-------|--------|-----------------|
-|   1   |3120410014|Dinh Thi Lan Trinh|
-|   2   |3122410100|Truong Gia Hao|
-|   3   |3122410191|Pham Tan Khuong|
-|   4   |3122410173|Pham Ngoc Phuoc Khang|
-|   5   |3121410461|Le Minh Thang|
-|   6   |3123410364|Cao Minh Thuan|
-|   7   |3120410386|Nguyen Thanh Phat|
+|**No.**|**Student ID**|**Full Name**|**Job Posision**|
+|-------|--------|-----------------|-----------------|
+|   1   |3120410014|Dinh Thi Lan Trinh|Frontend Lead, Technical Writer|
+|   2   |3122410100|Truong Gia Hao|Project Manager, Solution Architect|
+|   3   |3122410191|Pham Tan Khuong|Backend Lead|
+|   4   |3122410173|Pham Ngoc Phuoc Khang|Fullstack Developer, System Architect|
+|   5   |3121410461|Le Minh Thang|Backend Developer, Solution Architect|
+|   6   |3123410364|Cao Minh Thuan|Frontend Developer|
+|   7   |3120410386|Nguyen Thanh Phat|Backend Developer|
 
 ### Resources
 

@@ -55,3 +55,4 @@ Thumbs.db
 *.yml
 # Lưu ý: Nếu bạn muốn đẩy file config mặc định lên, hãy bỏ comment dòng dưới
 # !src/main/resources/application.properties
+hibernate.cfg.xml

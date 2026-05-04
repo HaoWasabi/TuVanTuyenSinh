@@ -53,37 +53,37 @@ public class NganhToHop {
     private String tbKeys;
 
     @Column(name = "`N1`")
-    private boolean n1;
+    private Boolean n1;
 
     @Column(name = "`TO`")
-    private boolean to;
+    private Boolean to;
 
     @Column(name = "`LI`")
-    private boolean li;
+    private Boolean li;
 
     @Column(name = "`HO`")
-    private boolean ho;
+    private Boolean ho;
 
     @Column(name = "`SI`")
-    private boolean si;
+    private Boolean si;
 
     @Column(name = "`VA`")
-    private boolean va;
+    private Boolean va;
 
     @Column(name = "`SU`")
-    private boolean su;
+    private Boolean su;
 
     @Column(name = "`DI`")
-    private boolean di;
+    private Boolean di;
 
     @Column(name = "`TI`")
-    private boolean ti;
+    private Boolean ti;
 
     @Column(name = "`KHAC`")
-    private boolean khac;
+    private Boolean khac;
 
     @Column(name = "`KTPL`")
-    private boolean ktpl;
+    private Boolean ktpl;
 
     @Column(name = "`dolech`", precision = 6, scale = 2)
     private BigDecimal doLech;

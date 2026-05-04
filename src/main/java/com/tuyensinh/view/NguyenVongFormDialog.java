@@ -1,5 +1,9 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
+
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -27,6 +31,8 @@ public class NguyenVongFormDialog extends JDialog {
         setSize(700, 400); // Form rộng hơn để chứa 2 cột
         setLocationRelativeTo(owner);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		
+		User currentUser = SessionManager.getCurrentUser();
 
         JPanel contentPane = new JPanel(new BorderLayout(0, 12));
         contentPane.setBorder(new EmptyBorder(16, 16, 16, 16));
@@ -54,6 +60,12 @@ public class NguyenVongFormDialog extends JDialog {
 
         addFormField(formPanel, "Keys (Tự động):", keysField);
         keysField.setEditable(false); // Keys thường tự sinh, không cho người dùng tự gõ
+		
+		// Khi thí sinh thêm nguyện vọng thì sẽ tự động hiển thị cccd của thí sinh.
+		if(currentUser.getIdRoleValue() == 3){
+			cccdField.setText(currentUser.getUsername());
+			cccdField.setEditable(false);
+		}
 
         contentPane.add(formPanel, BorderLayout.CENTER);
 

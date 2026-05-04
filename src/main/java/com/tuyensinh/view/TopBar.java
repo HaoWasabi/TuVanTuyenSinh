@@ -1,5 +1,8 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.User;
+import com.tuyensinh.service.SessionManager;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -11,6 +14,10 @@ import java.awt.FlowLayout;
 
 public class TopBar extends JPanel {
     public TopBar() {
+        this(null);
+    }
+
+    public TopBar(Runnable onLogout) {
         setLayout(new BorderLayout(16, 0));
         setBackground(UIStyles.BG_TOPBAR);
         setBorder(BorderFactory.createCompoundBorder(
@@ -47,7 +54,13 @@ public class TopBar extends JPanel {
         notifBtn.setBorderPainted(false);
         notifBtn.setContentAreaFilled(false);
 
-        JLabel userLabel = new JLabel("Admin User");
+        User currentUser = SessionManager.getCurrentUser();
+        String displayName = "Guest";
+        if (currentUser != null) {
+			displayName = currentUser.getUsername();
+        }
+
+        JLabel userLabel = new JLabel(displayName);
         userLabel.setFont(UIStyles.FONT_BODY);
         userLabel.setForeground(UIStyles.TEXT_DARK);
 
@@ -57,6 +70,9 @@ public class TopBar extends JPanel {
         logoutBtn.setForeground(Color.WHITE);
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+        if (onLogout != null) {
+            logoutBtn.addActionListener(e -> onLogout.run());
+        }
 
         rightPanel.add(notifBtn);
         rightPanel.add(userLabel);
