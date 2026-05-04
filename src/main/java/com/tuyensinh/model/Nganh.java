@@ -61,4 +61,7 @@ public class Nganh {
 
     @Column(name = "sl_thpt", length = 45)
     private Integer slThpt;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

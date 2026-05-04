@@ -13,8 +13,13 @@ public final class HibernateUtil {
     private static SessionFactory buildSessionFactory() {
         try {
             return new Configuration().configure().buildSessionFactory();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Cannot initialize Hibernate SessionFactory", ex);
+//        } catch (Exception ex) {
+//            throw new IllegalStateException("Cannot initialize Hibernate SessionFactory", ex);
+//        }
+        }catch (Throwable ex) {
+            // Dòng này cực kỳ quan trọng để thấy lỗi thật sự là gì (ví dụ: sai password, thiếu driver)
+            ex.printStackTrace();
+            throw new ExceptionInInitializerError(ex);
         }
     }
 

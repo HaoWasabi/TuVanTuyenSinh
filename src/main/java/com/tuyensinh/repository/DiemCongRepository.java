@@ -30,20 +30,24 @@ public class DiemCongRepository {
 
     public Optional<DiemCong> findById(Integer id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return Optional.ofNullable(session.get(DiemCong.class, id));
+            DiemCong result = session.createQuery(
+                    "from DiemCong d where d.id = :id and d.status = 'active'", DiemCong.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
+            return Optional.ofNullable(result);
         }
     }
 
     public List<DiemCong> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemCong", DiemCong.class).list();
+            return session.createQuery("from DiemCong d where d.status = 'active'", DiemCong.class).list();
         }
     }
 
     // Hàm lấy điểm cộng theo CCCD
     public List<DiemCong> findByCccd(String cccd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemCong d where d.tsCccd = :cccd", DiemCong.class)
+            return session.createQuery("from DiemCong d where d.tsCccd = :cccd and d.status = 'active'", DiemCong.class)
                     .setParameter("cccd", cccd)
                     .list();
         }
@@ -90,7 +94,9 @@ public class DiemCongRepository {
                 tx.commit();
                 return false;
             }
-            session.remove(existing);
+            // CHUYỂN SANG XÓA MỀM
+            existing.setStatus("INACTIVE");
+            session.merge(existing);
             tx.commit();
             return true;
         } catch (Exception ex) {

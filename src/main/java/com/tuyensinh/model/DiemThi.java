@@ -81,4 +81,7 @@ public class DiemThi {
 
     @Column(name = "`NK2`", precision = 8, scale = 2)
     private BigDecimal nk2;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

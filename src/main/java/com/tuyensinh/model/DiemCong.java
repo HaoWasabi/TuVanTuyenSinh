@@ -51,4 +51,7 @@ public class DiemCong {
 
     @Column(name = "`dc_keys`", length = 45)
     private String dcKeys;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

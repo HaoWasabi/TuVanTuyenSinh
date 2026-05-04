@@ -57,4 +57,7 @@ public class NguyenVong {
 
     @Column(name = "`tt_thm`", length = 45)
     private String ttThm;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

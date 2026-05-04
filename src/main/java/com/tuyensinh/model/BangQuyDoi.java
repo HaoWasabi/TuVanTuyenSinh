@@ -51,4 +51,7 @@ public class BangQuyDoi {
 
     @Column(name = "`d_phanvi`", length = 255)
     private String dPhanvi;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

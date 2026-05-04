@@ -30,4 +30,7 @@ public class TohopMonthi {
 
     @Column(name = "tentohop", length = 100)
     private String tentohop;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }

@@ -41,8 +41,13 @@ public class TohopMonthiRepository {
         try (Session session =
                      HibernateUtil.getSessionFactory().openSession()) {
 
-            return Optional.ofNullable(
-                    session.get(TohopMonthi.class, id));
+            TohopMonthi result = session.createQuery(
+                    "from TohopMonthi t where t.id = :id and t.status = 'ACTIVE'",
+                    TohopMonthi.class)
+                    .setParameter("id", id)
+                    .setMaxResults(1)
+                    .uniqueResult();
+            return Optional.ofNullable(result);
         }
     }
 
@@ -53,7 +58,7 @@ public class TohopMonthiRepository {
                      HibernateUtil.getSessionFactory().openSession()) {
 
             return session.createQuery(
-                    "from TohopMonthi",
+                    "from TohopMonthi t where t.status = 'ACTIVE'",
                     TohopMonthi.class
             ).list();
         }
@@ -66,7 +71,7 @@ public class TohopMonthiRepository {
                      HibernateUtil.getSessionFactory().openSession()) {
 
             TohopMonthi result = session.createQuery(
-                    "from TohopMonthi t where t.matohop = :matohop",
+                    "from TohopMonthi t where t.matohop = :matohop and t.status = 'ACTIVE'",
                     TohopMonthi.class)
                     .setParameter("matohop", matohop)
                     .setMaxResults(1)
@@ -267,7 +272,9 @@ public class TohopMonthiRepository {
                 return false;
             }
 
-            session.remove(existing);
+            // CHUYỂN SANG XÓA MỀM
+            existing.setStatus("INACTIVE");
+            session.merge(existing);
             tx.commit();
             return true;
 

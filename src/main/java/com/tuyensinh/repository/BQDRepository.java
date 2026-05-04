@@ -32,19 +32,25 @@ public class BQDRepository {
 
     public Optional<BangQuyDoi> findById(Integer idqd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return Optional.ofNullable(session.get(BangQuyDoi.class, idqd));
+            BangQuyDoi result = session.createQuery(
+                            "from BangQuyDoi b where b.idqd = :idqd and b.status = 'ACTIVE'", BangQuyDoi.class)
+                    .setParameter("idqd", idqd)
+                    .uniqueResult();
+            return Optional.ofNullable(result);
         }
     }
 
     public List<BangQuyDoi> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from BangQuyDoi", BangQuyDoi.class).list();
+            return session.createQuery(
+                            "from BangQuyDoi b where b.status = 'active' order by b.idqd desc", BangQuyDoi.class)
+                    .list();
         }
     }
 
     public Optional<BangQuyDoi> findByMaquydoi(String dMaquydoi) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dMaquydoi = :dMaquydoi", BangQuyDoi.class)
+            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.status = 'active' and b.dMaquydoi = :dMaquydoi", BangQuyDoi.class)
                     .setParameter("dMaquydoi", dMaquydoi)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -54,7 +60,7 @@ public class BQDRepository {
 
     public Optional<BangQuyDoi> findByTohopAndMon(String dTohop, String dMon) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dTohop = :dTohop and b.dMon = :dMon", BangQuyDoi.class)
+            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.status = 'active' and b.dTohop = :dTohop and b.dMon = :dMon", BangQuyDoi.class)
                     .setParameter("dTohop", dTohop)
                     .setParameter("dMon", dMon)
                     .setMaxResults(1)
@@ -85,7 +91,9 @@ public class BQDRepository {
                 tx.commit();
                 return false;
             }
-            session.remove(existing);
+            // CHUYỂN SANG XÓA MỀM
+            existing.setStatus("INACTIVE");
+            session.merge(existing);
             tx.commit();
             return true;
         } catch (Exception ex) {

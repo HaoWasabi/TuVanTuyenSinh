@@ -24,19 +24,23 @@ public class NTHRepository {
 
     public Optional<NganhToHop> findById(Integer id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return Optional.ofNullable(session.get(NganhToHop.class, id));
+            NganhToHop result = session.createQuery("from NganhToHop m where m.id = :id and m.status = 'active'", NganhToHop.class)
+                    .setParameter("id", id)
+                    .setMaxResults(1)
+                    .uniqueResult();
+            return Optional.ofNullable(result);
         }
     }
 
     public List<NganhToHop> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from NganhToHop", NganhToHop.class).list();
+            return session.createQuery("from NganhToHop m where m.status = 'active'", NganhToHop.class).list();
         }
     }
 
     public Optional<NganhToHop> findByTbKeys(String tbKeys) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            NganhToHop result = session.createQuery("from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
+            NganhToHop result = session.createQuery("from NganhToHop m where m.tbKeys = :tbKeys and m.status = 'active'", NganhToHop.class)
                     .setParameter("tbKeys", tbKeys)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -66,7 +70,9 @@ public class NTHRepository {
                 tx.commit();
                 return false;
             }
-            session.remove(existing);
+            // CHUYỂN SANG XÓA MỀM
+            existing.setStatus("INACTIVE");
+            session.merge(existing);
             tx.commit();
             return true;
         } catch (Exception ex) {

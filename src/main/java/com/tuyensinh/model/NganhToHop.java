@@ -87,4 +87,7 @@ public class NganhToHop {
 
     @Column(name = "`dolech`", precision = 6, scale = 2)
     private BigDecimal doLech;
+
+    @Column(name = "`status`", length = 20)
+    private String status = "active";
 }
