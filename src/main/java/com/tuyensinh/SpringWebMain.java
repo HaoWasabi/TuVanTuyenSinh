@@ -6,6 +6,8 @@ import org.apache.catalina.startup.Tomcat;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import jakarta.servlet.Servlet;
+
 import java.io.File;
 
 public class SpringWebMain {
@@ -22,10 +24,12 @@ public class SpringWebMain {
         // 2. Khởi tạo Spring Framework
         AnnotationConfigWebApplicationContext springContext = new AnnotationConfigWebApplicationContext();
         springContext.register(AppConfig.class);
+        // Note: Do NOT call refresh() here - let DispatcherServlet handle it with
+        // ServletContext
 
         // 3. Đăng ký DispatcherServlet (cốt lõi của Spring Web MVC) vào Tomcat
         DispatcherServlet dispatcherServlet = new DispatcherServlet(springContext);
-        Tomcat.addServlet(context, "dispatcherServlet", dispatcherServlet).setLoadOnStartup(1);
+        Tomcat.addServlet(context, "dispatcherServlet", (Servlet) dispatcherServlet).setLoadOnStartup(1);
         context.addServletMappingDecoded("/", "dispatcherServlet");
 
         System.out.println("\n========== BẮT ĐẦU CHẠY SPRING WEB API TRÊN CỔNG 8081 ==========");

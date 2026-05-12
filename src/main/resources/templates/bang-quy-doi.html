@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base.html}">
+<head>
+    <title>Bảng Quy Đổi Điểm</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Bảng Quy Đổi Điểm Chứng Chỉ</h1>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                <p class="text-blue-900">
+                    Bảng quy đổi điểm chứng chỉ ngoại ngữ và các chứng chỉ khác thành điểm theo thang điểm 0-30.
+                </p>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="mb-8">
+                <form method="get" th:action="@{/bang-quy-doi}" class="flex gap-2">
+                    <input type="text" name="filter" placeholder="Tìm phương pháp..." 
+                           th:value="${filter}"
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+
+            <!-- Conversion Tables -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phương thức</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Tổ hợp</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Môn</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Điểm A</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Điểm B</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Điểm C</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Điểm D</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="row : ${bangQuyDoi}" class="border-b hover:bg-gray-50">
+                                <td class="px-6 py-3 text-sm font-medium" th:text="${row.dPhuongthuc}"></td>
+                                <td class="px-6 py-3 text-sm" th:text="${row.dTohop}"></td>
+                                <td class="px-6 py-3 text-sm" th:text="${row.dMon}"></td>
+                                <td class="px-6 py-3 text-sm" th:text="${row.dDiema}"></td>
+                                <td class="px-6 py-3 text-sm" th:text="${row.dDiemb}"></td>
+                                <td class="px-6 py-3 text-sm" th:text="${row.dDiemc}"></td>
+                                <td class="px-6 py-3 text-sm text-blue-600 font-semibold" th:text="${row.dDiemd}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${bangQuyDoi == null or bangQuyDoi.size() == 0}" class="text-center py-8">
+                <p class="text-gray-500">Không tìm thấy dữ liệu quy đổi điểm</p>
+            </div>
+        </div>
+    </div>
+    <script layout:fragment="scripts">
+        lucide.createIcons();
+    </script>
+</body>
+</html>

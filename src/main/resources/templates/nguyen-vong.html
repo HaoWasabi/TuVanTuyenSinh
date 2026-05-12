@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base.html}">
+<head>
+    <title>Danh sách Nguyện Vọng</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Danh sách Nguyện Vọng</h1>
+
+            <!-- Preferences List -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b flex items-center justify-between gap-3">
+                    <h2 class="text-lg font-semibold">Nguyện vọng đã đăng ký</h2>
+                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Chế độ xem chi tiết</span>
+                </div>
+
+                <div th:if="${nguyenVongs != null and nguyenVongs.size() > 0}" class="divide-y">
+                    <div th:each="nv, iter : ${nguyenVongs}" class="px-6 py-4 hover:bg-gray-50" data-preference-item>
+                        <div class="flex flex-col gap-4 md:flex-row md:items-center">
+                            <div class="flex flex-1 items-center">
+                                <span class="text-lg font-bold text-gray-400 w-8" th:text="${iter.count}"></span>
+                                <div class="ml-4">
+                                    <h3 class="font-semibold text-slate-900" th:text="${nv.tenNganh}"></h3>
+                                    <p class="text-sm text-gray-600" th:text="${'Mã ngành: ' + (nv.nvManganh ?: 'N/A')}"></p>
+                                </div>
+                            </div>
+
+                            <span class="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold md:min-w-36"
+                                  th:classappend="${nv.ketQua == 'Đậu' or nv.ketQua == 'Đỗ' ? 'bg-green-100 text-green-800' : (nv.ketQua == 'Rớt' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800')}"
+                                  th:text="${nv.ketQua ?: 'Chờ xét'}"></span>
+
+                            <button type="button"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                                    onclick="togglePreferenceDetail(this)">
+                                <i data-lucide="eye" class="h-4 w-4"></i>
+                                <span>Xem chi tiết</span>
+                            </button>
+                        </div>
+
+                        <div class="preference-detail hidden mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                            <div class="grid gap-4 md:grid-cols-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.ketQua ?: 'Chờ xét'}"></p>
+                                </div>
+                                <div>   
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ưu tiên</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.nvTt ?: 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Điểm xét tuyển</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.diemXettuyen != null ? T(java.lang.String).format('%.2f', nv.diemXettuyen).replaceAll('\\.?0+$','') : 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Mã khóa</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.nvKeys ?: 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Điểm THPT</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.diemThxt != null ? T(java.lang.String).format('%.2f', nv.diemThxt).replaceAll('\\.?0+$','') : 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Điểm UU Tiên</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.diemUtqd != null ? T(java.lang.String).format('%.2f', nv.diemUtqd).replaceAll('\\.?0+$','') : 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Điểm Cộng</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.diemCong != null ? T(java.lang.String).format('%.2f', nv.diemCong).replaceAll('\\.?0+$','') : 'N/A'}"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phương Thức</p>
+                                    <p class="mt-1 font-medium text-slate-900" th:text="${nv.ttPhuongthuc ?: 'N/A'}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${nguyenVongs == null or nguyenVongs.size() == 0}" class="px-6 py-8 text-center">
+                    <p class="text-gray-500 mb-4">Chưa có nguyện vọng nào</p>
+                    <p class="text-sm text-gray-600">Danh sách này sẽ hiển thị khi thí sinh có dữ liệu nguyện vọng trong hệ thống.</p>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="mt-8 rounded-lg bg-blue-50 border border-blue-200 p-4">
+                <p class="text-blue-900">
+                    <strong>Lưu ý:</strong> Trang này chỉ dùng để xem danh sách và chi tiết nguyện vọng.
+                </p>
+            </div>
+
+            <!-- Links -->
+            <div class="mt-8 flex gap-4">
+                <a href="/diem-ca-nhan" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Xem điểm thi
+                </a>
+                <a href="/" class="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50">
+                    Về trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+    <script layout:fragment="scripts">
+        lucide.createIcons();
+    </script>
+</body>
+</html>

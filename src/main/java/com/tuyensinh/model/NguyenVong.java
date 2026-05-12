@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
@@ -57,4 +58,19 @@ public class NguyenVong {
 
     @Column(name = "`tt_thm`", length = 45)
     private String ttThm;
+
+    @Transient
+    private String tenNganh;
+
+    public Integer getId() {
+        return idnv;
+    }
+
+    public String getKetQua() {
+        return nvKetqua;
+    }
+
+    public void setKetQua(String ketQua) {
+        this.nvKetqua = ketQua;
+    }
 }

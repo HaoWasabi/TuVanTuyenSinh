@@ -44,6 +44,16 @@ public class NTHRepository {
         }
     }
 
+    public List<NganhToHop> findByMaNganh(String maNganh) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session
+                    .createQuery("from NganhToHop n where upper(n.maNganh) = upper(:maNganh) order by n.maToHop",
+                            NganhToHop.class)
+                    .setParameter("maNganh", maNganh)
+                    .list();
+        }
+    }
+
     public Optional<NganhToHop> findByTbKeys(String tbKeys) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             NganhToHop result = session.createQuery("from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
@@ -87,17 +97,17 @@ public class NTHRepository {
 
     /**
      * Import danh sách NganhToHop từ Excel.
-        * File Excel không chứa cột ID, DB sẽ tự sinh ID.
-        * Định dạng cột: manganh, matohop, th_mon1, hsmon1, th_mon2, hsmon2,
-        * th_mon3, hsmon3, tb_keys, dolech.
+     * File Excel không chứa cột ID, DB sẽ tự sinh ID.
+     * Định dạng cột: manganh, matohop, th_mon1, hsmon1, th_mon2, hsmon2,
+     * th_mon3, hsmon3, tb_keys, dolech.
      */
     public List<NganhToHop> importFromExcel(String filePath) throws IOException {
         List<NganhToHop> importedList = new ArrayList<>();
 
         Transaction tx = null;
         try (FileInputStream fis = new FileInputStream(filePath);
-             XSSFWorkbook workbook = new XSSFWorkbook(fis);
-             Session session = HibernateUtil.getSessionFactory().openSession()) {
+                XSSFWorkbook workbook = new XSSFWorkbook(fis);
+                Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             Sheet sheet = workbook.getSheetAt(0);
             boolean hasIdColumn = detectIdColumn(sheet);
@@ -186,10 +196,10 @@ public class NTHRepository {
         item.setKtpl(hasSubject(mon1, mon2, mon3, "kinhtephapluat"));
 
         boolean hasKnownSubject = Boolean.TRUE.equals(item.getTo()) || Boolean.TRUE.equals(item.getLi())
-            || Boolean.TRUE.equals(item.getHo()) || Boolean.TRUE.equals(item.getSi())
-            || Boolean.TRUE.equals(item.getVa()) || Boolean.TRUE.equals(item.getSu())
-            || Boolean.TRUE.equals(item.getDi()) || Boolean.TRUE.equals(item.getTi())
-            || Boolean.TRUE.equals(item.getKtpl());
+                || Boolean.TRUE.equals(item.getHo()) || Boolean.TRUE.equals(item.getSi())
+                || Boolean.TRUE.equals(item.getVa()) || Boolean.TRUE.equals(item.getSu())
+                || Boolean.TRUE.equals(item.getDi()) || Boolean.TRUE.equals(item.getTi())
+                || Boolean.TRUE.equals(item.getKtpl());
         item.setKhac(!hasKnownSubject);
         item.setDoLech(getCellAsBigDecimal(row, offset + 9));
 
@@ -288,16 +298,22 @@ public class NTHRepository {
         }
         String text = value.toLowerCase();
         text = text.replace("á", "a").replace("à", "a").replace("ả", "a").replace("ã", "a").replace("ạ", "a");
-        text = text.replace("ă", "a").replace("ắ", "a").replace("ằ", "a").replace("ẳ", "a").replace("ẵ", "a").replace("ặ", "a");
-        text = text.replace("â", "a").replace("ấ", "a").replace("ầ", "a").replace("ẩ", "a").replace("ẫ", "a").replace("ậ", "a");
+        text = text.replace("ă", "a").replace("ắ", "a").replace("ằ", "a").replace("ẳ", "a").replace("ẵ", "a")
+                .replace("ặ", "a");
+        text = text.replace("â", "a").replace("ấ", "a").replace("ầ", "a").replace("ẩ", "a").replace("ẫ", "a")
+                .replace("ậ", "a");
         text = text.replace("é", "e").replace("è", "e").replace("ẻ", "e").replace("ẽ", "e").replace("ẹ", "e");
-        text = text.replace("ê", "e").replace("ế", "e").replace("ề", "e").replace("ể", "e").replace("ễ", "e").replace("ệ", "e");
+        text = text.replace("ê", "e").replace("ế", "e").replace("ề", "e").replace("ể", "e").replace("ễ", "e")
+                .replace("ệ", "e");
         text = text.replace("í", "i").replace("ì", "i").replace("ỉ", "i").replace("ĩ", "i").replace("ị", "i");
         text = text.replace("ó", "o").replace("ò", "o").replace("ỏ", "o").replace("õ", "o").replace("ọ", "o");
-        text = text.replace("ô", "o").replace("ố", "o").replace("ồ", "o").replace("ổ", "o").replace("ỗ", "o").replace("ộ", "o");
-        text = text.replace("ơ", "o").replace("ớ", "o").replace("ờ", "o").replace("ở", "o").replace("ỡ", "o").replace("ợ", "o");
+        text = text.replace("ô", "o").replace("ố", "o").replace("ồ", "o").replace("ổ", "o").replace("ỗ", "o")
+                .replace("ộ", "o");
+        text = text.replace("ơ", "o").replace("ớ", "o").replace("ờ", "o").replace("ở", "o").replace("ỡ", "o")
+                .replace("ợ", "o");
         text = text.replace("ú", "u").replace("ù", "u").replace("ủ", "u").replace("ũ", "u").replace("ụ", "u");
-        text = text.replace("ư", "u").replace("ứ", "u").replace("ừ", "u").replace("ử", "u").replace("ữ", "u").replace("ự", "u");
+        text = text.replace("ư", "u").replace("ứ", "u").replace("ừ", "u").replace("ử", "u").replace("ữ", "u")
+                .replace("ự", "u");
         text = text.replace("ý", "y").replace("ỳ", "y").replace("ỷ", "y").replace("ỹ", "y").replace("ỵ", "y");
         text = text.replace("đ", "d");
         return text.replaceAll("[^a-z0-9]", "");
@@ -326,7 +342,7 @@ public class NTHRepository {
         }
 
         Optional<NganhToHop> existing = session.createQuery(
-                        "from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
+                "from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
                 .setParameter("tbKeys", item.getTbKeys())
                 .setMaxResults(1)
                 .uniqueResultOptional();

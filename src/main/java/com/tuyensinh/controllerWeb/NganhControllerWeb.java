@@ -1,40 +1,36 @@
 package com.tuyensinh.controllerWeb;
 
-import com.tuyensinh.model.Nganh;
+import com.tuyensinh.ModelWeb.NganhTraCuuResponse;
 import com.tuyensinh.serviceWeb.NganhServiceWeb;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-@CrossOrigin(origins = "*")
-@RestController
-@RequestMapping("/api/nganh")
+@Controller
+@RequestMapping({ "/nganh", "/tra-cuu-nganh" })
 public class NganhControllerWeb {
 
     private final NganhServiceWeb nganhServiceWeb = new NganhServiceWeb();
 
-    // Lấy danh sách tất cả tennganh
     @GetMapping
-    public ResponseEntity<List<String>> getAllTenNganh() {
-        List<String> list = nganhServiceWeb.getAllTenNganh();
-        return ResponseEntity.ok(list);
-    }
+    public String getAll(
+            @RequestParam(name = "search", required = false) String search,
+            Model model) {
 
-    @GetMapping("/{tennganh}")
-    public ResponseEntity<?> getByTenNganh(@PathVariable("tennganh") String tennganh) {
-        Optional<Nganh> nganh = nganhServiceWeb.getByTenNganh(tennganh);
-        
-        if (nganh.isEmpty()) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", true);
-            errorResponse.put("errorMessage", "Không tìm thấy ngành: " + tennganh);
-            return ResponseEntity.status(404).body(errorResponse);
+        try {
+            List<NganhTraCuuResponse> nganhs = nganhServiceWeb.searchTraCuuNganh(search);
+
+            model.addAttribute("nganhs", nganhs);
+            model.addAttribute("search", search == null ? "" : search);
+            return "tra-cuu-nganh";
+        } catch (Exception e) {
+            model.addAttribute("nganhs", Collections.emptyList());
+            model.addAttribute("search", search == null ? "" : search);
+            model.addAttribute("error", true);
+            return "tra-cuu-nganh";
         }
-        
-        return ResponseEntity.ok(nganh.get());
     }
 }

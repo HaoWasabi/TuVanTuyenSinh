@@ -25,7 +25,8 @@ public class CongThucUtil {
     // Ban do muc chenh lech giua cac to hop (Muc 2.1)
     private static final Map<String, Map<String, BigDecimal>> CHENH_LECH_MAP = createChenhLechMap();
 
-    private CongThucUtil() {}
+    private CongThucUtil() {
+    }
 
     /**
      * 1. Tinh tong diem cong (DC) - Muc 3.3
@@ -40,6 +41,50 @@ public class CongThucUtil {
     }
 
     /**
+     * 1b. Tinh tong diem cong (DC) - Chi tiet hon
+     * DC = diemCongChungChi + diemCongUuTien, khong vuot qua 3.0
+     * 
+     * @param diemCongChungChi Diem cong tu chung chi (VD: chung chi tieng Anh)
+     * @param diemCongUuTien   Diem cong tu dieu kien uu tien xet tuyen
+     * @return Tong diem cong (DC), max 3.0
+     */
+    public static BigDecimal tinhDiemCongToiDa(BigDecimal diemCongChungChi, BigDecimal diemCongUuTien) {
+        BigDecimal tong = safe(diemCongChungChi).add(safe(diemCongUuTien));
+        if (tong.compareTo(MAX_DIEM_CONG) > 0) {
+            tong = MAX_DIEM_CONG;
+        }
+        return tong.setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 1c. Tinh muc diem uu tien (MDUT) - Dieu 7 Quy che tuyen sinh
+     * MDUT = diem khu vuc + diem doi tuong
+     * 
+     * @param khuVuc   Gia tri khu vuc uu tien (VD: "0", "0.25", "0.5", "0.75")
+     * @param doiTuong Gia tri doi tuong uu tien (VD: "0", "1", "2")
+     * @return Muc diem uu tien (MDUT)
+     */
+    public static BigDecimal tinhMucDiemUuTien(String khuVuc, String doiTuong) {
+        BigDecimal khuVucDiem = parseStringToDecimal(khuVuc);
+        BigDecimal doiTuongDiem = parseStringToDecimal(doiTuong);
+        return khuVucDiem.add(doiTuongDiem).setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 1c-helper. Convert string sang BigDecimal an toan
+     */
+    private static BigDecimal parseStringToDecimal(String value) {
+        if (value == null || value.isBlank()) {
+            return ZERO;
+        }
+        try {
+            return new BigDecimal(value.trim());
+        } catch (Exception e) {
+            return ZERO;
+        }
+    }
+
+    /**
      * 2. Tinh diem to hop xet tuyen (DTHXT) - Muc 3.1
      * - V-SAT/THPT: [(d1*w1 + d2*w2 + d3*w3) / (w1+w2+w3)] * 3
      * - DGNL: diem DGNL da quy doi tuong duong ve thang 30 (Muc 2.2).
@@ -48,8 +93,7 @@ public class CongThucUtil {
             DiemThi diemThi,
             String maToHop,
             String phuongThuc,
-            BigDecimal diemDgnlDaQuyDoi
-    ) {
+            BigDecimal diemDgnlDaQuyDoi) {
         String pt = normalize(phuongThuc);
         if ("DGNL".equals(pt)) {
             return safe(diemDgnlDaQuyDoi).setScale(SCALE_SCORE, RoundingMode.HALF_UP);
@@ -96,7 +140,8 @@ public class CongThucUtil {
      * (dao nguoc vi bang bang co chieu tu toHopGoc -> toHopXetTuyen)
      */
     public static BigDecimal quyDoiVeToHopGoc(BigDecimal diemThxt, String toHopGoc, String toHopXetTuyen) {
-        if (toHopGoc.equals(toHopXetTuyen)) return safe(diemThxt);
+        if (toHopGoc.equals(toHopXetTuyen))
+            return safe(diemThxt);
 
         BigDecimal chenhLech = ZERO;
         String gocUpper = toHopGoc.toUpperCase();
@@ -113,17 +158,31 @@ public class CongThucUtil {
     }
 
     /**
-     * 4. Tinh diem uu tien (DUT) - Muc 3.4
-     * Neu (DTHGXT + DC) >= 22.5: DUT = [(30 - (DTHGXT + DC)) / 7.5] * MDUT.
+     * 4. Tinh diem uu tien (DUT) - Muc 3.4 Dieu 7 Quy che tuyen sinh
+     * Diem uu tien theo tung phuong thuc, bao gom diem uu tien doi tuong va diem uu
+     * tien khu vuc
+     * 
+     * Cong thuc:
+     * - Neu (DTHGXT + DC) < 22.5 diem: DUT = MDUT
+     * - Neu (DTHGXT + DC) >= 22.5 diem: DUT = [(30 - DTHGXT - DC) / 7.5] x MDUT
+     * 
+     * @param diemThgxt     Diem to hop goc xet tuyen (DTHGXT)
+     * @param diemCong      Tong diem cong (DC)
+     * @param mucDiemUuTien Muc diem uu tien theo Dieu 7 (MDUT) = diem khu vuc +
+     *                      diem doi tuong
+     * @return Diem uu tien (DUT)
      */
     public static BigDecimal tinhDiemUuTien(BigDecimal diemThgxt, BigDecimal diemCong, BigDecimal mucDiemUuTien) {
         BigDecimal tongDiemHienTai = safe(diemThgxt).add(safe(diemCong));
         BigDecimal mDUT = safe(mucDiemUuTien);
 
         if (tongDiemHienTai.compareTo(NGUONG_UU_TIEN) < 0) {
+            // Truong hop 1: (DTHGXT + DC) < 22.5 => DUT = MDUT
             return mDUT.setScale(SCALE_SCORE, RoundingMode.HALF_UP);
         }
 
+        // Truong hop 2: (DTHGXT + DC) >= 22.5 => DUT = [(30 - DTHGXT - DC) / 7.5] *
+        // MDUT
         BigDecimal tyLeGiam = MAX_SCORE.subtract(tongDiemHienTai)
                 .divide(HE_SO_GIAM_UT, 10, RoundingMode.HALF_UP);
 
@@ -140,7 +199,8 @@ public class CongThucUtil {
      */
     public static BigDecimal tinhDiemXetTuyenCuoiCung(BigDecimal diemThgxt, BigDecimal diemCong, BigDecimal diemUt) {
         BigDecimal tong = safe(diemThgxt).add(safe(diemCong)).add(safe(diemUt));
-        if (tong.compareTo(MAX_SCORE) > 0) tong = MAX_SCORE;
+        if (tong.compareTo(MAX_SCORE) > 0)
+            tong = MAX_SCORE;
         return tong.setScale(SCALE_SCORE, RoundingMode.HALF_UP);
     }
 
@@ -189,146 +249,136 @@ public class CongThucUtil {
                 "C00", new BigDecimal("2.32"),
                 "C01", new BigDecimal("0.94"),
                 "D01", new BigDecimal("-0.68"),
-                "D07", new BigDecimal("-1.62")
-        ));
+                "D07", new BigDecimal("-1.62")));
         matrix.put("A01", Map.of(
                 "A00", new BigDecimal("0.69"),
                 "B00", new BigDecimal("-0.52"),
                 "C00", new BigDecimal("3.01"),
                 "C01", new BigDecimal("1.63"),
                 "D01", new BigDecimal("0.01"),
-                "D07", new BigDecimal("-0.93")
-        ));
-            matrix.put("B00", Map.of(
+                "D07", new BigDecimal("-0.93")));
+        matrix.put("B00", Map.of(
                 "A00", new BigDecimal("1.21"),
                 "A01", new BigDecimal("0.52"),
                 "C00", new BigDecimal("3.53"),
                 "C01", new BigDecimal("2.15"),
                 "D01", new BigDecimal("0.53"),
-                "D07", new BigDecimal("-0.41")
-            ));
-            matrix.put("C00", Map.of(
+                "D07", new BigDecimal("-0.41")));
+        matrix.put("C00", Map.of(
                 "A00", new BigDecimal("-2.32"),
                 "A01", new BigDecimal("-3.01"),
                 "B00", new BigDecimal("-3.53"),
                 "C01", new BigDecimal("-1.38"),
                 "D01", new BigDecimal("-3.00"),
-                "D07", new BigDecimal("-3.94")
-            ));
-            matrix.put("C01", Map.of(
+                "D07", new BigDecimal("-3.94")));
+        matrix.put("C01", Map.of(
                 "A00", new BigDecimal("-0.94"),
                 "A01", new BigDecimal("-1.63"),
                 "B00", new BigDecimal("-2.15"),
                 "C00", new BigDecimal("1.38"),
                 "D01", new BigDecimal("-1.62"),
-                "D07", new BigDecimal("-2.56")
-            ));
-            matrix.put("D01", Map.of(
+                "D07", new BigDecimal("-2.56")));
+        matrix.put("D01", Map.of(
                 "A00", new BigDecimal("0.68"),
                 "A01", new BigDecimal("-0.01"),
                 "B00", new BigDecimal("-0.53"),
                 "C00", new BigDecimal("3.00"),
                 "C01", new BigDecimal("1.62"),
-                "D07", new BigDecimal("-0.94")
-            ));
-            matrix.put("D07", Map.of(
+                "D07", new BigDecimal("-0.94")));
+        matrix.put("D07", Map.of(
                 "A00", new BigDecimal("1.62"),
                 "A01", new BigDecimal("0.93"),
                 "B00", new BigDecimal("0.41"),
                 "C00", new BigDecimal("3.94"),
                 "C01", new BigDecimal("2.56"),
-                "D01", new BigDecimal("0.94")
-            ));
+                "D01", new BigDecimal("0.94")));
         return matrix;
     }
 
-/**
- * Quy đổi điểm ĐGNL (thang 1200 → 30)
- * Công thức: điểm * 30 / 1200
- */
-public static BigDecimal quyDoiDgnl1200Sang30(BigDecimal diem1200) {
-    if (diem1200 == null) return ZERO;
+    /**
+     * Quy đổi điểm ĐGNL (thang 1200 → 30)
+     * Công thức: điểm * 30 / 1200
+     */
+    public static BigDecimal quyDoiDgnl1200Sang30(BigDecimal diem1200) {
+        if (diem1200 == null)
+            return ZERO;
 
-    return diem1200
-            .multiply(new BigDecimal("30"))
-            .divide(new BigDecimal("1200"), SCALE_SCORE, RoundingMode.HALF_UP);
-}
-
-
-/**
- * Quy đổi điểm VSAT (thang 150 → 10)
- * Công thức: điểm * 10 / 150
- */
-public static BigDecimal quyDoiVsat150Sang10(BigDecimal diem150) {
-    if (diem150 == null) return ZERO;
-
-    return diem150
-            .multiply(new BigDecimal("10"))
-            .divide(new BigDecimal("150"), SCALE_SCORE, RoundingMode.HALF_UP);
-}
-
-
-/**
- * Quy đổi điểm bất kỳ về thang 10
- */
-public static BigDecimal quyDoiVeThang10(BigDecimal diem, BigDecimal maxInput) {
-    if (diem == null || maxInput == null || maxInput.compareTo(ZERO) == 0) {
-        return ZERO;
+        return diem1200
+                .multiply(new BigDecimal("30"))
+                .divide(new BigDecimal("1200"), SCALE_SCORE, RoundingMode.HALF_UP);
     }
 
-    return diem
-            .multiply(new BigDecimal("10"))
-            .divide(maxInput, SCALE_SCORE, RoundingMode.HALF_UP);
-}
+    /**
+     * Quy đổi điểm VSAT (thang 150 → 10)
+     * Công thức: điểm * 10 / 150
+     */
+    public static BigDecimal quyDoiVsat150Sang10(BigDecimal diem150) {
+        if (diem150 == null)
+            return ZERO;
 
+        return diem150
+                .multiply(new BigDecimal("10"))
+                .divide(new BigDecimal("150"), SCALE_SCORE, RoundingMode.HALF_UP);
+    }
 
-/**
- * Điểm N1 = max(thi, chứng chỉ)
- */
-public static BigDecimal tinhDiemN1(BigDecimal n1Thi, BigDecimal n1Cc) {
-    BigDecimal thi = safe(n1Thi);
-    BigDecimal cc = safe(n1Cc);
+    /**
+     * Quy đổi điểm bất kỳ về thang 10
+     */
+    public static BigDecimal quyDoiVeThang10(BigDecimal diem, BigDecimal maxInput) {
+        if (diem == null || maxInput == null || maxInput.compareTo(ZERO) == 0) {
+            return ZERO;
+        }
 
-    return thi.max(cc).setScale(SCALE_SCORE, RoundingMode.HALF_UP);
-}
+        return diem
+                .multiply(new BigDecimal("10"))
+                .divide(maxInput, SCALE_SCORE, RoundingMode.HALF_UP);
+    }
 
+    /**
+     * Điểm N1 = max(thi, chứng chỉ)
+     */
+    public static BigDecimal tinhDiemN1(BigDecimal n1Thi, BigDecimal n1Cc) {
+        BigDecimal thi = safe(n1Thi);
+        BigDecimal cc = safe(n1Cc);
 
-/**
- * Kiểm tra đạt ngưỡng
- */
-public static boolean datNguong(BigDecimal dxt, BigDecimal nguong) {
-    if (dxt == null || nguong == null) return false;
-    return dxt.compareTo(nguong) >= 0;
-}
+        return thi.max(cc).setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+    }
 
+    /**
+     * Kiểm tra đạt ngưỡng
+     */
+    public static boolean datNguong(BigDecimal dxt, BigDecimal nguong) {
+        if (dxt == null || nguong == null)
+            return false;
+        return dxt.compareTo(nguong) >= 0;
+    }
 
-/**
- * Kiểm tra trúng tuyển
- */
-public static boolean datTrungTuyen(BigDecimal dxt, BigDecimal diemChuan) {
-    if (dxt == null || diemChuan == null) return false;
-    return dxt.compareTo(diemChuan) >= 0;
-}
+    /**
+     * Kiểm tra trúng tuyển
+     */
+    public static boolean datTrungTuyen(BigDecimal dxt, BigDecimal diemChuan) {
+        if (dxt == null || diemChuan == null)
+            return false;
+        return dxt.compareTo(diemChuan) >= 0;
+    }
 
+    /**
+     * Tổng điểm 3 môn (không hệ số)
+     */
+    public static BigDecimal tinhTong3Mon(BigDecimal d1, BigDecimal d2, BigDecimal d3) {
+        return safe(d1)
+                .add(safe(d2))
+                .add(safe(d3))
+                .setScale(SCALE_SCORE, RoundingMode.HALF_UP);
+    }
 
-/**
- * Tổng điểm 3 môn (không hệ số)
- */
-public static BigDecimal tinhTong3Mon(BigDecimal d1, BigDecimal d2, BigDecimal d3) {
-    return safe(d1)
-            .add(safe(d2))
-            .add(safe(d3))
-            .setScale(SCALE_SCORE, RoundingMode.HALF_UP);
-}
+    /**
+     * Giới hạn điểm tối đa
+     */
+    public static BigDecimal gioiHanDiem(BigDecimal diem, BigDecimal max) {
+        if (diem == null)
+            return ZERO;
+        return diem.compareTo(max) > 0 ? max : diem;
+    }
 
-
-/**
- * Giới hạn điểm tối đa
- */
-public static BigDecimal gioiHanDiem(BigDecimal diem, BigDecimal max) {
-    if (diem == null) return ZERO;
-    return diem.compareTo(max) > 0 ? max : diem;
-}
-
-    
 }

@@ -34,6 +34,10 @@ public class NTHService {
         return nganhToHopRepository.findAll();
     }
 
+    public List<NganhToHop> getByMaNganh(String maNganh) {
+        return nganhToHopRepository.findByMaNganh(maNganh);
+    }
+
     public NganhToHop update(NganhToHop majors) {
         return nganhToHopRepository.update(majors);
     }

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base.html}">
+<head>
+    <title>Tra cứu Điểm</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Tra cứu Điểm Thi</h1>
+
+            <!-- Search Form -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <form method="get" th:action="@{/diem}" class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="cccd" class="block text-sm font-medium text-gray-700 mb-1">CCCD</label>
+                            <input id="cccd" name="cccd" type="text" maxlength="20" pattern="[0-9A-Za-z_-]{4,20}" required
+                                placeholder="CCCD hoặc mã thí sinh (ví dụ TS_0113)"
+                                th:value="${cccd}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label for="dob" class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                            <input id="dob" name="dob" type="date" required
+                                   th:value="${dob}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Tra cứu
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results -->
+            <div th:if="${thiSinh != null}">
+                <!-- Student Info -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-lg font-semibold mb-4">Thông tin thí sinh</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600">Họ và tên</label>
+                            <p class="text-lg font-medium" th:text="${(thiSinh.ho ?: '') + ' ' + (thiSinh.ten ?: '')}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600">CCCD</label>
+                            <p class="text-lg font-medium" th:text="${thiSinh.cccd}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600">Ngày sinh</label>
+                            <p class="text-lg font-medium" th:text="${thiSinh.ngaySinh ?: 'N/A'}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600">Điểm tổng</label>
+                            <p class="text-lg font-bold text-blue-600" th:text="${tongDiem != null ? tongDiem : 'N/A'}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Scores -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-lg font-semibold mb-4">Điểm các môn</h2>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <span class="text-gray-600">Toán</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.toan}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Lý</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.vatLi}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Hóa</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.hoaHoc}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Sinh</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.sinhHoc}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Sử</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.lichSu}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Địa</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.diaLi}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Ngoại ngữ</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.nguVan}"></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Tổ hợp 1</span>
+                            <p class="text-xl font-semibold" th:text="${diem?.tinHoc}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admission Status -->
+                <div th:if="${preferences != null and preferences.size() > 0}" class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-semibold mb-4">Kết quả xét tuyển</h2>
+                    <div class="space-y-2">
+                        <div th:each="pref : ${preferences}" class="border rounded p-3">
+                            <div class="flex justify-between">
+                                <span class="font-medium" th:text="${pref.nv_manganh}"></span>
+                                <span class="px-2 py-1 rounded text-sm"
+                                      th:classappend="${pref.nv_ketqua == 'Đỗ' or pref.nv_ketqua == 'Đậu' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}"
+                                      th:text="${pref.nv_ketqua}"></span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1" th:text="|Điểm xét tuyển: ${pref.diem_xettuyen}|"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${error}" class="rounded-md bg-red-50 p-4">
+                <p class="text-red-800">Không tìm thấy thông tin thí sinh. Vui lòng kiểm tra lại CCCD và ngày sinh.</p>
+            </div>
+        </div>
+    </div>
+    <script layout:fragment="scripts">
+        lucide.createIcons();
+    </script>
+</body>
+</html>

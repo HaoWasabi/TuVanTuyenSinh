@@ -14,33 +14,43 @@ import java.util.Map;
 @Builder
 public class DiemXetTuyenResponse {
 
-    private String phuongThuc;       // Phương thức: THPT, VSAT, DGNL
-    private String maToHop;         // Tổ hợp xét tuyển
-    private BigDecimal diemToHop;   // Điểm tổ hợp xét tuyển (DTHXT)
-    private BigDecimal diemQuyDoi;  // Điểm quy đổi về thang chuẩn
-    private BigDecimal diemCong;   // Điểm cộng (nếu có)
-    private BigDecimal diemUuTien; // Điểm ưu tiên (nếu có)
+    private String phuongThuc; // Phương thức: THPT, VSAT, DGNL
+    private String maToHop; // Tổ hợp xét tuyển
+    private BigDecimal diemToHop; // Điểm tổ hợp xét tuyển (DTHXT)
+    private BigDecimal diemQuyDoi; // Điểm quy đổi về thang chuẩn
+
+    // Chi tiết Điểm cộng (ĐC)
+    private BigDecimal diemCongChungChi; // Điểm cộng từ chứng chỉ tiếng Anh
+    private BigDecimal diemCongUuTien; // Điểm cộng từ đạt điều kiện ưu tiên xét tuyển
+    private BigDecimal diemCong; // Tổng Điểm cộng (ĐC = diemCongChungChi + diemCongUuTien, max 3)
+
+    // Thông tin ưu tiên
+    private String doiTuong; // Đối tượng ưu tiên
+    private String khuVuc; // Khu vực ưu tiên
+    private BigDecimal mucDiemUuTien; // Mức điểm ưu tiên (MĐƯT)
+
+    private BigDecimal diemUuTien; // Điểm ưu tiên tính toán (ĐƯT)
     private BigDecimal diemXetTuyen; // Điểm xét tuyển cuối cùng
-    
+
     // Thông tin chi tiết quy đổi từng môn (cho VSAT)
     private List<MonQuyDoi> chiTietQuyDoi;
-    
+
     // Thông tin bổ sung
     private String thongBao;
     private Boolean datNguong;
-    
+
     // Thông tin lỗi (nếu có)
     private Boolean error;
     private String errorMessage;
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class MonQuyDoi {
         private String tenMon;
-        private BigDecimal diemGoc;      // Điểm gốc (thang 150 hoặc 10)
-        private BigDecimal diemQuyDoi;  // Điểm quy đổi
-        private String thangDiem;       // Thang điểm gốc
+        private BigDecimal diemGoc; // Điểm gốc (thang 150 hoặc 10)
+        private BigDecimal diemQuyDoi; // Điểm quy đổi
+        private String thangDiem; // Thang điểm gốc
     }
 }

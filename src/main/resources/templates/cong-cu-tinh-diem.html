@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base.html}">
+<head>
+    <title>Công cụ Tính Điểm</title>
+    <th:block layout:fragment="head">
+        <style>
+            .tool-shell {
+                background:
+                    radial-gradient(circle at top left, rgba(31, 92, 171, 0.08), transparent 28%),
+                    radial-gradient(circle at top right, rgba(245, 196, 81, 0.14), transparent 24%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 250, 255, 0.92));
+            }
+
+            .tool-card {
+                background: rgba(255, 255, 255, 0.92);
+                border: 1px solid rgba(15, 62, 120, 0.08);
+                box-shadow: 0 18px 40px rgba(15, 62, 120, 0.08);
+            }
+
+            .tab-active {
+                background: white;
+                color: #1d4ed8;
+                border-color: rgba(59, 130, 246, 0.22);
+                box-shadow: 0 10px 20px rgba(59, 130, 246, 0.08);
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content" class="tool-shell rounded-[2rem] p-4 md:p-6">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="tool-card rounded-[2rem] p-6 md:p-8 reveal-up">
+                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Công cụ tính điểm</p>
+                        <h1 class="mt-2 text-3xl md:text-4xl font-black text-slate-900">Mô phỏng điểm xét tuyển</h1>
+                        <p class="mt-3 max-w-3xl text-sm md:text-base text-slate-600">
+                            Giao diện được làm lại theo bố cục cũ bên React: chia cột rõ ràng, tab phương thức và khối kết quả nổi bật để nhập nhanh, xem nhanh.
+                        </p>
+                    </div>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-800">
+                        <i data-lucide="calculator" class="h-4 w-4"></i>
+                        THPT, VSAT, DGNL
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-6 reveal-up">
+                    <div class="tool-card rounded-[2rem] p-3 md:p-4">
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button id="tab-thpt" type="button" class="tool-tab rounded-2xl px-4 py-3 text-sm font-bold transition" th:classappend="${activeTab == 'thpt'} ? ' tab-active' : ' text-slate-500 hover:bg-slate-50'">
+                                THPT
+                            </button>
+                            <button id="tab-vsat" type="button" class="tool-tab rounded-2xl px-4 py-3 text-sm font-bold transition" th:classappend="${activeTab == 'vsat'} ? ' tab-active' : ' text-slate-500 hover:bg-slate-50'">
+                                VSAT
+                            </button>
+                            <button id="tab-dgnl" type="button" class="tool-tab rounded-2xl px-4 py-3 text-sm font-bold transition" th:classappend="${activeTab == 'dgnl'} ? ' tab-active' : ' text-slate-500 hover:bg-slate-50'">
+                                DGNL
+                            </button>
+                        </div>
+                    </div>
+
+                    <form method="post" th:action="@{/tinh-diem/thpt}" th:object="${request}" id="content-thpt" class="tool-card rounded-[2rem] p-6 md:p-7 space-y-6" th:classappend="${activeTab != 'thpt'} ? ' hidden' : ''">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-700"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900">Tính điểm THPT</h2>
+                                <p class="text-sm text-slate-500">Nhập 6 môn, Văn, N1, điểm cộng và điểm ưu tiên.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-ma-to-hop">Tổ hợp xét tuyển</label>
+                                <select id="thpt-ma-to-hop" th:field="*{maToHop}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="A00">A00 - Toán, Lý, Hóa</option>
+                                    <option value="A01">A01 - Toán, Lý, Anh</option>
+                                    <option value="B00">B00 - Toán, Hóa, Sinh</option>
+                                    <option value="C00">C00 - Văn, Sử, Địa</option>
+                                    <option value="C01">C01 - Văn, Toán, Lý</option>
+                                    <option value="D01">D01 - Toán, Văn, Anh</option>
+                                    <option value="D07">D07 - Toán, Hóa, Anh</option>
+                                </select>
+                                <p class="mt-2 text-xs text-slate-500">Chỉ hiển thị các môn thuộc tổ hợp đã chọn. Các môn còn lại tự động tính 0 điểm.</p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-manganh">Chọn ngành (tuỳ chọn)</label>
+                                <select id="thpt-manganh" name="manganh" th:field="*{manganh}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="">-- Không chọn --</option>
+                                    <th:block th:each="n : ${nganhList}">
+                                        <option th:value="${n.manganh}" th:text="${n.manganh + ' - ' + n.tenNganh}" th:selected="${selectedNganh != null and selectedNganh.manganh == n.manganh}"></option>
+                                    </th:block>
+                                </select>
+                            </div>
+
+                            <div class="subject-field" data-subject="TO">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-toan">Toán</label>
+                                <input id="thpt-toan" th:field="*{toan}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="LI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-li">Lý</label>
+                                <input id="thpt-li" th:field="*{li}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="HO">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-hoa">Hóa</label>
+                                <input id="thpt-hoa" th:field="*{hoa}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="SI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-sinh">Sinh</label>
+                                <input id="thpt-sinh" th:field="*{sinh}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="SU">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-su">Sử</label>
+                                <input id="thpt-su" th:field="*{su}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="DI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-di">Địa</label>
+                                <input id="thpt-di" th:field="*{di}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="VA">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-va">Văn</label>
+                                <input id="thpt-va" th:field="*{va}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="N1">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-n1">Ngoại ngữ 1</label>
+                                <input id="thpt-n1" th:field="*{n1}" type="number" step="0.1" min="0" max="10" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-diem-cong">Điểm cộng</label>
+                                <input id="thpt-diem-cong" th:field="*{diemCong}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="thpt-diem-uu-tien">Điểm ưu tiên</label>
+                                <input id="thpt-diem-uu-tien" th:field="*{diemUuTien}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700">
+                            <i data-lucide="calculator" class="h-5 w-5"></i>
+                            Tính điểm THPT
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{/tinh-diem/vsat}" th:object="${request}" id="content-vsat" class="tool-card rounded-[2rem] p-6 md:p-7 space-y-6" th:classappend="${activeTab != 'vsat'} ? ' hidden' : ''">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700"><i data-lucide="layers-3" class="h-5 w-5"></i></span>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900">Tính điểm VSAT</h2>
+                                <p class="text-sm text-slate-500">Nhập điểm 6 môn theo thang 150, Văn, N1 và điểm cộng/ưu tiên.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-ma-to-hop">Tổ hợp xét tuyển</label>
+                                <select id="vsat-ma-to-hop" th:field="*{maToHop}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="A00">A00 - Toán, Lý, Hóa</option>
+                                    <option value="A01">A01 - Toán, Lý, Anh</option>
+                                    <option value="B00">B00 - Toán, Hóa, Sinh</option>
+                                    <option value="C00">C00 - Văn, Sử, Địa</option>
+                                    <option value="C01">C01 - Văn, Toán, Lý</option>
+                                    <option value="D01">D01 - Toán, Văn, Anh</option>
+                                    <option value="D07">D07 - Toán, Hóa, Anh</option>
+                                </select>
+                                <p class="mt-2 text-xs text-slate-500">Chỉ hiển thị các môn thuộc tổ hợp đã chọn. Các môn còn lại tự động tính 0 điểm.</p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-manganh">Chọn ngành (tuỳ chọn)</label>
+                                <select id="vsat-manganh" name="manganh" th:field="*{manganh}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="">-- Không chọn --</option>
+                                    <th:block th:each="n : ${nganhList}">
+                                        <option th:value="${n.manganh}" th:text="${n.manganh + ' - ' + n.tenNganh}" th:selected="${selectedNganh != null and selectedNganh.manganh == n.manganh}"></option>
+                                    </th:block>
+                                </select>
+                            </div>
+
+                            <div class="subject-field" data-subject="TO">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-toan">Toán (0-150)</label>
+                                <input id="vsat-toan" th:field="*{toan}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="LI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-li">Lý (0-150)</label>
+                                <input id="vsat-li" th:field="*{li}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="HO">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-hoa">Hóa (0-150)</label>
+                                <input id="vsat-hoa" th:field="*{hoa}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="SI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-sinh">Sinh (0-150)</label>
+                                <input id="vsat-sinh" th:field="*{sinh}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="SU">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-su">Sử (0-150)</label>
+                                <input id="vsat-su" th:field="*{su}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="DI">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-di">Địa (0-150)</label>
+                                <input id="vsat-di" th:field="*{di}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="VA">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-va">Văn (0-150)</label>
+                                <input id="vsat-va" th:field="*{va}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="subject-field" data-subject="N1">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-n1">Ngoại ngữ 1</label>
+                                <input id="vsat-n1" th:field="*{n1}" type="number" step="0.1" min="0" max="150" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-diem-cong">Điểm cộng</label>
+                                <input id="vsat-diem-cong" th:field="*{diemCong}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-diem-uu-tien">Điểm ưu tiên</label>
+                                <input id="vsat-diem-uu-tien" th:field="*{diemUuTien}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 py-4 text-base font-bold text-white shadow-lg shadow-amber-500/20 transition hover:bg-amber-600">
+                            <i data-lucide="calculator" class="h-5 w-5"></i>
+                            Tính điểm VSAT
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{/tinh-diem/dgnl}" th:object="${request}" id="content-dgnl" class="tool-card rounded-[2rem] p-6 md:p-7 space-y-6" th:classappend="${activeTab != 'dgnl'} ? ' hidden' : ''">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700"><i data-lucide="graduation-cap" class="h-5 w-5"></i></span>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900">Tính điểm DGNL</h2>
+                                <p class="text-sm text-slate-500">Quy đổi điểm ĐGNL thang 1200 về thang 30 rồi cộng điểm cộng và ưu tiên.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="dgnl-score">Điểm DGNL (0-1200)</label>
+                                <input id="dgnl-score" th:field="*{diemTong}" type="number" step="1" min="0" max="1200" data-score-input="true" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="dgnl-diem-cong">Điểm cộng</label>
+                                <input id="dgnl-diem-cong" th:field="*{diemCong}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="dgnl-diem-uu-tien">Điểm ưu tiên</label>
+                                <input id="dgnl-diem-uu-tien" th:field="*{diemUuTien}" type="number" step="0.01" min="0" max="3" data-score-input="true" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                Phương thức DGNL không cần chọn tổ hợp. Hệ thống tự quy đổi về thang 30.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700">
+                            <i data-lucide="calculator" class="h-5 w-5"></i>
+                            Tính điểm DGNL
+                        </button>
+                    </form>
+                </div>
+
+                <aside class="lg:col-span-5 reveal-up">
+                    <div class="tool-card relative overflow-hidden rounded-[2rem] p-6 md:p-8 text-slate-900">
+                        <div class="absolute right-0 top-0 p-6 opacity-5 text-blue-600">
+                            <i data-lucide="graduation-cap" class="h-28 w-28"></i>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Kết quả xét tuyển</p>
+                                <h3 class="mt-2 text-2xl font-black text-slate-900">Phân tích điểm</h3>
+                            </div>
+                            <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-600">Live</div>
+                        </div>
+
+                        <div th:if="${error != null}" class="mt-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-center">
+                            <i data-lucide="alert-circle" class="mx-auto h-12 w-12 text-red-500"></i>
+                            <p class="mt-3 text-lg font-bold text-red-700">Không thể tính toán</p>
+                            <p class="mt-1 text-sm text-red-600" th:text="${error}"></p>
+                        </div>
+
+                        <div th:if="${error == null and result == null}" class="mt-6 flex min-h-[420px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-10 text-center text-slate-500">
+                            <i data-lucide="info" class="mb-4 h-14 w-14 text-slate-300"></i>
+                            <p class="max-w-sm text-sm leading-6">Nhập dữ liệu ở bên trái và bấm nút tính điểm để xem kết quả, điểm cộng, điểm ưu tiên và trạng thái đạt ngưỡng.</p>
+                        </div>
+
+                        <div th:if="${result != null}" class="mt-6 space-y-5">
+                            <div class="rounded-3xl border p-4 bg-white">
+                                <p class="text-sm text-slate-500">Đối chiếu với ngành đã chọn</p>
+                                <div th:if="${selectedNganh != null}" class="mt-2 text-sm">
+                                    <p>Ngành: <span class="font-semibold" th:text="${selectedNganh.tenNganh}"></span> (<span th:text="${selectedNganh.manganh}"></span>)</p>
+                                    <p>Điểm sàn: <span class="font-bold" th:text="${selectedNganh.nDiemsan}"></span></p>
+                                    <p>Điểm trúng tuyển: <span class="font-bold" th:text="${selectedNganh.nDiemtrungtuyen}"></span></p>
+                                    <div class="mt-2 flex gap-3">
+                                        <div th:classappend="${datDiemSan} ? ' border-emerald-200 bg-emerald-50' : ' border-rose-200 bg-rose-50'" class="rounded-2xl border px-4 py-2">
+                                            <p class="text-xs text-slate-500">So sánh với điểm sàn</p>
+                                            <p class="font-bold" th:text="${datDiemSan} ? 'ĐẠT' : 'KHÔNG ĐẠT'"></p>
+                                        </div>
+                                        <div th:classappend="${datDiemChuan} ? ' border-emerald-200 bg-emerald-50' : ' border-rose-200 bg-rose-50'" class="rounded-2xl border px-4 py-2">
+                                            <p class="text-xs text-slate-500">So sánh với điểm trúng tuyển</p>
+                                            <p class="font-bold" th:text="${datDiemChuan} ? 'ĐẠT' : 'KHÔNG ĐẠT'"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${selectedNganh == null}" class="mt-2 text-sm text-slate-500">Chưa chọn ngành để đối chiếu.</div>
+                            </div>
+                            <div class="rounded-3xl border p-5" th:classappend="${result.error != null and result.error} ? ' border-red-200 bg-red-50' : ' border-slate-200 bg-slate-50'">
+                                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-500" th:text="${result.phuongThuc}"></p>
+                                <div class="mt-2 flex items-end gap-3">
+                                    <p class="text-5xl font-black tracking-tight text-slate-900" th:text="${#numbers.formatDecimal(result.diemXetTuyen, 1, 2)}"></p>
+                                    <span class="pb-2 text-sm font-semibold text-slate-500">/ 30</span>
+                                </div>
+                                <p class="mt-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-800" th:text="${result.thongBao}"></p>
+                            </div>
+
+                            <div th:if="${result.datNguong != null}" class="rounded-3xl border p-5" th:classappend="${result.datNguong} ? ' border-emerald-200 bg-emerald-50' : ' border-rose-200 bg-rose-50'">
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl" th:classappend="${result.datNguong} ? ' bg-emerald-100 text-emerald-700' : ' bg-rose-100 text-rose-700'">
+                                        <i th:if="${result.datNguong}" data-lucide="check-circle" class="h-5 w-5"></i>
+                                        <i th:if="${!result.datNguong}" data-lucide="x-circle" class="h-5 w-5"></i>
+                                    </span>
+                                    <div>
+                                        <p class="font-bold text-slate-900">Đối chiếu ngưỡng tuyển sinh</p>
+                                        <p class="text-sm" th:classappend="${result.datNguong} ? ' text-emerald-700' : ' text-rose-700'" th:text="${result.datNguong} ? 'ĐẠT điều kiện nộp hồ sơ' : 'KHÔNG ĐẠT điều kiện nộp hồ sơ'"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                    <p class="text-slate-500">Điểm tổ hợp</p>
+                                    <p class="mt-1 text-lg font-bold text-slate-900" th:text="${#numbers.formatDecimal(result.diemToHop, 1, 2)}"></p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                    <p class="text-slate-500">Điểm cộng</p>
+                                    <p class="mt-1 text-lg font-bold text-slate-900" th:text="${#numbers.formatDecimal(result.diemCong, 1, 2)}"></p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                    <p class="text-slate-500">Điểm ưu tiên</p>
+                                    <p class="mt-1 text-lg font-bold text-slate-900" th:text="${#numbers.formatDecimal(result.diemUuTien, 1, 2)}"></p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                    <p class="text-slate-500">Mã tổ hợp</p>
+                                    <p class="mt-1 text-lg font-bold text-slate-900" th:text="${result.maToHop}"></p>
+                                </div>
+                            </div>
+
+                            <div th:if="${result.chiTietQuyDoi != null and !result.chiTietQuyDoi.isEmpty()}" class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Chi tiết quy đổi</p>
+                                <div class="mt-4 grid grid-cols-1 gap-3">
+                                    <div th:each="mon : ${result.chiTietQuyDoi}" class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                        <div>
+                                            <p class="font-semibold text-slate-900" th:text="${mon.tenMon}"></p>
+                                            <p class="text-xs text-slate-500" th:text="${mon.thangDiem}"></p>
+                                        </div>
+                                        <p class="text-lg font-black text-emerald-600" th:text="${#numbers.formatDecimal(mon.diemQuyDoi, 1, 2)}"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Thông tin kỹ thuật</p>
+                                <div class="mt-4 space-y-2 text-sm text-slate-600">
+                                    <p>Phương thức: <span class="font-semibold text-slate-900" th:text="${result.phuongThuc}"></span></p>
+                                    <p th:if="${result.diemQuyDoi != null}">Điểm quy đổi: <span class="font-semibold text-slate-900" th:text="${#numbers.formatDecimal(result.diemQuyDoi, 1, 2)}"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </div>
+    </div>
+    <script layout:fragment="scripts" th:inline="javascript">
+        lucide.createIcons();
+
+        const activeTab = /*[[${activeTab}]]*/ 'thpt';
+        const tabs = ['thpt', 'vsat', 'dgnl'];
+        const subjectsByToHop = {
+            A00: ['TO', 'LI', 'HO'],
+            A01: ['TO', 'LI', 'N1'],
+            B00: ['TO', 'HO', 'SI'],
+            C00: ['VA', 'SU', 'DI'],
+            C01: ['VA', 'TO', 'LI'],
+            D01: ['TO', 'VA', 'N1'],
+            D07: ['TO', 'HO', 'N1']
+        };
+
+        const normalizeToHop = (value) => (value || '').trim().toUpperCase();
+
+        const applyZeroForEmptyScores = (form) => {
+            if (!form) {
+                return;
+            }
+
+            form.querySelectorAll('input[data-score-input="true"]').forEach((input) => {
+                if ((input.value || '').trim() === '') {
+                    input.value = '0';
+                }
+            });
+        };
+
+        const updateVisibleSubjects = (formId, selectId) => {
+            const form = document.getElementById(formId);
+            const select = document.getElementById(selectId);
+            if (!form || !select) {
+                return;
+            }
+
+            const selectedToHop = normalizeToHop(select.value);
+            const visibleSubjects = subjectsByToHop[selectedToHop] || subjectsByToHop.A00;
+
+            form.querySelectorAll('.subject-field[data-subject]').forEach((field) => {
+                const subjectCode = field.getAttribute('data-subject');
+                const isVisible = visibleSubjects.includes(subjectCode);
+                const input = field.querySelector('input');
+
+                field.classList.toggle('hidden', !isVisible);
+
+                if (!isVisible && input && (input.value || '').trim() === '') {
+                    input.value = '0';
+                }
+            });
+        };
+
+        const setActiveTab = (tab) => {
+            tabs.forEach((name) => {
+                const content = document.getElementById(`content-${name}`);
+                const button = document.getElementById(`tab-${name}`);
+
+                if (content) {
+                    content.classList.toggle('hidden', name !== tab);
+                }
+
+                if (button) {
+                    button.classList.toggle('tab-active', name === tab);
+                    button.classList.toggle('text-slate-500', name !== tab);
+                    button.classList.toggle('hover:bg-slate-50', name !== tab);
+                }
+            });
+        };
+
+        tabs.forEach((tab) => {
+            const button = document.getElementById(`tab-${tab}`);
+            if (button) {
+                button.addEventListener('click', () => setActiveTab(tab));
+            }
+        });
+
+        const thptSelect = document.getElementById('thpt-ma-to-hop');
+        if (thptSelect) {
+            thptSelect.addEventListener('change', () => updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop'));
+        }
+
+        const vsatSelect = document.getElementById('vsat-ma-to-hop');
+        if (vsatSelect) {
+            vsatSelect.addEventListener('change', () => updateVisibleSubjects('content-vsat', 'vsat-ma-to-hop'));
+        }
+
+        ['content-thpt', 'content-vsat', 'content-dgnl'].forEach((formId) => {
+            const form = document.getElementById(formId);
+            if (!form) {
+                return;
+            }
+
+            form.addEventListener('submit', () => {
+                applyZeroForEmptyScores(form);
+            });
+        });
+
+        setActiveTab(activeTab);
+        updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop');
+        updateVisibleSubjects('content-vsat', 'vsat-ma-to-hop');
+    </script>
+</body>
+</html>

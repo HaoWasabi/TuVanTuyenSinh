@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base.html}">
+<head>
+    <title>Trang chủ</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <section class="reveal-up relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 px-8 py-10 text-white shadow-2xl md:px-14 md:py-16">
+            <div class="absolute -right-20 -top-16 opacity-10">
+                <i data-lucide="graduation-cap" class="h-72 w-72"></i>
+            </div>
+            <div class="relative max-w-3xl">
+                <span class="mb-5 inline-block rounded-full border border-blue-300/35 bg-blue-500/30 px-4 py-1.5 text-sm font-semibold text-blue-100">
+                    Kỳ tuyển sinh đại học chính quy 2026
+                </span>
+                <h1 class="mb-5 text-4xl font-extrabold leading-tight md:text-5xl">
+                    Cổng Thông Tin
+                    <br class="hidden md:block">
+                    <span class="text-amber-300">Tuyển Sinh Đào Tạo</span>
+                </h1>
+                <p class="mb-8 max-w-2xl text-lg leading-relaxed text-blue-100">
+                    Nền tảng hỗ trợ thí sinh tra cứu điểm thi, tìm hiểu thông tin ngành nghề, bảng quy đổi điểm và xem nguyện vọng xét tuyển trực tuyến một cách nhanh chóng.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="/tra-cuu-diem" class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-800 transition hover:-translate-y-0.5 hover:bg-slate-100">
+                        <i data-lucide="search" class="h-5 w-5"></i>
+                        Tra cứu điểm ngay
+                    </a>
+                    <a href="/cong-cu-tinh-diem" class="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3 font-bold text-amber-900 transition hover:-translate-y-0.5 hover:bg-amber-300">
+                        <i data-lucide="calculator" class="h-5 w-5"></i>
+                        Công cụ tính điểm
+                    </a>
+                    <a href="/login" class="inline-flex items-center gap-2 rounded-xl border border-blue-300/35 bg-blue-500/20 px-6 py-3 font-bold text-white transition hover:bg-blue-500/35">
+                        Đăng nhập hệ thống
+                        <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-12 reveal-up">
+            <h2 class="mb-6 px-1 text-2xl font-bold text-slate-800">Tiện ích Tra cứu và Xem thông tin</h2>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <a href="/tra-cuu-nganh" class="surface-card group rounded-2xl p-6 transition hover:-translate-y-1 hover:shadow-xl">
+                    <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:scale-110">
+                        <i data-lucide="graduation-cap" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mb-2 text-lg font-bold text-slate-800">Ngành và Tổ hợp</h3>
+                    <p class="text-sm text-slate-500">Tra cứu mã ngành, tên ngành và các tổ hợp môn xét tuyển năm 2026.</p>
+                </a>
+
+                <a href="/tra-cuu-diem" class="surface-card group rounded-2xl p-6 transition hover:-translate-y-1 hover:shadow-xl">
+                    <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition group-hover:scale-110">
+                        <i data-lucide="search" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mb-2 text-lg font-bold text-slate-800">Tra cứu Điểm thi</h3>
+                    <p class="text-sm text-slate-500">Xem điểm thi THPT quốc gia nhanh chóng qua số báo danh hoặc CCCD.</p>
+                </a>
+
+                <a href="/bang-quy-doi" class="surface-card group rounded-2xl p-6 transition hover:-translate-y-1 hover:shadow-xl">
+                    <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition group-hover:scale-110">
+                        <i data-lucide="calculator" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mb-2 text-lg font-bold text-slate-800">Bảng Quy đổi</h3>
+                    <p class="text-sm text-slate-500">Xem quy định quy đổi điểm cho các chứng chỉ ngoại ngữ và kỳ thi chuẩn hóa.</p>
+                </a>
+
+                <a href="/nguyen-vong" class="surface-card group rounded-2xl p-6 transition hover:-translate-y-1 hover:shadow-xl">
+                    <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700 transition group-hover:scale-110">
+                        <i data-lucide="file-text" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mb-2 text-lg font-bold text-slate-800">Nguyện vọng</h3>
+                    <p class="text-sm text-slate-500">Xem danh sách và chi tiết nguyện vọng đã đăng ký.</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="surface-card mt-12 reveal-up rounded-2xl p-8">
+            <div class="mb-6 flex items-center gap-3">
+                <i data-lucide="calendar-days" class="h-7 w-7 text-blue-600"></i>
+                <h2 class="text-2xl font-bold text-slate-800">Mốc thời gian quan trọng</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <article class="border-l-4 border-blue-500 pl-4">
+                    <p class="mb-1 text-sm font-bold text-blue-600">Tháng 4 - 2026</p>
+                    <h3 class="font-semibold text-slate-800">Đăng ký dự thi THPT</h3>
+                    <p class="mt-1 text-sm text-slate-500">Thí sinh nộp hồ sơ và đăng ký các môn thi THPT Quốc gia.</p>
+                </article>
+                <article class="border-l-4 border-amber-400 pl-4">
+                    <p class="mb-1 text-sm font-bold text-amber-600">Tháng 7 - 2026</p>
+                    <h3 class="font-semibold text-slate-800">Công bố điểm thi</h3>
+                    <p class="mt-1 text-sm text-slate-500">Tra cứu điểm thi và điểm quy đổi chứng chỉ trên hệ thống.</p>
+                </article>
+                <article class="border-l-4 border-slate-300 pl-4">
+                    <p class="mb-1 text-sm font-bold text-slate-500">Tháng 8 - 2026</p>
+                    <h3 class="font-semibold text-slate-800">Nguyện vọng</h3>
+                    <p class="mt-1 text-sm text-slate-500">Xem danh sách và chi tiết nguyện vọng đã đăng ký.</p>
+                </article>
+            </div>
+        </section>
+
+        <section th:if="${user == null}" class="mt-12 reveal-up rounded-2xl bg-gradient-to-r from-blue-700 to-blue-900 p-8 text-center text-white shadow-xl">
+            <h2 class="mb-3 text-2xl font-bold">Đăng nhập để xem kết quả cá nhân</h2>
+            <p class="mx-auto mb-6 max-w-2xl text-blue-100">Đăng nhập với CCCD để xem điểm thi, hồ sơ và kết quả xét tuyển của bạn.</p>
+            <a href="/login" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-blue-700 hover:bg-slate-100">
+                Đăng nhập ngay
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            </a>
+        </section>
+    </div>
+    <script layout:fragment="scripts">
+        lucide.createIcons();
+    </script>
+</body>
+</html>

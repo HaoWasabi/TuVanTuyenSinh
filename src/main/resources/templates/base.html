@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE">Tư Vấn Tuyển Sinh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-soft: #f4f7fb;
+            --text-main: #0f2747;
+            --brand-1: #1f5cab;
+            --brand-2: #0f3e78;
+            --brand-accent: #f5c451;
+        }
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background:
+                radial-gradient(circle at 8% 14%, rgba(26, 91, 168, 0.12), transparent 28%),
+                radial-gradient(circle at 92% 2%, rgba(245, 196, 81, 0.2), transparent 24%),
+                var(--bg-soft);
+            color: var(--text-main);
+        }
+        .brand-title {
+            font-family: 'Chakra Petch', sans-serif;
+            letter-spacing: 0.02em;
+        }
+        .container { max-width: 1200px; }
+        .surface-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(15, 62, 120, 0.08);
+            box-shadow: 0 12px 28px rgba(15, 62, 120, 0.08);
+        }
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(14px);
+            animation: revealUp 0.55s ease-out forwards;
+        }
+        @keyframes revealUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <th:block layout:fragment="head"></th:block>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center gap-3 text-blue-900">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-700 text-white shadow-md">
+                            <i data-lucide="book-open" class="h-5 w-5"></i>
+                        </span>
+                        <span class="brand-title text-xl font-bold">
+                            TVTS <span class="text-blue-500">2026</span>
+                        </span>
+                    </a>
+                </div>
+                
+                <!-- Menu -->
+                <div class="hidden md:flex items-center space-x-1 text-sm font-medium">
+                    <a href="/" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100">
+                        Trang chủ
+                    </a>
+                    <a href="/nganh" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100">
+                        Tra cứu ngành
+                    </a>
+                    <a href="/profile" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100" th:if="${user != null}">
+                        Tra cứu điểm
+                    </a>
+                    <a href="/cong-cu-tinh" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100">
+                        Công cụ tính điểm
+                    </a>
+                    <a href="/bang-quy-doi" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100">
+                        Bảng quy đổi
+                    </a>
+                    <a href="/nguyen-vong" class="px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100" th:if="${user != null}">
+                        Nguyện vọng
+                    </a>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <th:block th:if="${user != null}">
+                        <div class="flex items-center space-x-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5">
+                            <span class="text-sm font-semibold text-blue-900" th:text="${(user.ho ?: '') + ' ' + (user.ten ?: user.cccd)}"></span>
+                            <div class="flex space-x-2">
+                                <a href="/profile" class="text-slate-600 hover:text-blue-600" title="Hồ sơ">
+                                    <i data-lucide="user" class="w-5 h-5"></i>
+                                </a>
+                                <a href="/logout" class="text-slate-600 hover:text-red-600" title="Đăng xuất">
+                                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${user == null}">
+                        <a href="/login" class="rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">
+                            Đăng nhập
+                        </a>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <th:block layout:fragment="content"></th:block>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 bg-slate-950 text-slate-100 py-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <p class="text-sm text-slate-300">Hệ thống Tư vấn Tuyển sinh Web_MHPL</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lucide Icons Script -->
+    <script>
+        lucide.createIcons();
+        document.querySelectorAll('.reveal-up').forEach((el, index) => {
+            el.style.animationDelay = `${Math.min(index * 0.08, 0.4)}s`;
+        });
+
+        window.togglePreferenceDetail = function(button) {
+            const card = button.closest('[data-preference-item]');
+            if (!card) {
+                return;
+            }
+
+            const detail = card.querySelector('.preference-detail');
+            if (!detail) {
+                return;
+            }
+
+            const isHidden = detail.classList.contains('hidden');
+            detail.classList.toggle('hidden');
+
+            const label = button.querySelector('span');
+            if (label) {
+                label.textContent = isHidden ? 'Ẩn chi tiết' : 'Xem chi tiết nguyện vọng';
+            }
+        };
+    </script>
+    <th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

@@ -38,7 +38,7 @@ public class Nganh {
     @Column(name = "n_diemtrungtuyen", precision = 10, scale = 2)
     private BigDecimal nDiemtrungtuyen;
 
-    @Column(name = "n_tuyenthẳng", length = 1)
+    @Column(name = "n_tuyenthang", length = 1)
     private String nTuyenthang;
 
     @Column(name = "n_dgnl", length = 1)
@@ -61,4 +61,44 @@ public class Nganh {
 
     @Column(name = "sl_thpt", length = 45)
     private Integer slThpt;
+
+    public Integer getId() {
+        return idnganh;
+    }
+
+    public String getTenNganh() {
+        return tennganh;
+    }
+
+    public String getnTohopgoc() {
+        return nTohopgoc;
+    }
+
+    public Integer getnChitieu() {
+        return nChitieu;
+    }
+
+    public BigDecimal getnDiemsan() {
+        return nDiemsan;
+    }
+
+    public BigDecimal getnDiemtrungtuyen() {
+        return nDiemtrungtuyen;
+    }
+
+    public String getnTuyenthang() {
+        return nTuyenthang;
+    }
+
+    public String getnDgnl() {
+        return nDgnl;
+    }
+
+    public String getnThpt() {
+        return nThpt;
+    }
+
+    public String getnVsat() {
+        return nVsat;
+    }
 }
