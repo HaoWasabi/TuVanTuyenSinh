@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping({ "/bang-quy-doi", "/quy-doi-diem" })
+@RequestMapping({ "/quy-doi-chung-chi", "/quy-doi-chungchi" })
 public class BangQuyDoiController {
 
     @Autowired

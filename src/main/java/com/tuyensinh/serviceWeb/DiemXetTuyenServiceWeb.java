@@ -23,11 +23,8 @@ public class DiemXetTuyenServiceWeb {
          * Output: Điểm quy đổi về thang 30
          */
         public DiemXetTuyenResponse tinhDiemTHPT(DiemXetTuyenRequest request) {
-                // Validate 6 môn bắt buộc
-                if (!validate6Mon(request)) {
-                        return buildErrorResponse("THPT",
-                                        "Thiếu điểm 1 trong 6 môn bắt buộc (toan, li, hoa, sinh, su, di)");
-                }
+                // NOTE: removed strict 6-môn validation — inputs default to 0 if omitted;
+                // Toán/Văn always considered.
 
                 // Tạo đối tượng DiemThi giả lập từ request
                 DiemThi diemThi = DiemThi.builder()
@@ -66,6 +63,53 @@ public class DiemXetTuyenServiceWeb {
 
                 boolean datNguong = CongThucUtil.datNguong(diemXetTuyen, NGUONG_TUYEN_SINH);
 
+                // Nếu frontend gửi chế độ 4-môn (CSV danh sách môn được tính),
+                // kiểm tra điều kiện 'liệt' cho Toán, Văn và 2 môn tự chọn.
+                boolean fourModeFail = false;
+                String csv = request.getFourSelectedSubjects();
+                if (csv != null && !csv.isBlank()) {
+                        String[] parts = csv.split(",");
+                        java.util.Set<String> set = new java.util.HashSet<>();
+                        for (String p : parts) {
+                                if (p != null && !p.isBlank())
+                                        set.add(p.trim().toUpperCase());
+                        }
+                        // Ensure we only check TO and VA plus up to 2 selected optional subjects
+                        java.util.List<String> toCheck = new java.util.ArrayList<>();
+                        if (set.contains("TO"))
+                                toCheck.add("TO");
+                        else
+                                toCheck.add("TO"); // always include Toán
+                        if (set.contains("VA"))
+                                toCheck.add("VA");
+                        else
+                                toCheck.add("VA"); // always include Văn
+
+                        // add other selections (excluding TO/VA)
+                        for (String s : set) {
+                                if (!"TO".equals(s) && !"VA".equals(s) && toCheck.size() < 4) {
+                                        toCheck.add(s);
+                                }
+                        }
+
+                        for (String code : toCheck) {
+                                BigDecimal score = getScoreForCode(request, code);
+                                // nếu điểm null hoặc <= 1 => liệt
+                                if (score == null || score.compareTo(new BigDecimal("1")) <= 0) {
+                                        fourModeFail = true;
+                                        break;
+                                }
+                        }
+                }
+
+                if (fourModeFail) {
+                        datNguong = false;
+                }
+
+                String thongBao = "Tính điểm THPT thành công - Thang điểm 30";
+                if (fourModeFail)
+                        thongBao += " | Không đạt ngưỡng do có môn bị liệt (<=1) trong chế độ 4-môn";
+
                 return DiemXetTuyenResponse.builder()
                                 .phuongThuc("THPT")
                                 .maToHop(request.getMaToHop())
@@ -79,7 +123,7 @@ public class DiemXetTuyenServiceWeb {
                                 .mucDiemUuTien(mucDiemUuTien)
                                 .diemUuTien(diemUuTien)
                                 .diemXetTuyen(diemXetTuyen)
-                                .thongBao("Tính điểm THPT thành công - Thang điểm 30")
+                                .thongBao(thongBao)
                                 .datNguong(datNguong)
                                 .build();
         }
@@ -90,12 +134,6 @@ public class DiemXetTuyenServiceWeb {
          * Output: Điểm quy đổi về thang 30 + Chi tiết từng môn
          */
         public DiemXetTuyenResponse tinhDiemVSAT(DiemXetTuyenRequest request) {
-                // Validate 6 môn bắt buộc
-                if (!validate6Mon(request)) {
-                        return buildErrorResponse("VSAT",
-                                        "Thiếu điểm 1 trong 6 môn bắt buộc (toan, li, hoa, sinh, su, di)");
-                }
-
                 // Tạo danh sách chi tiết quy đổi từng môn
                 List<MonQuyDoi> chiTietQuyDoi = new ArrayList<>();
 
@@ -244,6 +282,32 @@ public class DiemXetTuyenServiceWeb {
                 return request.getToan() != null && request.getLi() != null
                                 && request.getHoa() != null && request.getSinh() != null
                                 && request.getSu() != null && request.getDi() != null;
+        }
+
+        // Trả về điểm tương ứng cho mã môn (TO, VA, LI, HO, SI, SU, DI, N1)
+        private BigDecimal getScoreForCode(DiemXetTuyenRequest request, String code) {
+                if (code == null)
+                        return BigDecimal.ZERO;
+                switch (code.trim().toUpperCase()) {
+                        case "TO":
+                                return toBigDecimal(request.getToan());
+                        case "VA":
+                                return toBigDecimal(request.getVa());
+                        case "LI":
+                                return toBigDecimal(request.getLi());
+                        case "HO":
+                                return toBigDecimal(request.getHoa());
+                        case "SI":
+                                return toBigDecimal(request.getSinh());
+                        case "SU":
+                                return toBigDecimal(request.getSu());
+                        case "DI":
+                                return toBigDecimal(request.getDi());
+                        case "N1":
+                                return toBigDecimal(request.getN1());
+                        default:
+                                return BigDecimal.ZERO;
+                }
         }
 
         private DiemXetTuyenResponse buildErrorResponse(String phuongThuc, String message) {

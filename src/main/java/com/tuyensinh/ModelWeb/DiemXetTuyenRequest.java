@@ -43,4 +43,8 @@ public class DiemXetTuyenRequest {
 
     // Dự phòng: nếu frontend tính sẵn
     private Double diemUuTien; // Điểm ưu tiên tính toán (ĐƯT)
+
+    // Khi bật chế độ 4-môn frontend gửi danh sách môn được tính (CSV), ví dụ: "TO,VA,LI,HO"
+    // Nếu không null: server sẽ ưu tiên tuân thủ danh sách này và áp dụng quy tắc liệt cho các môn bắt buộc/tự chọn.
+    private String fourSelectedSubjects;
 }

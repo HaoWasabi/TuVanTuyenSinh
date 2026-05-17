@@ -296,6 +296,23 @@ public class CongThucUtil {
     }
 
     /**
+     * Public accessor for the chênh lệch map so controllers/views can render the
+     * matrix.
+     */
+    public static Map<String, Map<String, BigDecimal>> getChenhLechMap() {
+        return CHENH_LECH_MAP;
+    }
+
+    /**
+     * Public accessor for the list of supported tổ hợp (keys of the to-hop config).
+     */
+    public static java.util.List<String> getToHopList() {
+        java.util.List<String> list = new java.util.ArrayList<>(TO_HOP_CONFIG.keySet());
+        java.util.Collections.sort(list);
+        return list;
+    }
+
+    /**
      * Quy đổi điểm ĐGNL (thang 1200 → 30)
      * Công thức: điểm * 30 / 1200
      */

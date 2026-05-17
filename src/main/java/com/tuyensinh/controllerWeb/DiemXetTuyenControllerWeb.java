@@ -237,6 +237,8 @@ public class DiemXetTuyenControllerWeb {
         return DiemXetTuyenRequest.builder()
                 .maToHop("A00")
                 .phuongThuc("THPT")
+                .khuVuc("0")
+                .doiTuong("0")
                 .build();
     }
 }
