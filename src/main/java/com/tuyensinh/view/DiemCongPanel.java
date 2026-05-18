@@ -1,7 +1,9 @@
 package com.tuyensinh.view;
 
 import com.tuyensinh.model.DiemCong;
+import com.tuyensinh.model.NguyenVong;
 import com.tuyensinh.service.DiemCongService;
+import com.tuyensinh.service.NguyenVongService;
 import com.tuyensinh.service.SessionManager;
 
 import javax.swing.*;
@@ -9,7 +11,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DiemCongPanel extends JPanel {
     private DefaultTableModel tableModel;
@@ -19,17 +24,20 @@ public class DiemCongPanel extends JPanel {
     private final JTextField detailNganhField = new JTextField();
     private final JTextField detailToHopField = new JTextField();
     private final JTextField detailMethodField = new JTextField();
-    private final JTextField detailPriorityField = new JTextField();
+    private final JTextField detailEnglishPriorityField = new JTextField();
+    private final JTextField detailHsgPriorityField = new JTextField();
     private final JTextField detailTotalField = new JTextField();
     private final JTextField detailNoteField = new JTextField();
     private final JTextField detailKeyField = new JTextField();
     private final JLabel selectedLabel = new JLabel("Chưa chọn bản ghi");
 
     private List<DiemCong> currentDataList = new java.util.ArrayList<>();
+    private final Map<String, Integer> nguyenVongOrderLookup = new HashMap<>();
 
 
     // GỌI SERVICE Ở ĐÂY
     private final DiemCongService diemCongService = new DiemCongService();
+    private final NguyenVongService nguyenVongService = new NguyenVongService();
 
     public DiemCongPanel() {
         setLayout(new BorderLayout(16, 16));
@@ -60,7 +68,7 @@ public class DiemCongPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        String placeholderText = "Tìm CCCD, mã ngành...";
+        String placeholderText = "Tìm thí sinh, nguyện vọng...";
         searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
         searchInput.setForeground(UIStyles.TEXT_MUTED);
@@ -81,8 +89,8 @@ public class DiemCongPanel extends JPanel {
 
         // Cấu hình Cột cho Bảng Điểm Cộng
         String[] cols = {
-                "ID", "CCCD", "Mã Ngành", "Mã Tổ Hợp", "Phương thức",
-                "Điểm CC", "Điểm UTXT", "Điểm Tổng", "Ghi chú", "Keys"
+                "Thí sinh", "Nguyện vọng", "Tổ hợp môn", "Phương thức",
+                "Điểm cộng tiếng Anh", "Điểm cộng học sinh giỏi", "Tổng điểm cộng", "Ghi chú"
         };
 
         tableModel = new DefaultTableModel(null, cols) {
@@ -97,7 +105,7 @@ public class DiemCongPanel extends JPanel {
         table.getTableHeader().setFont(UIStyles.FONT_LABEL);
         table.getTableHeader().setBackground(new Color(247, 249, 251));
         table.setFont(UIStyles.FONT_BODY);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Có thanh cuộn ngang vì rất nhiều cột
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 updateDetailFromSelection();
@@ -105,9 +113,14 @@ public class DiemCongPanel extends JPanel {
         });
 
         // Chỉnh độ rộng một số cột quan trọng
-        table.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(120); // CCCD
-        table.getColumnModel().getColumn(2).setPreferredWidth(100); // Mã ngành
+        table.getColumnModel().getColumn(0).setPreferredWidth(140); // Thí sinh
+        table.getColumnModel().getColumn(1).setPreferredWidth(170); // Nguyện vọng
+        table.getColumnModel().getColumn(2).setPreferredWidth(120); // Tổ hợp môn
+        table.getColumnModel().getColumn(3).setPreferredWidth(120); // Phương thức
+        table.getColumnModel().getColumn(4).setPreferredWidth(150); // Điểm cộng TA
+        table.getColumnModel().getColumn(5).setPreferredWidth(180); // Điểm cộng HSG
+        table.getColumnModel().getColumn(6).setPreferredWidth(120); // Tổng điểm cộng
+        table.getColumnModel().getColumn(7).setPreferredWidth(200); // Ghi chú
 
         JPanel tableCard = new JPanel(new BorderLayout(0, 12));
         tableCard.setBackground(UIStyles.BG_CARD);
@@ -167,12 +180,13 @@ public class DiemCongPanel extends JPanel {
         JPanel fields = new JPanel(new GridLayout(0, 1, 0, 8));
         fields.setOpaque(false);
         fields.add(labelWithField("ID điểm cộng", detailIdField));
-        fields.add(labelWithField("CCCD", detailCccdField));
-        fields.add(labelWithField("Mã ngành", detailNganhField));
+        fields.add(labelWithField("Thí sinh", detailCccdField));
+        fields.add(labelWithField("Nguyện vọng", detailNganhField));
         fields.add(labelWithField("Mã tổ hợp", detailToHopField));
         fields.add(labelWithField("Phương thức", detailMethodField));
-        fields.add(labelWithField("Điểm cộng (CC/UTXT)", detailPriorityField));
-        fields.add(labelWithField("Điểm tổng", detailTotalField));
+        fields.add(labelWithField("Điểm cộng tiếng Anh", detailEnglishPriorityField));
+        fields.add(labelWithField("Điểm cộng HSG", detailHsgPriorityField));
+        fields.add(labelWithField("Tổng điểm cộng", detailTotalField));
         fields.add(labelWithField("Ghi chú", detailNoteField));
         fields.add(labelWithField("Khóa dữ liệu", detailKeyField));
 
@@ -186,7 +200,8 @@ public class DiemCongPanel extends JPanel {
         configureReadOnlyField(detailNganhField);
         configureReadOnlyField(detailToHopField);
         configureReadOnlyField(detailMethodField);
-        configureReadOnlyField(detailPriorityField);
+        configureReadOnlyField(detailEnglishPriorityField);
+        configureReadOnlyField(detailHsgPriorityField);
         configureReadOnlyField(detailTotalField);
         configureReadOnlyField(detailNoteField);
         configureReadOnlyField(detailKeyField);
@@ -247,34 +262,33 @@ public class DiemCongPanel extends JPanel {
     }
 
     private void updateDetailFromSelection() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
+        DiemCong selected = getSelectedDiemCong();
+        if (selected == null) {
             selectedLabel.setText("Chưa chọn bản ghi");
             detailIdField.setText("");
             detailCccdField.setText("");
             detailNganhField.setText("");
             detailToHopField.setText("");
             detailMethodField.setText("");
-            detailPriorityField.setText("");
+            detailEnglishPriorityField.setText("");
+            detailHsgPriorityField.setText("");
             detailTotalField.setText("");
             detailNoteField.setText("");
             detailKeyField.setText("");
             return;
         }
 
-        selectedLabel.setText("Đang chọn ID: " + String.valueOf(tableModel.getValueAt(row, 0)));
-        detailIdField.setText(String.valueOf(tableModel.getValueAt(row, 0)));
-        detailCccdField.setText(String.valueOf(tableModel.getValueAt(row, 1)));
-        detailNganhField.setText(String.valueOf(tableModel.getValueAt(row, 2)));
-        detailToHopField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
-        detailMethodField.setText(String.valueOf(tableModel.getValueAt(row, 4)));
-        detailPriorityField.setText(
-                String.valueOf(tableModel.getValueAt(row, 5)) + " / " +
-                        String.valueOf(tableModel.getValueAt(row, 6))
-        );
-        detailTotalField.setText(String.valueOf(tableModel.getValueAt(row, 7)));
-        detailNoteField.setText(String.valueOf(tableModel.getValueAt(row, 8)));
-        detailKeyField.setText(String.valueOf(tableModel.getValueAt(row, 9)));
+        selectedLabel.setText("Đang chọn ID: " + safeNumber(selected.getIddiemcong()));
+        detailIdField.setText(safeNumber(selected.getIddiemcong()));
+        detailCccdField.setText(buildThiSinhDisplay(selected));
+        detailNganhField.setText(buildNguyenVongDisplay(selected));
+        detailToHopField.setText(safeText(selected.getMatohop()));
+        detailMethodField.setText(safeText(selected.getPhuongthuc()));
+        detailEnglishPriorityField.setText(formatDecimal(selected.getDiemCC()));
+        detailHsgPriorityField.setText(formatDecimal(selected.getDiemUtxt()));
+        detailTotalField.setText(formatDecimal(selected.getDiemTong()));
+        detailNoteField.setText(safeText(selected.getGhichu()));
+        detailKeyField.setText(safeText(selected.getDcKeys()));
     }
 
     // ================= CÁC HÀM XỬ LÝ LOGIC =================
@@ -283,6 +297,7 @@ public class DiemCongPanel extends JPanel {
         if (isCccdOnlyMode()) {
             String cccd = getLoginUsernameAsCccd();
             currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemCongService.getByCccd(cccd);
+            rebuildNguyenVongLookup(cccd);
             renderTablePage();
             selectedLabel.setText("Đang lọc theo CCCD đăng nhập");
             return;
@@ -290,6 +305,7 @@ public class DiemCongPanel extends JPanel {
 
         // Lấy toàn bộ dữ liệu từ Service cất vào danh sách hiện tại
         currentDataList = diemCongService.getAll();
+        rebuildNguyenVongLookup(null);
         renderTablePage();
     }
 
@@ -301,13 +317,19 @@ public class DiemCongPanel extends JPanel {
     private void renderTablePage() {
         tableModel.setRowCount(0);
 
-        for (DiemCong dc : currentDataList) {
-            Object[] row = {
-                    dc.getIddiemcong(), dc.getTsCccd(), dc.getManganh(), dc.getMatohop(), dc.getPhuongthuc(),
-                    dc.getDiemCC(), dc.getDiemUtxt(), dc.getDiemTong(), dc.getGhichu(), dc.getDcKeys()
-            };
-            tableModel.addRow(row);
-        }
+         for (DiemCong dc : currentDataList) {
+             Object[] row = {
+                     buildThiSinhDisplay(dc),
+                     buildNguyenVongDisplay(dc),
+                     dc.getMatohop() != null && dc.getMatohop().equals("DGNL") ? "Đa tổ hợp" : safeText(dc.getMatohop()),
+                     safeText(dc.getPhuongthuc()),
+                     formatDecimal(dc.getDiemCC()),
+                     formatDecimal(dc.getDiemUtxt()),
+                     formatDecimal(dc.getDiemTong()),
+                     safeText(dc.getGhichu())
+             };
+             tableModel.addRow(row);
+         }
 
         if (tableModel.getRowCount() > 0) {
             table.setRowSelectionInterval(0, 0);
@@ -342,6 +364,7 @@ public class DiemCongPanel extends JPanel {
         if (isCccdOnlyMode()) {
             String cccd = getLoginUsernameAsCccd();
             currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemCongService.getByCccd(cccd);
+            rebuildNguyenVongLookup(cccd);
             renderTablePage();
             if (currentDataList.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Không có dữ liệu cho CCCD đăng nhập hiện tại.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -350,7 +373,7 @@ public class DiemCongPanel extends JPanel {
         }
 
         // Nếu ô tìm kiếm trống, load lại toàn bộ danh sách gốc
-        if (keyword.isEmpty() || keyword.equals("Tìm CCCD, mã ngành...")) {
+        if (keyword.isEmpty() || keyword.equals("Tìm thí sinh, nguyện vọng...")) {
             loadDataToTable();
             return;
         }
@@ -361,13 +384,14 @@ public class DiemCongPanel extends JPanel {
         // Xin lại toàn bộ dữ liệu gốc từ DB (để tránh bị lọc đè lên kết quả cũ)
         List<DiemCong> allData = diemCongService.getAll();
 
-        // DÙNG JAVA STREAM ĐỂ LỌC (TÌM THEO CCCD HOẶC MÃ NGÀNH)
+        // DÙNG JAVA STREAM ĐỂ LỌC (TÌM THEO THÍ SINH HOẶC NGUYỆN VỌNG/NGÀNH)
         currentDataList = allData.stream()
                 .filter(dc ->
                         (dc.getTsCccd() != null && dc.getTsCccd().toLowerCase().contains(lowerKeyword)) ||
                                 (dc.getManganh() != null && dc.getManganh().toLowerCase().contains(lowerKeyword))
                 )
                 .collect(java.util.stream.Collectors.toList());
+        rebuildNguyenVongLookup(isCccdOnlyMode() ? getLoginUsernameAsCccd() : null);
 
         renderTablePage();
 
@@ -410,23 +434,11 @@ public class DiemCongPanel extends JPanel {
     }
 
     private void handleEdit() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
+        DiemCong selected = getSelectedDiemCong();
+        if (selected == null) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        // Lấy dữ liệu từ bảng (Lưu ý index cột phải khớp với mảng String[] cols của bạn)
-        Integer id = (Integer) tableModel.getValueAt(selectedRow, 0); // Giả sử cột 0 là ID
-        String cccd = (String) tableModel.getValueAt(selectedRow, 1);
-        String manganh = (String) tableModel.getValueAt(selectedRow, 2);
-        String matohop = (String) tableModel.getValueAt(selectedRow, 3);
-        String phuongthuc = (String) tableModel.getValueAt(selectedRow, 4);
-        java.math.BigDecimal diemCC = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
-        java.math.BigDecimal diemUtxt = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
-        java.math.BigDecimal diemTong = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 7).toString());
-        String ghichu = (String) tableModel.getValueAt(selectedRow, 8);
-        String keys = (String) tableModel.getValueAt(selectedRow, 9);
 
         // Mở hộp thoại Sửa
         DiemCongFormDialog dialog = new DiemCongFormDialog(
@@ -434,14 +446,24 @@ public class DiemCongPanel extends JPanel {
                 "Sửa Thông Tin Điểm Cộng",
                 true); // true = isEditing
 
-        dialog.setData(cccd, manganh, matohop, phuongthuc, diemCC, diemUtxt, diemTong, ghichu, keys);
+        dialog.setData(
+                safeText(selected.getTsCccd()),
+                safeText(selected.getManganh()),
+                safeText(selected.getMatohop()),
+                safeText(selected.getPhuongthuc()),
+                defaultDecimal(selected.getDiemCC()),
+                defaultDecimal(selected.getDiemUtxt()),
+                defaultDecimal(selected.getDiemTong()),
+                safeText(selected.getGhichu()),
+                safeText(selected.getDcKeys())
+        );
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
             try {
                 // Tạo object Model update
                 DiemCong dc = new DiemCong();
-                dc.setIddiemcong(id); // Set ID để update đúng dòng
+                dc.setIddiemcong(selected.getIddiemcong()); // Set ID để update đúng dòng
                 dc.setTsCccd(dialog.getCccd());
                 dc.setManganh(dialog.getMaNganh());
                 dc.setMatohop(dialog.getMaToHop());
@@ -464,15 +486,14 @@ public class DiemCongPanel extends JPanel {
     }
 
     private void handleDelete() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
+        DiemCong selected = getSelectedDiemCong();
+        if (selected == null) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        //Lấy CCCD ở cột 0, Mã ngành ở cột 1
-        Integer id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String cccd = (String) tableModel.getValueAt(selectedRow, 1);
+        Integer id = selected.getIddiemcong();
+        String cccd = safeText(selected.getTsCccd());
 
         DeleteConfirmDialog dialog = new DeleteConfirmDialog(getTopLevelAncestor() instanceof Frame ?
                 (Frame) getTopLevelAncestor() : null, "Điểm cộng của CCCD: " + cccd);
@@ -483,7 +504,7 @@ public class DiemCongPanel extends JPanel {
             boolean success = diemCongService.delete(id);
 
             if(success) {
-                tableModel.removeRow(selectedRow);
+                loadDataToTable();
                 JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -531,5 +552,73 @@ public class DiemCongPanel extends JPanel {
             return "";
         }
         return SessionManager.getCurrentUser().getUsername().trim();
+    }
+
+    private void rebuildNguyenVongLookup(String onlyCccd) {
+        nguyenVongOrderLookup.clear();
+        List<NguyenVong> nguyenVongList = (onlyCccd == null || onlyCccd.trim().isEmpty())
+                ? nguyenVongService.getAll()
+                : nguyenVongService.getByCccd(onlyCccd.trim());
+
+        for (NguyenVong nv : nguyenVongList) {
+            String key = buildLookupKey(nv.getNnCccd(), nv.getNvManganh());
+            if (key.isEmpty() || nv.getNvTt() == null) {
+                continue;
+            }
+            Integer existingOrder = nguyenVongOrderLookup.get(key);
+            if (existingOrder == null || nv.getNvTt() < existingOrder) {
+                nguyenVongOrderLookup.put(key, nv.getNvTt());
+            }
+        }
+    }
+
+    private DiemCong getSelectedDiemCong() {
+        int row = table.getSelectedRow();
+        if (row < 0 || row >= currentDataList.size()) {
+            return null;
+        }
+        return currentDataList.get(row);
+    }
+
+    private String buildThiSinhDisplay(DiemCong dc) {
+        return safeText(dc.getTsCccd());
+    }
+
+    private String buildNguyenVongDisplay(DiemCong dc) {
+        String maNganh = safeText(dc.getManganh());
+        String key = buildLookupKey(dc.getTsCccd(), maNganh);
+        Integer nvOrder = nguyenVongOrderLookup.get(key);
+        if (nvOrder == null) {
+            return maNganh;
+        }
+        return "NV" + nvOrder + " - " + maNganh;
+    }
+
+    private String buildLookupKey(String cccd, String maNganh) {
+        String left = safeText(cccd);
+        String right = safeText(maNganh);
+        if (left.isEmpty() || right.isEmpty()) {
+            return "";
+        }
+        return left + "|" + right;
+    }
+
+    private String safeText(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String safeNumber(Number value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private String formatDecimal(BigDecimal value) {
+        if (value == null) {
+            return "";
+        }
+        return value.stripTrailingZeros().toPlainString();
+    }
+
+    private BigDecimal defaultDecimal(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
     }
 }

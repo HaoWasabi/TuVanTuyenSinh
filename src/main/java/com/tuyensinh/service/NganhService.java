@@ -4,6 +4,7 @@ import com.tuyensinh.model.Nganh;
 import com.tuyensinh.repository.NganhRepository;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class NganhService {
@@ -32,6 +33,10 @@ public class NganhService {
 
     public List<Nganh> getAll() {
         return repository.findAll();
+    }
+
+    public Map<String, Long> getNguyenVongCountByMaNganh() {
+        return repository.countNguyenVongByMaNganh();
     }
 
     public Nganh update(Nganh nganh) {

@@ -43,7 +43,7 @@ public class AdmissionsDemoFrame extends JFrame {
         registerLazyCard("major", MajorManagementPanel::new);
         registerLazyCard("diem", DiemThiPanel::new);
         registerLazyCard("diemCong", DiemCongPanel::new);
-        registerLazyCard("nguyenVong", NguyenVongPanel::new);
+        registerLazyCard("nguyenVong", NguyenVongTabPanel::new);
         registerLazyCard("user", UserManagementPanel::new);
         registerLazyCard("permission", RoleManagementPanel::new);
         registerLazyCard("report", ReportsPanel::new);

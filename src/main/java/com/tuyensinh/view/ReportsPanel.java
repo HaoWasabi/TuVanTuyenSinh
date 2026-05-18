@@ -1,8 +1,10 @@
 package com.tuyensinh.view;
 
 import com.tuyensinh.model.DiemCong;
+import com.tuyensinh.model.ThiSinh;
 import com.tuyensinh.service.DiemCongService;
 import com.tuyensinh.service.DiemThiService;
+import com.tuyensinh.service.ThiSinhService;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,10 +36,15 @@ import java.util.Objects;
 public class ReportsPanel extends JPanel {
 
     private static final String TYPE_THPT = "Điểm THPT";
+    private static final String TYPE_DGNL = "Điểm ĐGNL";
+    private static final String TYPE_VSAT = "Điểm V-SAT";
     private static final String TYPE_DIEM_CONG = "Điểm cộng xét tuyển";
+    private static final String TYPE_THI_SINH_KV = "Thí sinh theo Khu vực";
+    private static final String TYPE_THI_SINH_DT = "Thí sinh theo Đối tượng";
 
     private final DiemThiService diemThiService = new DiemThiService();
     private final DiemCongService diemCongService = new DiemCongService();
+    private final ThiSinhService thiSinhService = new ThiSinhService();
 
     private final JComboBox<String> loaiDiemCombo;
     private final JComboBox<String> monCombo;
@@ -48,8 +55,16 @@ public class ReportsPanel extends JPanel {
     private final JLabel minValueLabel;
     private final JLabel countValueLabel;
 
+    private final JPanel avgCard;
+    private final JPanel maxCard;
+    private final JPanel minCard;
+    private final JPanel countCard;
+    private final JPanel reportsPanel;
+
     private final DefaultTableModel distributionModel;
     private final BarChartPanel chartPanel;
+    private final JLabel tableTitle;
+    private final JLabel chartTitle;
 
     private final Map<String, String> monToFieldMap;
 
@@ -68,11 +83,11 @@ public class ReportsPanel extends JPanel {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         toolbar.setOpaque(false);
 
-        JLabel loaiDiemLabel = new JLabel("Loại điểm");
+        JLabel loaiDiemLabel = new JLabel("Loại thống kê");
         loaiDiemLabel.setFont(UIStyles.FONT_LABEL);
         loaiDiemLabel.setForeground(UIStyles.TEXT_DARK);
 
-        loaiDiemCombo = new JComboBox<>(new String[]{TYPE_THPT, TYPE_DIEM_CONG});
+        loaiDiemCombo = new JComboBox<>(new String[]{TYPE_THPT, TYPE_DGNL, TYPE_VSAT, TYPE_DIEM_CONG, TYPE_THI_SINH_KV, TYPE_THI_SINH_DT});
         loaiDiemCombo.setFont(UIStyles.FONT_BODY);
         loaiDiemCombo.setPreferredSize(new Dimension(190, 32));
 
@@ -105,17 +120,17 @@ public class ReportsPanel extends JPanel {
         north.add(toolbar, BorderLayout.CENTER);
         add(north, BorderLayout.NORTH);
 
-        JPanel reportsPanel = new JPanel(new java.awt.GridLayout(2, 2, 12, 12));
+        reportsPanel = new JPanel(new java.awt.GridLayout(2, 2, 12, 12));
         reportsPanel.setOpaque(false);
         avgValueLabel = new JLabel("-");
         maxValueLabel = new JLabel("-");
         minValueLabel = new JLabel("-");
         countValueLabel = new JLabel("-");
 
-        reportsPanel.add(createReportCard("Điểm trung bình", avgValueLabel, UIStyles.PRIMARY));
-        reportsPanel.add(createReportCard("Điểm cao nhất", maxValueLabel, UIStyles.SUCCESS));
-        reportsPanel.add(createReportCard("Điểm thấp nhất", minValueLabel, UIStyles.WARNING));
-        reportsPanel.add(createReportCard("Số lượng thí sinh", countValueLabel, UIStyles.INFO));
+        reportsPanel.add(avgCard = createReportCard("Điểm trung bình", avgValueLabel, UIStyles.PRIMARY));
+        reportsPanel.add(maxCard = createReportCard("Điểm cao nhất", maxValueLabel, UIStyles.SUCCESS));
+        reportsPanel.add(minCard = createReportCard("Điểm thấp nhất", minValueLabel, UIStyles.WARNING));
+        reportsPanel.add(countCard = createReportCard("Số lượng thí sinh", countValueLabel, UIStyles.INFO));
 
         String[] cols = {"Khoảng điểm", "Số lượng thí sinh"};
         distributionModel = new DefaultTableModel(cols, 0) {
@@ -138,7 +153,7 @@ public class ReportsPanel extends JPanel {
                 new EmptyBorder(16, 16, 16, 16)
         ));
 
-        JLabel tableTitle = new JLabel("Phân bố số lượng theo khoảng điểm");
+        tableTitle = new JLabel("Phân bố số lượng theo khoảng điểm");
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
         tableCard.add(tableTitle, BorderLayout.NORTH);
@@ -154,7 +169,7 @@ public class ReportsPanel extends JPanel {
                 new EmptyBorder(16, 16, 16, 16)
         ));
 
-        JLabel chartTitle = new JLabel("Biểu đồ cột số lượng thí sinh/điểm");
+        chartTitle = new JLabel("Biểu đồ cột số lượng thí sinh/điểm");
         chartTitle.setFont(UIStyles.FONT_SUBTITLE);
         chartTitle.setForeground(UIStyles.TEXT_DARK);
         chartCard.add(chartTitle, BorderLayout.NORTH);
@@ -219,9 +234,12 @@ public class ReportsPanel extends JPanel {
     }
 
     private void updateMonStateByLoaiDiem() {
-        boolean isThpt = TYPE_THPT.equals(loaiDiemCombo.getSelectedItem());
-        monCombo.setEnabled(isThpt);
-        if (!isThpt) {
+        String loaiDiem = Objects.toString(loaiDiemCombo.getSelectedItem(), "");
+        boolean isDiemThi = TYPE_THPT.equals(loaiDiem) || TYPE_VSAT.equals(loaiDiem);
+        monCombo.setEnabled(isDiemThi);
+        if (TYPE_DGNL.equals(loaiDiem)) {
+            monCombo.setSelectedItem("NL1");
+        } else if (!isDiemThi) {
             monCombo.setSelectedIndex(0);
         }
     }
@@ -230,9 +248,17 @@ public class ReportsPanel extends JPanel {
         String loaiDiem = Objects.toString(loaiDiemCombo.getSelectedItem(), "");
         try {
             if (TYPE_THPT.equals(loaiDiem)) {
-                runThptStatistics();
-            } else {
+                runDiemThiStatistics("THPT", "THPT", new BigDecimal("10"), new String[]{"0-2", "2-4", "4-6", "6-8", "8-10"}, new BigDecimal[]{new BigDecimal("2"), new BigDecimal("4"), new BigDecimal("6"), new BigDecimal("8")});
+            } else if (TYPE_DGNL.equals(loaiDiem)) {
+                runDiemThiStatistics("ĐGNL", "DGNL", new BigDecimal("1200"), new String[]{"0-400", "400-600", "600-800", "800-1000", "1000-1200"}, new BigDecimal[]{new BigDecimal("400"), new BigDecimal("600"), new BigDecimal("800"), new BigDecimal("1000")});
+            } else if (TYPE_VSAT.equals(loaiDiem)) {
+                runDiemThiStatistics("V-SAT", "VSAT", new BigDecimal("150"), new String[]{"0-30", "30-60", "60-90", "90-120", "120-150"}, new BigDecimal[]{new BigDecimal("30"), new BigDecimal("60"), new BigDecimal("90"), new BigDecimal("120")});
+            } else if (TYPE_DIEM_CONG.equals(loaiDiem)) {
                 runDiemCongStatistics();
+            } else if (TYPE_THI_SINH_KV.equals(loaiDiem)) {
+                runThiSinhStatistics(true);
+            } else if (TYPE_THI_SINH_DT.equals(loaiDiem)) {
+                runThiSinhStatistics(false);
             }
         } catch (Exception ex) {
             resetView();
@@ -244,7 +270,85 @@ public class ReportsPanel extends JPanel {
         }
     }
 
-    private void runThptStatistics() {
+    private void runThiSinhStatistics(boolean isKhuVuc) {
+        reportsPanel.removeAll();
+        reportsPanel.setLayout(new java.awt.GridLayout(1, 1, 12, 12));
+        reportsPanel.add(countCard);
+        reportsPanel.revalidate();
+        reportsPanel.repaint();
+
+        List<ThiSinh> dsThiSinh = thiSinhService.getAll();
+        if (dsThiSinh == null || dsThiSinh.isEmpty()) {
+            showInsufficientData("Không có dữ liệu thí sinh.");
+            return;
+        }
+
+        Map<String, Long> bins = new LinkedHashMap<>();
+        for (ThiSinh ts : dsThiSinh) {
+            String key = isKhuVuc ? ts.getKhuVuc() : ts.getDoiTuong();
+            if (key == null || key.isBlank()) {
+                key = "Chưa rõ";
+            }
+            bins.put(key, bins.getOrDefault(key, 0L) + 1);
+        }
+
+        countValueLabel.setText(String.valueOf(dsThiSinh.size()));
+
+        String[] cols = {isKhuVuc ? "Mã Khu vực" : "Mã Đối tượng", isKhuVuc ? "Tên Khu vực" : "Tên Đối tượng", "Số lượng thí sinh"};
+        distributionModel.setColumnIdentifiers(cols);
+        tableTitle.setText("Phân bố số lượng theo " + (isKhuVuc ? "khu vực" : "đối tượng"));
+        chartTitle.setText("Biểu đồ cột số lượng thí sinh / " + (isKhuVuc ? "khu vực" : "đối tượng"));
+
+        distributionModel.setRowCount(0);
+        for (Map.Entry<String, Long> entry : bins.entrySet()) {
+            String ma = entry.getKey();
+            String ten = isKhuVuc ? getTenKhuVuc(ma) : getTenDoiTuong(ma);
+            distributionModel.addRow(new Object[]{ma, ten, entry.getValue()});
+        }
+        chartPanel.setData(bins);
+
+        statusLabel.setText("Đã thống kê thành công cho Thí sinh theo " + (isKhuVuc ? "Khu vực" : "Đối tượng") + ".");
+    }
+
+    private String getTenKhuVuc(String ma) {
+        if (ma == null) return "Chưa rõ";
+        return switch (ma.trim().toUpperCase()) {
+            case "KV1", "1" -> "Khu vực 1";
+            case "KV2", "2" -> "Khu vực 2";
+            case "KV2-NT", "2NT" -> "Khu vực 2 - Nông thôn";
+            case "KV3", "3" -> "Khu vực 3";
+            default -> "Chưa rõ";
+        };
+    }
+
+    private String getTenDoiTuong(String ma) {
+        if (ma == null) return "Chưa rõ";
+        return switch (ma.trim()) {
+            case "01", "1" -> "Dân tộc thiểu số (KV1)";
+            case "02", "2" -> "Công nhân ưu tú";
+            case "03", "3" -> "Thương binh, bệnh binh";
+            case "04", "4" -> "Con liệt sĩ, con TB nặng";
+            case "05", "5" -> "Thanh niên xung phong";
+            case "06", "6" -> "Dân tộc thiểu số (Ngoài KV1)";
+            case "07", "7" -> "Người khuyết tật nặng";
+            default -> "Chưa rõ";
+        };
+    }
+
+    private void runDiemThiStatistics(String loaiDiemDisplay, String phuongThuc, BigDecimal maxScore, String[] binNames, BigDecimal[] binLimits) {
+        reportsPanel.removeAll();
+        reportsPanel.setLayout(new java.awt.GridLayout(2, 2, 12, 12));
+        reportsPanel.add(avgCard);
+        reportsPanel.add(maxCard);
+        reportsPanel.add(minCard);
+        reportsPanel.add(countCard);
+        reportsPanel.revalidate();
+        reportsPanel.repaint();
+
+        distributionModel.setColumnIdentifiers(new String[]{"Khoảng điểm", "Số lượng thí sinh"});
+        tableTitle.setText("Phân bố số lượng theo khoảng điểm");
+        chartTitle.setText("Biểu đồ cột số lượng thí sinh/điểm");
+
         String monDisplay = Objects.toString(monCombo.getSelectedItem(), "");
         String monField = monToFieldMap.get(monDisplay);
         if (monField == null || monField.isBlank()) {
@@ -252,42 +356,67 @@ public class ReportsPanel extends JPanel {
             return;
         }
 
-        Object[] thongKe = diemThiService.thongKeDiemTheoMon(monField);
-        if (!isStatDataValid(thongKe)) {
-            showInsufficientData("Không đủ dữ kiện để tiến hành thống kê môn " + monDisplay + ".");
+        List<BigDecimal> points = diemThiService.layDiemTheoMonVaPhuongThuc(monField, phuongThuc);
+        if (points == null || points.isEmpty()) {
+            showInsufficientData("Không có dữ liệu điểm " + loaiDiemDisplay + " cho môn " + monDisplay + ".");
             return;
         }
 
-        List<Object[]> phanBo = diemThiService.thongKePhanBoTheoMon(monField);
-        if (phanBo == null || phanBo.isEmpty()) {
-            showInsufficientData("Không có dữ liệu phân bố điểm cho môn " + monDisplay + ".");
-            return;
+        BigDecimal tong = BigDecimal.ZERO;
+        BigDecimal min = points.get(0);
+        BigDecimal max = points.get(0);
+
+        for (BigDecimal p : points) {
+            if (p != null) {
+                tong = tong.add(p);
+                if (p.compareTo(min) < 0) min = p;
+                if (p.compareTo(max) > 0) max = p;
+            }
         }
 
-        BigDecimal avg = toBigDecimal(thongKe[0]);
-        BigDecimal min = toBigDecimal(thongKe[1]);
-        BigDecimal max = toBigDecimal(thongKe[2]);
-        long count = ((Number) thongKe[3]).longValue();
+        long count = points.size();
+        BigDecimal avg = count > 0 ? tong.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
         Map<String, Long> bins = new LinkedHashMap<>();
-        bins.put("0-2", 0L);
-        bins.put("2-4", 0L);
-        bins.put("4-6", 0L);
-        bins.put("6-8", 0L);
-        bins.put("8-10", 0L);
+        for (String b : binNames) {
+            bins.put(b, 0L);
+        }
 
-        for (Object[] row : phanBo) {
-            if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
-                bins.put(row[0].toString(), ((Number) row[1]).longValue());
+        for (BigDecimal p : points) {
+            if (p != null) {
+                boolean added = false;
+                for (int i = 0; i < binLimits.length; i++) {
+                    if (p.compareTo(binLimits[i]) < 0) {
+                        bins.put(binNames[i], bins.get(binNames[i]) + 1);
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added) {
+                    bins.put(binNames[binNames.length - 1], bins.get(binNames[binNames.length - 1]) + 1);
+                }
             }
         }
 
         updateSummary(avg, max, min, count);
         updateDistributionView(bins);
-        statusLabel.setText("Đã thống kê thành công cho loại điểm THPT - môn " + monDisplay + ".");
+        statusLabel.setText("Đã thống kê thành công cho loại điểm " + loaiDiemDisplay + " - môn " + monDisplay + ".");
     }
 
     private void runDiemCongStatistics() {
+        reportsPanel.removeAll();
+        reportsPanel.setLayout(new java.awt.GridLayout(2, 2, 12, 12));
+        reportsPanel.add(avgCard);
+        reportsPanel.add(maxCard);
+        reportsPanel.add(minCard);
+        reportsPanel.add(countCard);
+        reportsPanel.revalidate();
+        reportsPanel.repaint();
+
+        distributionModel.setColumnIdentifiers(new String[]{"Khoảng điểm", "Số lượng thí sinh"});
+        tableTitle.setText("Phân bố số lượng theo khoảng điểm");
+        chartTitle.setText("Biểu đồ cột số lượng thí sinh/điểm");
+
         List<DiemCong> dsDiemCong = diemCongService.getAll();
         List<BigDecimal> diemTongList = new ArrayList<>();
 

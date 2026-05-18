@@ -4,16 +4,19 @@ import com.tuyensinh.model.User;
 import com.tuyensinh.service.SessionManager;
 import com.tuyensinh.model.NguyenVong;
 import com.tuyensinh.service.NguyenVongService;
-import com.tuyensinh.service.SessionManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NguyenVongPanel extends JPanel {
+	private final Map<String, String> phuongThuc = new HashMap<>();
     private DefaultTableModel tableModel;
     private JTable table;
     private final JTextField detailIdField = new JTextField();
@@ -27,17 +30,25 @@ public class NguyenVongPanel extends JPanel {
     private final JTextField detailKeyField = new JTextField();
     private final JLabel selectedLabel = new JLabel("Chưa chọn bản ghi");
 
+    private JComboBox<String> phuongThucFilterCombo;
+    private JCheckBox onlyChuaXetCheck;
+
     private List<NguyenVong> currentDataList = new java.util.ArrayList<>();
 
-    // GỌI SERVICE Ở ĐÂY
     private final NguyenVongService nguyenVongService = new NguyenVongService();
 
     public NguyenVongPanel() {
+		phuongThuc.put("Xét tuyển thẳng","XTT");
+		phuongThuc.put("Kỳ thi Đánh Giá Năng Lực","DGNL");
+		phuongThuc.put("Kỳ thi V-SAT","V-SAT");
+		phuongThuc.put("Kỳ thi tốt nghiệp THPT Quốc Gia","THPT");
+		
+		String[] keys = phuongThuc.keySet().toArray(new String[0]);
+		
         setLayout(new BorderLayout(16, 16));
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(UIStyles.BG_APP);
 
-        // Title
         JLabel title = new JLabel("Quản Lý Nguyện Vọng");
         title.setFont(UIStyles.FONT_TITLE);
         title.setForeground(UIStyles.TEXT_DARK);
@@ -50,17 +61,18 @@ public class NguyenVongPanel extends JPanel {
         splitPane.setBorder(null);
         add(splitPane, BorderLayout.CENTER);
 
-        // TỰ ĐỘNG LOAD DỮ LIỆU KHI MỞ PANEL
+        loadDataToTable();
+    }
+
+    public void refreshData() {
         loadDataToTable();
     }
 
     private JPanel createListCard() {
-
-        // Search & Actions Toolbar
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.setOpaque(false);
 
-        JTextField searchInput = new JTextField(28);
+        JTextField searchInput = new JTextField(20);
         String placeholderText = "Tìm CCCD, mã ngành...";
         searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
@@ -80,7 +92,18 @@ public class NguyenVongPanel extends JPanel {
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
 
-        // Cấu hình Cột cho Bảng Điểm Cộng
+        toolbar.add(new JLabel("PT:"));
+        phuongThucFilterCombo = new JComboBox<>(new String[]{"Tất cả", "THPT", "DGNL", "VSAT", "XTT"});
+        phuongThucFilterCombo.setFont(UIStyles.FONT_SMALL);
+        phuongThucFilterCombo.addActionListener(e -> applyFilters());
+        toolbar.add(phuongThucFilterCombo);
+
+        onlyChuaXetCheck = new JCheckBox("Chỉ CHUA_XET");
+        onlyChuaXetCheck.setFont(UIStyles.FONT_SMALL);
+        onlyChuaXetCheck.addActionListener(e -> applyFilters());
+        toolbar.add(onlyChuaXetCheck);
+        toolbar.add(refreshBtn);
+
         String[] cols = {
                 "ID", "CCCD", "Mã Ngành", "Thứ tự NV", "Điểm THXT", "Điểm UTQĐ",
                 "Điểm Cộng", "Điểm Xét Tuyển", "Kết Quả", "Keys", "Phương thức", "Mã THM"
@@ -89,7 +112,7 @@ public class NguyenVongPanel extends JPanel {
         tableModel = new DefaultTableModel(null, cols) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Không cho sửa trực tiếp trên ô
+                return false;
             }
         };
 
@@ -98,17 +121,18 @@ public class NguyenVongPanel extends JPanel {
         table.getTableHeader().setFont(UIStyles.FONT_LABEL);
         table.getTableHeader().setBackground(new Color(247, 249, 251));
         table.setFont(UIStyles.FONT_BODY);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Có thanh cuộn ngang vì rất nhiều cột
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setDefaultRenderer(Object.class, new StatusBadgeRenderer());
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 updateDetailFromSelection();
             }
         });
 
-        // Chỉnh độ rộng một số cột quan trọng
-        table.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(120); // CCCD
-        table.getColumnModel().getColumn(2).setPreferredWidth(100); // Mã ngành
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(2).setPreferredWidth(100);
+        table.getColumnModel().getColumn(8).setPreferredWidth(100);
 
         JPanel tableCard = new JPanel(new BorderLayout(0, 12));
         tableCard.setBackground(UIStyles.BG_CARD);
@@ -132,7 +156,6 @@ public class NguyenVongPanel extends JPanel {
 
         JScrollPane scrollPane = new JScrollPane(table);
         tableCard.add(scrollPane, BorderLayout.CENTER);
-
 
         JPanel center = new JPanel();
         center.setOpaque(false);
@@ -277,8 +300,6 @@ public class NguyenVongPanel extends JPanel {
         detailToHopField.setText(String.valueOf(tableModel.getValueAt(row, 11)));
     }
 
-    // ================= CÁC HÀM XỬ LÝ LOGIC =================
-
     private void loadDataToTable() {
         if (isCccdOnlyMode()) {
             String cccd = getLoginUsernameAsCccd();
@@ -288,22 +309,37 @@ public class NguyenVongPanel extends JPanel {
             return;
         }
 
-        // Lấy toàn bộ dữ liệu từ Service cất vào danh sách hiện tại
         currentDataList = nguyenVongService.getAll();
-        renderTablePage();
+        applyFilters();
     }
 
     private void handleRefresh() {
         loadDataToTable();
     }
 
-    // Vẽ toàn bộ dữ liệu hiện tại
+    private void applyFilters() {
+        String selectedPT = (String) phuongThucFilterCombo.getSelectedItem();
+        String phuongThuc = (selectedPT != null && !selectedPT.equals("Tất cả")) ? selectedPT : null;
+        boolean onlyCX = onlyChuaXetCheck.isSelected();
+
+        List<NguyenVong> filtered = currentDataList.stream()
+                .filter(nv -> !onlyCX || "CHUA_XET".equals(nv.getNvKetqua()))
+                .filter(nv -> phuongThuc == null || phuongThuc.equalsIgnoreCase(nv.getTtPhuongthuc()))
+                .collect(java.util.stream.Collectors.toList());
+
+        renderTablePage(filtered);
+    }
+
     private void renderTablePage() {
+        renderTablePage(currentDataList);
+    }
+
+    private void renderTablePage(List<NguyenVong> list) {
         tableModel.setRowCount(0);
 
-        for (NguyenVong nv : currentDataList) {
+        for (NguyenVong nv : list) {
             Object[] row = {
-                    nv.getIdnv(), // ID
+                    nv.getIdnv(),
                     nv.getNnCccd(), nv.getNvManganh(), nv.getNvTt(), nv.getDiemThxt(),
                     nv.getDiemUtqd(), nv.getDiemCong(), nv.getDiemXettuyen(),
                     nv.getNvKetqua(), nv.getNvKeys(), nv.getTtPhuongthuc(), nv.getTtThm()
@@ -358,19 +394,14 @@ public class NguyenVongPanel extends JPanel {
             return;
         }
 
-        // Nếu ô tìm kiếm trống, load lại toàn bộ danh sách gốc
         if (keyword.isEmpty() || keyword.equals("Tìm CCCD, mã ngành...")) {
             loadDataToTable();
             return;
         }
 
-        // Chuyển từ khóa về chữ thường để tìm kiếm không phân biệt hoa thường
         String lowerKeyword = keyword.toLowerCase().trim();
-
-        // Xin lại toàn bộ dữ liệu gốc từ DB (để tránh bị lọc đè lên kết quả cũ)
         List<NguyenVong> allData = nguyenVongService.getAll();
 
-        // DÙNG JAVA STREAM ĐỂ LỌC (TÌM THEO CCCD HOẶC MÃ NGÀNH)
         currentDataList = allData.stream()
                 .filter(nv ->
                         (nv.getNnCccd() != null && nv.getNnCccd().toLowerCase().contains(lowerKeyword)) ||
@@ -378,9 +409,8 @@ public class NguyenVongPanel extends JPanel {
                 )
                 .collect(java.util.stream.Collectors.toList());
 
-        renderTablePage();
+        applyFilters();
 
-        // Thông báo nếu không tìm thấy
         if (currentDataList.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào cho: " + keyword, "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         }
@@ -398,18 +428,18 @@ public class NguyenVongPanel extends JPanel {
                 nv.setNnCccd(dialog.getCccd());
                 nv.setNvManganh(dialog.getMaNganh());
                 nv.setNvTt(dialog.getThuTuNv());
-                nv.setTtPhuongthuc(dialog.getPhuongThuc());
+				String ptdata = phuongThuc.get(dialog.getPhuongThuc());
+                nv.setTtPhuongthuc(ptdata);
                 nv.setTtThm(dialog.getMaThm());
                 nv.setDiemThxt(dialog.getDiemThxt());
                 nv.setDiemUtqd(dialog.getDiemUtqd());
                 nv.setDiemCong(dialog.getDiemCong());
                 nv.setDiemXettuyen(dialog.getDiemXetTuyen());
                 nv.setNvKetqua(dialog.getKetQua());
-                // Khóa nv_keys sẽ do NguyenVongService tự động generate như ta đã code trước đó
 
-                nguyenVongService.add(nv); // Gọi Backend lưu
+                nguyenVongService.add(nv);
 
-                loadDataToTable(); // Load lại toàn bộ data và render lại bảng phân trang
+                loadDataToTable();
                 JOptionPane.showMessageDialog(this, "Thêm nguyện vọng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -424,13 +454,11 @@ public class NguyenVongPanel extends JPanel {
             return;
         }
 
-        // Lấy dữ liệu từ bảng (Đối chiếu chính xác index cột với mảng String[] cols của bạn)
-        Integer idnv = (Integer) tableModel.getValueAt(selectedRow, 0); // Khóa chính idnv
+        Integer idnv = (Integer) tableModel.getValueAt(selectedRow, 0);
         String cccd = (String) tableModel.getValueAt(selectedRow, 1);
         String maNganh = (String) tableModel.getValueAt(selectedRow, 2);
         Integer thuTuNv = (Integer) tableModel.getValueAt(selectedRow, 3);
 
-        // Ép kiểu các cột Điểm sang BigDecimal
         java.math.BigDecimal diemThxt = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 4).toString());
         java.math.BigDecimal diemUtqd = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
         java.math.BigDecimal diemCong = new java.math.BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
@@ -441,7 +469,6 @@ public class NguyenVongPanel extends JPanel {
         String phuongThuc = (String) tableModel.getValueAt(selectedRow, 10);
         String maThm = (String) tableModel.getValueAt(selectedRow, 11);
 
-        // Mở hộp thoại truyền dữ liệu
         NguyenVongFormDialog dialog = new NguyenVongFormDialog(
                 getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
                 "Sửa Thông Tin Nguyện Vọng", true);
@@ -451,7 +478,7 @@ public class NguyenVongPanel extends JPanel {
         if (dialog.isConfirmed()) {
             try {
                 NguyenVong nv = new NguyenVong();
-                nv.setIdnv(idnv); // Set Khóa chính để Hibernate biết là update dòng nào
+                nv.setIdnv(idnv);
                 nv.setNnCccd(dialog.getCccd());
                 nv.setNvManganh(dialog.getMaNganh());
                 nv.setNvTt(dialog.getThuTuNv());
@@ -464,7 +491,7 @@ public class NguyenVongPanel extends JPanel {
                 nv.setNvKetqua(dialog.getKetQua());
                 nv.setNvKeys(dialog.getKeys());
 
-                nguyenVongService.update(nv); // Gọi Backend cập nhật
+                nguyenVongService.update(nv);
 
                 loadDataToTable();
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -481,7 +508,6 @@ public class NguyenVongPanel extends JPanel {
             return;
         }
 
-        //Lấy CCCD ở cột 0, Mã ngành ở cột 1
         Integer id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String cccd = (String) tableModel.getValueAt(selectedRow, 1);
 
@@ -490,7 +516,6 @@ public class NguyenVongPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            // GỌI HÀM XÓA BẰNG ID:
             boolean success = nguyenVongService.delete(id);
 
             if(success) {
@@ -542,5 +567,36 @@ public class NguyenVongPanel extends JPanel {
             return "";
         }
         return SessionManager.getCurrentUser().getUsername().trim();
+    }
+
+    private class StatusBadgeRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            if (column == 8) {
+                String ketQua = value != null ? value.toString() : "";
+                if ("TRUNG_TUYEN".equals(ketQua)) {
+                    setForeground(UIStyles.SUCCESS);
+                    setFont(getFont().deriveFont(Font.BOLD));
+                } else if ("TRUOT".equals(ketQua)) {
+                    setForeground(UIStyles.DANGER);
+                    setFont(getFont().deriveFont(Font.BOLD));
+                } else if ("DU_BI".equals(ketQua)) {
+                    setForeground(UIStyles.WARNING);
+                    setFont(getFont().deriveFont(Font.BOLD));
+                } else {
+                    setForeground(UIStyles.TEXT_MUTED);
+                    setFont(getFont().deriveFont(Font.PLAIN));
+                }
+            } else {
+                if (!isSelected) {
+                    setForeground(UIStyles.TEXT_DARK);
+                }
+                setFont(getFont().deriveFont(Font.PLAIN));
+            }
+
+            return c;
+        }
     }
 }

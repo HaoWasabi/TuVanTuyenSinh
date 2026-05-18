@@ -1,8 +1,12 @@
 package com.tuyensinh.view;
 
-import com.tuyensinh.model.DiemThi;
-import com.tuyensinh.service.DiemThiService;
+import com.tuyensinh.model.NguyenVong;
+import com.tuyensinh.model.ThiSinh;
+import com.tuyensinh.model.DiemCong;
+import com.tuyensinh.service.NguyenVongService;
 import com.tuyensinh.service.SessionManager;
+import com.tuyensinh.service.ThiSinhService;
+import com.tuyensinh.service.DiemCongService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,24 +15,33 @@ import java.awt.*;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class DiemThiPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTable table;
-    private final JTextField detailIdField = new JTextField();
     private final JTextField detailCccdField = new JTextField();
-    private final JTextField detailSbdField = new JTextField();
-    private final JTextField detailMethodField = new JTextField();
-    private final JTextField detailNaturalField = new JTextField();
-    private final JTextField detailSocialField = new JTextField();
-    private final JTextField detailForeignField = new JTextField();
-    private final JTextField detailExtraField = new JTextField();
+    private final JTextField detailHoField = new JTextField();
+    private final JTextField detailTenField = new JTextField();
+    private final JTextField detailNguyenVongField = new JTextField();
+    private final JTextField detailThmCaoNhatField = new JTextField();
+    private final JTextField detailDiemThmField = new JTextField();
+    private final JTextField detailDiemCongField = new JTextField();
+    private final JTextField detailDiemUuTienField = new JTextField();
+    private final JTextField detailDiemXetTuyenField = new JTextField();
+    private final JTextField detailPhuongThucField = new JTextField();
+    private final JTextField detailGhiChuField = new JTextField();
     private final JLabel selectedLabel = new JLabel("Chưa chọn bản ghi");
 
-    private List<DiemThi> currentDataList = new java.util.ArrayList<>();
+    private List<NguyenVong> currentDataList = new java.util.ArrayList<>();
+    private Map<String, ThiSinh> thiSinhMap = new HashMap<>();
+    private Map<String, DiemCong> diemCongMap = new HashMap<>();
 
     // GỌI SERVICE Ở ĐÂY
-    private final DiemThiService diemThiService = new DiemThiService();
+    private final NguyenVongService nguyenVongService = new NguyenVongService();
+    private final ThiSinhService thiSinhService = new ThiSinhService();
+    private final DiemCongService diemCongService = new DiemCongService();
 
     public DiemThiPanel() {
         setLayout(new BorderLayout(16, 16));
@@ -36,7 +49,7 @@ public class DiemThiPanel extends JPanel {
         setBackground(UIStyles.BG_APP);
 
         // Title
-        JLabel title = new JLabel("Quản Lý Điểm Thi");
+        JLabel title = new JLabel("Danh sách điểm xét tuyển theo nguyện vọng");
         title.setFont(UIStyles.FONT_TITLE);
         title.setForeground(UIStyles.TEXT_DARK);
         add(title, BorderLayout.NORTH);
@@ -59,7 +72,7 @@ public class DiemThiPanel extends JPanel {
         toolbar.setOpaque(false);
 
         JTextField searchInput = new JTextField(28);
-        String placeholderText = "Tìm CCCD, SBD...";
+        String placeholderText = "Tìm CCCD, nguyện vọng...";
         searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
         searchInput.setForeground(UIStyles.TEXT_MUTED);
@@ -78,10 +91,9 @@ public class DiemThiPanel extends JPanel {
         toolbar.add(searchBtn);
         toolbar.add(new JSeparator(JSeparator.VERTICAL));
 
-        // Cấu hình Cột cho Bảng Điểm Thi
+        // Cấu hình Cột
         String[] cols = {
-                "ID", "CCCD", "SBD", "Phương thức", "Toán", "Lý", "Hóa", "Sinh", "Sử", "Địa", "Văn",
-                "N1_Thi", "N1_CC", "CNCN", "CNNN", "Tin Học", "KTPL", "NL1", "NK1", "NK2"
+                "CCCD", "Họ", "Tên", "Nguyện vọng", "THM cao nhất", "Điểm THM", "Điểm cộng", "Điểm ưu tiên", "Điểm xét tuyển", "Phương thức", "Ghi chú"
         };
 
         tableModel = new DefaultTableModel(null, cols) {
@@ -96,7 +108,7 @@ public class DiemThiPanel extends JPanel {
         table.getTableHeader().setFont(UIStyles.FONT_LABEL);
         table.getTableHeader().setBackground(new Color(247, 249, 251));
         table.setFont(UIStyles.FONT_BODY);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Có thanh cuộn ngang vì rất nhiều cột
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 updateDetailFromSelection();
@@ -104,9 +116,17 @@ public class DiemThiPanel extends JPanel {
         });
 
         // Chỉnh độ rộng một số cột quan trọng
-        table.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(120); // CCCD
-        table.getColumnModel().getColumn(2).setPreferredWidth(100); // SBD
+        table.getColumnModel().getColumn(0).setPreferredWidth(120); // CCCD
+        table.getColumnModel().getColumn(1).setPreferredWidth(120); // Họ
+        table.getColumnModel().getColumn(2).setPreferredWidth(80);  // Tên
+        table.getColumnModel().getColumn(3).setPreferredWidth(100); // Nguyện vọng
+        table.getColumnModel().getColumn(4).setPreferredWidth(120); // THM cao nhất
+        table.getColumnModel().getColumn(5).setPreferredWidth(100); // Điểm THM
+        table.getColumnModel().getColumn(6).setPreferredWidth(100); // Điểm cộng
+        table.getColumnModel().getColumn(7).setPreferredWidth(100); // Điểm ưu tiên
+        table.getColumnModel().getColumn(8).setPreferredWidth(120); // Điểm xét tuyển
+        table.getColumnModel().getColumn(9).setPreferredWidth(100); // Phương thức
+        table.getColumnModel().getColumn(10).setPreferredWidth(150); // Ghi chú
 
         JPanel tableCard = new JPanel(new BorderLayout(0, 12));
         tableCard.setBackground(UIStyles.BG_CARD);
@@ -115,7 +135,7 @@ public class DiemThiPanel extends JPanel {
                 new EmptyBorder(16, 16, 16, 16)
         ));
 
-        JLabel tableTitle = new JLabel("Danh sách điểm thi thí sinh");
+        JLabel tableTitle = new JLabel("Danh sách kết quả đánh giá");
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
 
@@ -150,7 +170,7 @@ public class DiemThiPanel extends JPanel {
 
         JPanel header = new JPanel(new BorderLayout(0, 6));
         header.setOpaque(false);
-        JLabel title = new JLabel("Chi tiết điểm thi");
+        JLabel title = new JLabel("Chi tiết điểm xét tuyển");
         title.setFont(UIStyles.FONT_SUBTITLE);
         title.setForeground(UIStyles.TEXT_DARK);
         header.add(title, BorderLayout.WEST);
@@ -160,33 +180,40 @@ public class DiemThiPanel extends JPanel {
         selectedLabel.setFont(UIStyles.FONT_SMALL);
         selectedLabel.setForeground(UIStyles.TEXT_MUTED);
         rightHeader.add(selectedLabel, BorderLayout.NORTH);
-        rightHeader.add(createDetailActions(), BorderLayout.SOUTH);
+        // rightHeader.add(createDetailActions(), BorderLayout.SOUTH);
         header.add(rightHeader, BorderLayout.EAST);
 
         JPanel fields = new JPanel(new GridLayout(0, 1, 0, 8));
         fields.setOpaque(false);
-        fields.add(labelWithField("ID điểm thi", detailIdField));
         fields.add(labelWithField("CCCD", detailCccdField));
-        fields.add(labelWithField("Số báo danh", detailSbdField));
-        fields.add(labelWithField("Phương thức", detailMethodField));
-        fields.add(labelWithField("Nhóm tự nhiên (Toán/Lý/Hóa)", detailNaturalField));
-        fields.add(labelWithField("Nhóm xã hội (Sinh/Sử/Địa/Văn)", detailSocialField));
-        fields.add(labelWithField("Ngoại ngữ - N1 thi/N1 CC", detailForeignField));
-        fields.add(labelWithField("Môn khác (CNCN/CNNN/Tin/KTPL/NL1/NK1/NK2)", detailExtraField));
+        fields.add(labelWithField("Họ", detailHoField));
+        fields.add(labelWithField("Tên", detailTenField));
+        fields.add(labelWithField("Nguyện vọng", detailNguyenVongField));
+        fields.add(labelWithField("THM điểm cao nhất", detailThmCaoNhatField));
+        fields.add(labelWithField("Điểm THM", detailDiemThmField));
+        fields.add(labelWithField("Điểm cộng", detailDiemCongField));
+        fields.add(labelWithField("Điểm ưu tiên", detailDiemUuTienField));
+        fields.add(labelWithField("Điểm xét tuyển", detailDiemXetTuyenField));
+        fields.add(labelWithField("Phương thức", detailPhuongThucField));
+        fields.add(labelWithField("Ghi chú", detailGhiChuField));
 
         JScrollPane fieldsScroll = new JScrollPane(fields);
         fieldsScroll.setBorder(null);
         fieldsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         fieldsScroll.getVerticalScrollBar().setUnitIncrement(12);
 
-        configureReadOnlyField(detailIdField);
         configureReadOnlyField(detailCccdField);
-        configureReadOnlyField(detailSbdField);
-        configureReadOnlyField(detailMethodField);
-        configureReadOnlyField(detailNaturalField);
-        configureReadOnlyField(detailSocialField);
-        configureReadOnlyField(detailForeignField);
-        configureReadOnlyField(detailExtraField);
+        configureReadOnlyField(detailHoField);
+        configureReadOnlyField(detailTenField);
+        configureReadOnlyField(detailNguyenVongField);
+        configureReadOnlyField(detailThmCaoNhatField);
+        configureReadOnlyField(detailDiemThmField);
+        configureReadOnlyField(detailDiemCongField);
+        configureReadOnlyField(detailDiemUuTienField);
+        configureReadOnlyField(detailDiemXetTuyenField);
+        configureReadOnlyField(detailPhuongThucField);
+        configureReadOnlyField(detailGhiChuField);
+        
         card.setPreferredSize(new Dimension(440, 0));
         card.setMinimumSize(new Dimension(440, 0));
 
@@ -195,45 +222,18 @@ public class DiemThiPanel extends JPanel {
         return card;
     }
 
-    private JPanel createDetailActions() {
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        actions.setOpaque(false);
-
-        if (SessionManager.hasPermission("DIEM_IMPORT")) {
-            JButton importBtn = createButton("Import", UIStyles.SUCCESS);
-            importBtn.addActionListener(e -> handleImport());
-            actions.add(importBtn);
-        }
-        if (SessionManager.hasPermission("DIEM_CREATE")) {
-            JButton addBtn = createButton("Thêm", UIStyles.INFO);
-            addBtn.addActionListener(e -> handleAdd());
-            actions.add(addBtn);
-        }
-        if (SessionManager.hasPermission("DIEM_EDIT")) {
-            JButton editBtn = createButton("Sửa", UIStyles.WARNING);
-            editBtn.addActionListener(e -> handleEdit());
-            actions.add(editBtn);
-        }
-        if (SessionManager.hasPermission("DIEM_DELETE")) {
-            JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
-            deleteBtn.addActionListener(e -> handleDelete());
-            actions.add(deleteBtn);
-        }
-        return actions;
-    }
-
-        private JPanel labelWithField(String label, JTextField field) {
+    private JPanel labelWithField(String labelText, JTextField field) {
         JPanel panel = new JPanel(new BorderLayout(0, 4));
         panel.setOpaque(false);
-        JLabel text = new JLabel(label);
-        text.setFont(UIStyles.FONT_LABEL);
-        text.setForeground(UIStyles.TEXT_DARK);
-        panel.add(text, BorderLayout.NORTH);
+        JLabel label = new JLabel(labelText);
+        label.setFont(UIStyles.FONT_LABEL);
+        label.setForeground(UIStyles.TEXT_DARK);
+        panel.add(label, BorderLayout.NORTH);
         panel.add(field, BorderLayout.CENTER);
         return panel;
-        }
+    }
 
-        private void configureReadOnlyField(JTextField field) {
+    private void configureReadOnlyField(JTextField field) {
         field.setEditable(false);
         field.setBackground(new Color(247, 249, 251));
         field.setFont(UIStyles.FONT_BODY);
@@ -241,68 +241,66 @@ public class DiemThiPanel extends JPanel {
             BorderFactory.createLineBorder(UIStyles.BORDER),
             new EmptyBorder(6, 10, 6, 10)
         ));
-        }
+    }
 
     private void updateDetailFromSelection() {
         int row = table.getSelectedRow();
         if (row < 0) {
             selectedLabel.setText("Chưa chọn bản ghi");
-            detailIdField.setText("");
             detailCccdField.setText("");
-            detailSbdField.setText("");
-            detailMethodField.setText("");
-            detailNaturalField.setText("");
-            detailSocialField.setText("");
-            detailForeignField.setText("");
-            detailExtraField.setText("");
+            detailHoField.setText("");
+            detailTenField.setText("");
+            detailNguyenVongField.setText("");
+            detailThmCaoNhatField.setText("");
+            detailDiemThmField.setText("");
+            detailDiemCongField.setText("");
+            detailDiemUuTienField.setText("");
+            detailDiemXetTuyenField.setText("");
+            detailPhuongThucField.setText("");
+            detailGhiChuField.setText("");
             return;
         }
 
-        selectedLabel.setText("Đang chọn ID: " + String.valueOf(tableModel.getValueAt(row, 0)));
-        detailIdField.setText(String.valueOf(tableModel.getValueAt(row, 0)));
-        detailCccdField.setText(String.valueOf(tableModel.getValueAt(row, 1)));
-        detailSbdField.setText(String.valueOf(tableModel.getValueAt(row, 2)));
-        detailMethodField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
-        detailNaturalField.setText(
-            String.valueOf(tableModel.getValueAt(row, 4)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 5)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 6))
-        );
-        detailSocialField.setText(
-            String.valueOf(tableModel.getValueAt(row, 7)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 8)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 9)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 10))
-        );
-        detailForeignField.setText(
-            String.valueOf(tableModel.getValueAt(row, 11)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 12))
-        );
-        detailExtraField.setText(
-            String.valueOf(tableModel.getValueAt(row, 13)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 14)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 15)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 16)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 17)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 18)) + " / " +
-                String.valueOf(tableModel.getValueAt(row, 19))
-        );
+        selectedLabel.setText("Đang chọn CCCD: " + String.valueOf(tableModel.getValueAt(row, 0)));
+        detailCccdField.setText(String.valueOf(tableModel.getValueAt(row, 0)));
+        detailHoField.setText(String.valueOf(tableModel.getValueAt(row, 1)));
+        detailTenField.setText(String.valueOf(tableModel.getValueAt(row, 2)));
+        detailNguyenVongField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
+        detailThmCaoNhatField.setText(String.valueOf(tableModel.getValueAt(row, 4)));
+        detailDiemThmField.setText(String.valueOf(tableModel.getValueAt(row, 5)));
+        detailDiemCongField.setText(String.valueOf(tableModel.getValueAt(row, 6)));
+        detailDiemUuTienField.setText(String.valueOf(tableModel.getValueAt(row, 7)));
+        detailDiemXetTuyenField.setText(String.valueOf(tableModel.getValueAt(row, 8)));
+        detailPhuongThucField.setText(String.valueOf(tableModel.getValueAt(row, 9)));
+        detailGhiChuField.setText(String.valueOf(tableModel.getValueAt(row, 10)));
     }
 
     // ================= CÁC HÀM XỬ LÝ LOGIC =================
 
     private void loadDataToTable() {
-        // Role có DIEM_VIEW_BY_CCCD nhưng không có DIEM_VIEW chỉ được tra cứu theo CCCD đăng nhập.
+        // Load all ThiSinh for quick lookup
+        thiSinhMap.clear();
+        for (ThiSinh ts : thiSinhService.getAll()) {
+            thiSinhMap.put(ts.getCccd(), ts);
+        }
+        
+        // Load all DiemCong for quick lookup by keys
+        diemCongMap.clear();
+        for (DiemCong dc : diemCongService.getAll()) {
+            if (dc.getDcKeys() != null) {
+                diemCongMap.put(dc.getDcKeys(), dc);
+            }
+        }
+
         if (isCccdOnlyMode()) {
             String cccd = getLoginUsernameAsCccd();
-            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemThiService.getByCccd(cccd);
+            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : nguyenVongService.getByCccd(cccd);
             renderTablePage();
             selectedLabel.setText("Đang lọc theo CCCD đăng nhập");
             return;
         }
 
-        // Lấy toàn bộ dữ liệu từ Service cất vào danh sách hiện tại
-        currentDataList = diemThiService.getAll();
+        currentDataList = nguyenVongService.getAll();
         renderTablePage();
     }
 
@@ -314,13 +312,53 @@ public class DiemThiPanel extends JPanel {
     private void renderTablePage() {
         tableModel.setRowCount(0);
 
-        for (DiemThi dt : currentDataList) {
-            Object[] row = {
-                    dt.getIddiemthi(), dt.getCccd(), dt.getSobaodanh(), dt.getDPhuongthuc(),
-                    dt.getToan(), dt.getVatLi(), dt.getHoaHoc(), dt.getSinhHoc(), dt.getLichSu(),
-                    dt.getDiaLi(), dt.getNguVan(), dt.getN1Thi(), dt.getN1Cc(), dt.getCncn(),
-                    dt.getCnnn(), dt.getTinHoc(), dt.getKtpl(), dt.getNl1(), dt.getNk1(), dt.getNk2()
-            };
+        Map<String, NguyenVong> bestNvMap = new HashMap<>();
+        for (NguyenVong nv : currentDataList) {
+            String cccd = nv.getNnCccd() != null ? nv.getNnCccd() : "";
+            String nganh = nv.getNvManganh() != null ? nv.getNvManganh() : "";
+            String key = cccd + "_" + nganh;
+            
+            if (!bestNvMap.containsKey(key)) {
+                bestNvMap.put(key, nv);
+            } else {
+                NguyenVong existing = bestNvMap.get(key);
+                BigDecimal currentScore = nv.getDiemXettuyen() != null ? nv.getDiemXettuyen() : BigDecimal.ZERO;
+                BigDecimal existingScore = existing.getDiemXettuyen() != null ? existing.getDiemXettuyen() : BigDecimal.ZERO;
+                
+                if (currentScore.compareTo(existingScore) > 0) {
+                    bestNvMap.put(key, nv);
+                }
+            }
+        }
+
+        List<NguyenVong> groupedList = new java.util.ArrayList<>(bestNvMap.values());
+        groupedList.sort(java.util.Comparator
+                .comparing((NguyenVong nv) -> nv.getNnCccd() != null ? nv.getNnCccd() : "")
+                .thenComparing(nv -> nv.getNvManganh() != null ? nv.getNvManganh() : ""));
+
+        for (NguyenVong nv : groupedList) {
+            String cccd = nv.getNnCccd();
+            ThiSinh ts = thiSinhMap.get(cccd);
+            String ho = ts != null ? ts.getHo() : "";
+            String ten = ts != null ? ts.getTen() : "";
+            
+            // Get note from DiemCong lookup
+            DiemCong dc_info = diemCongMap.get(nv.getNvKeys());
+            String ghiChu = dc_info != null ? dc_info.getGhichu() : "";
+
+             Object[] row = {
+                     cccd, 
+                     ho, 
+                     ten, 
+                     (nv.getNvTt() != null ? "NV" + nv.getNvTt() + " - " : "") + (nv.getNvManganh() != null && nv.getNvManganh().equals("DGNL") ? "Đa tổ hợp" : nv.getNvManganh()), 
+                     (nv.getTtThm() != null && nv.getTtThm().equals("DGNL") ? "Đa tổ hợp" : nv.getTtThm()), 
+                     formatDecimal(nv.getDiemThxt()), 
+                     formatDecimal(nv.getDiemCong()), 
+                     formatDecimal(nv.getDiemUtqd()), 
+                     formatDecimal(nv.getDiemXettuyen()),
+                     nv.getTtPhuongthuc(),
+                     ghiChu
+             };
             tableModel.addRow(row);
         }
 
@@ -331,33 +369,10 @@ public class DiemThiPanel extends JPanel {
         }
     }
 
-    private void handleImport() {
-        ImportDTExcelDialog dialog = new ImportDTExcelDialog(getTopLevelAncestor() instanceof Frame ?
-                (Frame) getTopLevelAncestor() : null);
-        dialog.setVisible(true);
-
-        if (dialog.isConfirmed()) {
-            File selectedFile = dialog.getSelectedFile();
-            try {
-                // GỌI HÀM IMPORT TỪ BACKEND CỦA BẠN
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Đổi chuột thành hình chờ
-                diemThiService.importFromExcel(selectedFile.getAbsolutePath());
-                loadDataToTable(); // Nạp lại bảng
-                setCursor(Cursor.getDefaultCursor());
-
-                JOptionPane.showMessageDialog(this, "Import điểm thi thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                setCursor(Cursor.getDefaultCursor());
-                JOptionPane.showMessageDialog(this, "Lỗi Import: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
-            }
-        }
-    }
-
     private void handleSearch(String keyword) {
         if (isCccdOnlyMode()) {
             String cccd = getLoginUsernameAsCccd();
-            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : diemThiService.getByCccd(cccd);
+            currentDataList = cccd.isEmpty() ? new java.util.ArrayList<>() : nguyenVongService.getByCccd(cccd);
             renderTablePage();
             if (currentDataList.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Không có dữ liệu cho CCCD đăng nhập hiện tại.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -365,170 +380,25 @@ public class DiemThiPanel extends JPanel {
             return;
         }
 
-        // Nếu ô tìm kiếm trống, load lại toàn bộ danh sách gốc
-        if (keyword.isEmpty() || keyword.equals("Tìm CCCD, SBD...")) {
+        if (keyword.isEmpty() || keyword.equals("Tìm CCCD, nguyện vọng...")) {
             loadDataToTable();
             return;
         }
 
-        // Chuyển từ khóa về chữ thường để tìm kiếm không phân biệt hoa thường
         String lowerKeyword = keyword.toLowerCase().trim();
+        List<NguyenVong> allData = nguyenVongService.getAll();
 
-        // Xin lại toàn bộ dữ liệu gốc từ DB (để tránh bị lọc đè lên kết quả cũ)
-        List<DiemThi> allData = diemThiService.getAll();
-
-        // DÙNG JAVA STREAM ĐỂ LỌC (TÌM THEO CCCD HOẶC SỐ BÁO DANH)
         currentDataList = allData.stream()
-                .filter(dt ->
-                        (dt.getCccd() != null && dt.getCccd().toLowerCase().contains(lowerKeyword)) ||
-                                (dt.getSobaodanh() != null && dt.getSobaodanh().toLowerCase().contains(lowerKeyword))
+                .filter(nv ->
+                        (nv.getNnCccd() != null && nv.getNnCccd().toLowerCase().contains(lowerKeyword)) ||
+                                (nv.getNvManganh() != null && nv.getNvManganh().toLowerCase().contains(lowerKeyword))
                 )
                 .collect(java.util.stream.Collectors.toList());
 
         renderTablePage();
 
-        // Thông báo nếu không tìm thấy
         if (currentDataList.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào cho: " + keyword, "Thông báo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    private void handleAdd() {
-        DiemThiFormDialog dialog = new DiemThiFormDialog(
-                getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
-                "Thêm Điểm Thi Thí Sinh", false);
-        dialog.setVisible(true);
-
-        if (dialog.isConfirmed()) {
-            try {
-                // Sử dụng Lombok Builder để tạo object sạch sẽ và dễ nhìn (vì class DiemThi có @Builder)
-                DiemThi dt = DiemThi.builder()
-                        .cccd(dialog.getCccd())
-                        .sobaodanh(dialog.getSoBaoDanh())
-                        .dPhuongthuc(dialog.getDPhuongThuc())
-                        .toan(dialog.getToan())
-                        .nguVan(dialog.getVan())
-                        .n1Thi(dialog.getN1Thi())
-                        .n1Cc(dialog.getN1Cc())
-                        .vatLi(dialog.getLy())
-                        .hoaHoc(dialog.getHoa())
-                        .sinhHoc(dialog.getSinh())
-                        .lichSu(dialog.getSu())
-                        .diaLi(dialog.getDia())
-                        .ktpl(dialog.getKtpl())
-                        .tinHoc(dialog.getTinHoc())
-                        .cncn(dialog.getCncn())
-                        .cnnn(dialog.getCnnn())
-                        .nl1(dialog.getNl1())
-                        .nk1(dialog.getNk1())
-                        .nk2(dialog.getNk2())
-                        .build();
-
-                diemThiService.add(dt);
-
-                loadDataToTable();
-                JOptionPane.showMessageDialog(this, "Thêm điểm thi thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void handleEdit() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng điểm thi để sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        try {
-            // CHÚ Ý: Các chỉ số (0, 1, 2...) dưới đây PHẢI KHỚP với thứ tự các cột
-            // trong mảng String[] columnNames mà bạn truyền vào JTable.
-            Integer id = (Integer) tableModel.getValueAt(selectedRow, 0);
-            String cccd = (String) tableModel.getValueAt(selectedRow, 1);
-            String sbd = (String) tableModel.getValueAt(selectedRow, 2);
-            String phuongThuc = (String) tableModel.getValueAt(selectedRow, 3);
-
-            BigDecimal toan = new BigDecimal(tableModel.getValueAt(selectedRow, 4).toString());
-            BigDecimal van = new BigDecimal(tableModel.getValueAt(selectedRow, 5).toString());
-            BigDecimal n1Thi = new BigDecimal(tableModel.getValueAt(selectedRow, 6).toString());
-            BigDecimal n1Cc = new BigDecimal(tableModel.getValueAt(selectedRow, 7).toString());
-            BigDecimal ly = new BigDecimal(tableModel.getValueAt(selectedRow, 8).toString());
-            BigDecimal hoa = new BigDecimal(tableModel.getValueAt(selectedRow, 9).toString());
-            BigDecimal sinh = new BigDecimal(tableModel.getValueAt(selectedRow, 10).toString());
-            BigDecimal su = new BigDecimal(tableModel.getValueAt(selectedRow, 11).toString());
-            BigDecimal dia = new BigDecimal(tableModel.getValueAt(selectedRow, 12).toString());
-            BigDecimal ktpl = new BigDecimal(tableModel.getValueAt(selectedRow, 13).toString());
-            BigDecimal tinHoc = new BigDecimal(tableModel.getValueAt(selectedRow, 14).toString());
-            BigDecimal cncn = new BigDecimal(tableModel.getValueAt(selectedRow, 15).toString());
-            BigDecimal cnnn = new BigDecimal(tableModel.getValueAt(selectedRow, 16).toString());
-            BigDecimal nl1 = new BigDecimal(tableModel.getValueAt(selectedRow, 17).toString());
-            BigDecimal nk1 = new BigDecimal(tableModel.getValueAt(selectedRow, 18).toString());
-            BigDecimal nk2 = new BigDecimal(tableModel.getValueAt(selectedRow, 19).toString());
-
-            DiemThiFormDialog dialog = new DiemThiFormDialog(
-                    getTopLevelAncestor() instanceof Frame ? (Frame) getTopLevelAncestor() : null,
-                    "Sửa Thông Tin Điểm Thi", true);
-
-            dialog.setData(cccd, sbd, phuongThuc, toan, van, n1Thi, n1Cc, ly, hoa, sinh, su, dia, ktpl, tinHoc, cncn, cnnn, nl1, nk1, nk2);
-            dialog.setVisible(true);
-
-            if (dialog.isConfirmed()) {
-                DiemThi dt = DiemThi.builder()
-                        .iddiemthi(id) // Quan trọng để Entity Framework / JPA biết là lệnh Update
-                        .cccd(dialog.getCccd())
-                        .sobaodanh(dialog.getSoBaoDanh())
-                        .dPhuongthuc(dialog.getDPhuongThuc())
-                        .toan(dialog.getToan())
-                        .nguVan(dialog.getVan())
-                        .n1Thi(dialog.getN1Thi())
-                        .n1Cc(dialog.getN1Cc())
-                        .vatLi(dialog.getLy())
-                        .hoaHoc(dialog.getHoa())
-                        .sinhHoc(dialog.getSinh())
-                        .lichSu(dialog.getSu())
-                        .diaLi(dialog.getDia())
-                        .ktpl(dialog.getKtpl())
-                        .tinHoc(dialog.getTinHoc())
-                        .cncn(dialog.getCncn())
-                        .cnnn(dialog.getCnnn())
-                        .nl1(dialog.getNl1())
-                        .nk1(dialog.getNk1())
-                        .nk2(dialog.getNk2())
-                        .build();
-
-                diemThiService.update(dt);
-
-                loadDataToTable();
-                JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật. Vui lòng kiểm tra lại thứ tự cột JTable!\nChi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void handleDelete() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        Integer id = (Integer) tableModel.getValueAt(selectedRow, 0); // Lấy ID ở cột 0
-        String cccd = (String) tableModel.getValueAt(selectedRow, 1);
-
-        DeleteConfirmDialog dialog = new DeleteConfirmDialog(getTopLevelAncestor() instanceof Frame ?
-                (Frame) getTopLevelAncestor() : null, "Điểm thi của CCCD: " + cccd);
-        dialog.setVisible(true);
-
-        if (dialog.isConfirmed()) {
-            boolean success = diemThiService.delete(id);
-            if(success) {
-                tableModel.removeRow(selectedRow);
-                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
         }
     }
 
@@ -572,5 +442,12 @@ public class DiemThiPanel extends JPanel {
             return "";
         }
         return SessionManager.getCurrentUser().getUsername().trim();
+    }
+    
+    private String formatDecimal(BigDecimal value) {
+        if (value == null) {
+            return "";
+        }
+        return value.stripTrailingZeros().toPlainString();
     }
 }

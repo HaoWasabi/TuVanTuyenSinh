@@ -227,6 +227,21 @@ public class DiemThiRepository {
     // ================= THỐNG KÊ ĐIỂM =================
 
     /**
+     * Lấy danh sách điểm theo môn và phương thức xét tuyển
+     * @param mon Tên môn
+     * @param phuongThuc Phương thức
+     * @return Danh sách điểm
+     */
+    public List<BigDecimal> layDiemTheoMonVaPhuongThuc(String mon, String phuongThuc) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "SELECT d." + mon + " FROM DiemThi d WHERE d." + mon + " IS NOT NULL and d.status = 'active' and d.dPhuongthuc = :pt";
+            return session.createQuery(hql, BigDecimal.class)
+                    .setParameter("pt", phuongThuc)
+                    .list();
+        }
+    }
+
+    /**
      * Thống kê điểm trung bình, min, max, số lượng theo môn
      * @param mon Tên môn: toan, vatLi, hoaHoc, sinhHoc, lichSu, diaLi, nguVan, tinHoc, ktpl, n1Thi, n1Cc, cncn, cnnn, nl1, nk1, nk2
      * @return Object[] {avg, min, max, count}

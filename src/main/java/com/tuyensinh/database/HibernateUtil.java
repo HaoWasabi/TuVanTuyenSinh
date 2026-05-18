@@ -4,7 +4,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 public final class HibernateUtil {
-
     private static final SessionFactory SESSION_FACTORY = buildSessionFactory();
 
     private HibernateUtil() {
@@ -12,15 +11,20 @@ public final class HibernateUtil {
 
     private static SessionFactory buildSessionFactory() {
         try {
-            return new Configuration().configure().buildSessionFactory();
-//        } catch (Exception ex) {
-//            throw new IllegalStateException("Cannot initialize Hibernate SessionFactory", ex);
-//        }
-        }catch (Throwable ex) {
-            // Dòng này cực kỳ quan trọng để thấy lỗi thật sự là gì (ví dụ: sai password, thiếu driver)
-            ex.printStackTrace();
-            throw new ExceptionInInitializerError(ex);
+            return buildSessionFactory("hibernate.cfg.xml");
+        } catch (Throwable ex) {
+            System.err.println("Failed to load hibernate.cfg.xml: " + ex.getMessage());
+            try {
+                return buildSessionFactory("(no_password)hibernate.cfg.xml");
+            } catch (Throwable fallbackEx) {
+                System.err.println("Failed to load (no_password)hibernate.cfg.xml: " + fallbackEx.getMessage());
+                throw new ExceptionInInitializerError(fallbackEx);
+            }
         }
+    }
+
+    private static SessionFactory buildSessionFactory(String resourceName) {
+        return new Configuration().configure(resourceName).buildSessionFactory();
     }
 
     public static SessionFactory getSessionFactory() {
@@ -28,6 +32,8 @@ public final class HibernateUtil {
     }
 
     public static void shutdown() {
-        SESSION_FACTORY.close();
+        if (SESSION_FACTORY != null) {
+            SESSION_FACTORY.close();
+        }
     }
 }

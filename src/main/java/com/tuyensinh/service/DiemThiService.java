@@ -54,6 +54,16 @@ public class DiemThiService {
     // ================= THỐNG KÊ =================
 
     /**
+     * Lấy danh sách điểm theo môn và phương thức xét tuyển
+     * @param mon Tên môn
+     * @param phuongThuc Phương thức
+     * @return Danh sách điểm
+     */
+    public List<BigDecimal> layDiemTheoMonVaPhuongThuc(String mon, String phuongThuc) {
+        return repository.layDiemTheoMonVaPhuongThuc(mon, phuongThuc);
+    }
+
+    /**
      * Thống kê điểm theo môn (trung bình, min, max, số lượng)
      * @param mon Tên môn: toan, vatLi, hoaHoc, sinhHoc, lichSu, diaLi, nguVan, tinHoc, ktpl, n1Thi, n1Cc, cncn, cnnn, nl1, nk1, nk2
      * @return Object[] {avg, min, max, count}

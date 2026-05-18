@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -64,6 +66,29 @@ public class NganhRepository {
     public List<Nganh> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery("from Nganh n where n.status = 'active'", Nganh.class).list();
+        }
+    }
+
+    public Map<String, Long> countNguyenVongByMaNganh() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<?> rawRows = session.createNativeQuery("""
+                    SELECT n.manganh, COUNT(nv.idnv) AS so_luong_dang_ky
+                    FROM xt_nganh n
+                    LEFT JOIN xt_nguyenvongxettuyen nv
+                        ON nv.nv_manganh = n.manganh
+                       AND LOWER(COALESCE(nv.status, 'active')) = 'active'
+                    WHERE LOWER(COALESCE(n.status, 'active')) = 'active'
+                    GROUP BY n.manganh
+                    """).list();
+
+            Map<String, Long> result = new LinkedHashMap<>();
+            for (Object rowObj : rawRows) {
+                Object[] row = (Object[]) rowObj;
+                String maNganh = row[0] == null ? "" : row[0].toString();
+                Number countValue = row[1] instanceof Number ? (Number) row[1] : null;
+                result.put(maNganh, countValue == null ? 0L : countValue.longValue());
+            }
+            return result;
         }
     }
 

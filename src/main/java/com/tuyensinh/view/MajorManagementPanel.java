@@ -29,8 +29,10 @@ import java.awt.FlowLayout;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -72,7 +74,16 @@ public class MajorManagementPanel extends JPanel {
 
         // --- TAB 1: QL Ngành Tuyển Sinh ---
         if (SessionManager.hasPermission("NGANH_VIEW")) {
-            String[] colsNganh = {"ID Ngành", "Mã Ngành", "Tên Ngành", "Chỉ Tiêu", "Ngưỡng Đảm Bảo"};
+            String[] colsNganh = {
+                    "ID Ngành",
+                    "Mã Ngành",
+                    "Tên Ngành",
+                    "Chỉ Tiêu",
+                    "Điểm Sàn",
+                    "Điểm Trúng Tuyển",
+                    "Phương Thức Xét Tuyển",
+                    "Số Thí Sinh ĐKNV"
+            };
             Object[][] dataNganh = buildNganhData();
             tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo", colsNganh, dataNganh, null));
             hasVisibleTab = true;
@@ -142,15 +153,26 @@ public class MajorManagementPanel extends JPanel {
     private Object[][] buildNganhData() {
         try {
             List<Nganh> nganhList = nganhService.getAll();
-            Object[][] rows = new Object[nganhList.size()][5];
+            Map<String, Long> countByMaNganh = new HashMap<>();
+            try {
+                countByMaNganh = nganhService.getNguyenVongCountByMaNganh();
+            } catch (Exception ignored) {
+                // Vẫn hiển thị danh sách ngành ngay cả khi truy vấn thống kê lỗi.
+            }
+
+            Object[][] rows = new Object[nganhList.size()][8];
             for (int i = 0; i < nganhList.size(); i++) {
                 Nganh item = nganhList.get(i);
+                String maNganh = safeText(item.getManganh());
                 rows[i] = new Object[] {
                         safeNumber(item.getIdnganh()),
-                        safeText(item.getManganh()),
+                        maNganh,
                         safeText(item.getTennganh()),
                         safeNumber(item.getNChitieu()),
-                        formatDecimal(item.getNDiemsan())
+                        formatDecimal(item.getNDiemsan()),
+                        formatDecimal(item.getNDiemtrungtuyen()),
+                        buildAdmissionMethods(item),
+                        safeNumber(countByMaNganh.getOrDefault(maNganh, 0L))
                 };
             }
             return rows;
@@ -739,6 +761,8 @@ public class MajorManagementPanel extends JPanel {
         item.setTennganh(safeText(data[2] == null ? null : data[2].toString()));
         item.setNChitieu(parseInteger(data[3]));
         item.setNDiemsan(parseBigDecimal(data[4]));
+        item.setNDiemtrungtuyen(parseBigDecimal(data != null && data.length > 5 ? data[5] : null));
+        applyAdmissionMethods(item, data != null && data.length > 6 ? data[6] : null);
         return item;
     }
 
@@ -864,6 +888,36 @@ public class MajorManagementPanel extends JPanel {
                 || "co".equals(text)
                 || "có".equals(text)
                 || "x".equals(text);
+    }
+
+    private String buildAdmissionMethods(Nganh item) {
+        List<String> methods = new ArrayList<>();
+        if (parseBoolean(item.getNTuyenthang())) {
+            methods.add("Tuyển thẳng");
+        }
+        if (parseBoolean(item.getNDgnl())) {
+            methods.add("ĐGNL");
+        }
+        if (parseBoolean(item.getNThpt())) {
+            methods.add("THPT");
+        }
+        if (parseBoolean(item.getNVsat())) {
+            methods.add("V-SAT");
+        }
+        return methods.isEmpty() ? "Chưa cấu hình" : String.join(", ", methods);
+    }
+
+    private void applyAdmissionMethods(Nganh item, Object value) {
+        String normalized = normalizeSubject(value == null ? "" : value.toString());
+
+        item.setNTuyenthang(toFlag(normalized.contains("tuyenthang") || normalized.contains("xtt")));
+        item.setNDgnl(toFlag(normalized.contains("dgnl")));
+        item.setNThpt(toFlag(normalized.contains("thpt")));
+        item.setNVsat(toFlag(normalized.contains("vsat")));
+    }
+
+    private String toFlag(boolean value) {
+        return value ? "1" : "0";
     }
 
     private JButton createButton(String text, Color color) {

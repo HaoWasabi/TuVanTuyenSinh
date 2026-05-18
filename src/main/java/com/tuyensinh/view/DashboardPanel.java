@@ -1,5 +1,11 @@
 package com.tuyensinh.view;
 
+import com.tuyensinh.model.Nganh;
+import com.tuyensinh.service.NganhService;
+import com.tuyensinh.service.NguyenVongService;
+import com.tuyensinh.service.ThiSinhService;
+import com.tuyensinh.service.TohopMonthiService;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -12,51 +18,52 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 public class DashboardPanel extends JPanel {
+    private final ThiSinhService thiSinhService = new ThiSinhService();
+    private final NganhService nganhService = new NganhService();
+    private final TohopMonthiService tohopMonthiService = new TohopMonthiService();
+    private final NguyenVongService nguyenVongService = new NguyenVongService();
+
     public DashboardPanel() {
         setLayout(new BorderLayout(16, 16));
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(UIStyles.BG_APP);
 
-        // Title
         JLabel title = new JLabel("Dashboard Xét Tuyển Sinh 2026");
         title.setFont(UIStyles.FONT_TITLE);
         title.setForeground(UIStyles.TEXT_DARK);
         add(title, BorderLayout.NORTH);
 
-        // Stat cards
         JPanel statsContainer = new JPanel(new GridLayout(1, 4, 12, 12));
         statsContainer.setOpaque(false);
-        statsContainer.add(createStatCard("Thí sinh", "12,458", UIStyles.PRIMARY));
-        statsContainer.add(createStatCard("Ngành mở", "28", UIStyles.SUCCESS));
-        statsContainer.add(createStatCard("Tổ hợp", "18", UIStyles.INFO));
-        statsContainer.add(createStatCard("Công việc", "156", UIStyles.WARNING));
+        statsContainer.add(createStatCard("Thí sinh", formatNumber(thiSinhService.getAll().size()), UIStyles.PRIMARY));
+        statsContainer.add(createStatCard("Ngành mở", formatNumber(nganhService.getAll().size()), UIStyles.SUCCESS));
+        statsContainer.add(createStatCard("Tổ hợp", formatNumber(tohopMonthiService.getAll().size()), UIStyles.INFO));
+        statsContainer.add(createStatCard("Nguyện vọng", formatNumber(nguyenVongService.getAll().size()), UIStyles.WARNING));
 
-        // Top majors table
         String[] columns = {"Mã ngành", "Tên ngành", "Chỉ tiêu", "Đăng ký", "Tỉ lệ"};
-        Object[][] rows = {
-                {"7480201", "Công nghệ thông tin", 250, 1180, "4.72:1"},
-                {"7340101", "Quản trị kinh doanh", 180, 810, "4.50:1"},
-                {"7220201", "Ngôn ngữ Anh", 150, 520, "3.47:1"},
-                {"7310301", "Xã hội học", 120, 245, "2.04:1"},
-                {"7810103", "Quản lý dịch vụ du lịch", 100, 330, "3.30:1"}
-        };
-
-        JTable topMajorsTable = new JTable(new DefaultTableModel(rows, columns) {
+        DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
-        });
+        };
+
+        JTable topMajorsTable = new JTable(tableModel);
         topMajorsTable.setRowHeight(32);
         topMajorsTable.getTableHeader().setFont(UIStyles.FONT_LABEL);
         topMajorsTable.getTableHeader().setBackground(new Color(247, 249, 251));
         topMajorsTable.setFont(UIStyles.FONT_BODY);
 
+        loadTopMajors(tableModel);
+
         JPanel topMajorsCard = createTableCard("Top Ngành Theo Số Lượng Đăng Ký", topMajorsTable);
 
-        // Center panel
         JPanel center = new JPanel();
         center.setOpaque(false);
         center.setLayout(new BorderLayout(0, 14));
@@ -64,6 +71,30 @@ public class DashboardPanel extends JPanel {
         center.add(topMajorsCard, BorderLayout.CENTER);
 
         add(center, BorderLayout.CENTER);
+    }
+
+    private void loadTopMajors(DefaultTableModel tableModel) {
+        List<Nganh> nganhList = nganhService.getAll();
+        Map<String, Long> nvCountMap = nganhService.getNguyenVongCountByMaNganh();
+
+        nganhList.sort((a, b) -> {
+            Long countA = nvCountMap.getOrDefault(a.getManganh(), 0L);
+            Long countB = nvCountMap.getOrDefault(b.getManganh(), 0L);
+            return Long.compare(countB, countA);
+        });
+
+        int limit = Math.min(nganhList.size(), 10);
+        for (int i = 0; i < limit; i++) {
+            Nganh nganh = nganhList.get(i);
+            String maNganh = nganh.getManganh() != null ? nganh.getManganh() : "";
+            String tenNganh = nganh.getTennganh() != null ? nganh.getTennganh() : "";
+            Integer chiTieu = nganh.getNChitieu() != null ? nganh.getNChitieu() : 0;
+            Long dangKy = nvCountMap.getOrDefault(maNganh, 0L);
+            int dkInt = dangKy.intValue();
+            String tiLe = chiTieu > 0 ? String.format("%.2f:1", (double) dkInt / chiTieu) : "0.00:1";
+
+            tableModel.addRow(new Object[]{maNganh, tenNganh, chiTieu, dkInt, tiLe});
+        }
     }
 
     private JPanel createStatCard(String title, String value, Color color) {
@@ -111,5 +142,9 @@ public class DashboardPanel extends JPanel {
         card.add(new JScrollPane(table), BorderLayout.CENTER);
 
         return card;
+    }
+
+    private String formatNumber(int value) {
+        return String.format("%,d", value);
     }
 }
