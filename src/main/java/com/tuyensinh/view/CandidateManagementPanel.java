@@ -389,8 +389,7 @@ public class CandidateManagementPanel extends JPanel {
                 
                 if (userCreated) {
                     infoMsg += "Tài khoản học sinh được tạo:\n" +
-                        "Username: " + username + "\n" +
-                        "Mật khẩu: " + generatedPassword;
+                        "Username: " + username;
                 } else {
                     infoMsg += "Tài khoản học sinh đã tồn tại.\n" +
                         "Username: " + username;

@@ -37,8 +37,8 @@ public class CandidateFormDialog extends JDialog {
     private final JTextField dienthoaiField = new JTextField(20);
     private final JPasswordField passwordField = new JPasswordField(20);
     private final JTextField noisinhField = new JTextField(20);
-    private final JComboBox<String> doituongCombo = new JComboBox<>(new String[]{"KV1", "KV2", "KV3", "KV2NT"});
-    private final JComboBox<String> khuvucCombo = new JComboBox<>(new String[]{"KV1", "KV2", "KV3", "KV2NT"});
+    private final JComboBox<String> doituongCombo = new JComboBox<>(new String[]{"NDT", "01", "02", "03", "04", "05", "06", "07", "08"});
+    private final JComboBox<String> khuvucCombo = new JComboBox<>(new String[]{"KV1", "KV2", "KV3", "KV2-NT"});
 
     private boolean confirmed = false;
 
