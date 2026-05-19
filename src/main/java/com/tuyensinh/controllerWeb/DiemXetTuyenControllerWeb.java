@@ -8,229 +8,107 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping({ "/cong-cu-tinh-diem", "/tinh-diem", "/cong-cu-tinh" })
+@RequestMapping({ "/cong-cu-tinh", "/cong-cu-tinh-diem", "/tinh-diem" })
 public class DiemXetTuyenControllerWeb {
 
     private final DiemXetTuyenServiceWeb service = new DiemXetTuyenServiceWeb();
     private final com.tuyensinh.serviceWeb.NganhServiceWeb nganhService = new com.tuyensinh.serviceWeb.NganhServiceWeb();
 
+    /**
+     * Tải giao diện mặc định hoặc tính toán qua URL Query String (GET)
+     * Ví dụ hỗ trợ link: /cong-cu-tinh?phuongThucForm=thpt&maToHop=A00&toan=8...
+     */
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("request", defaultRequest());
+    public String index(
+            @ModelAttribute("request") DiemXetTuyenRequest request,
+            @RequestParam(value = "phuongThucForm", required = false) String phuongThucForm,
+            Model model) {
+
+        // Nếu không truyền phuongThucForm (lần đầu vào trang), gán request mặc định
+        // rỗng
+        if (phuongThucForm == null || phuongThucForm.isBlank()) {
+            model.addAttribute("request", defaultRequest());
+            model.addAttribute("activeTab", "thpt");
+        } else {
+            // Nếu có truyền phuongThucForm qua GET, tái sử dụng logic tính toán chung
+            thucHienLogicTinhDiem(request, phuongThucForm, model);
+        }
+
         model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "thpt");
         return "cong-cu-tinh-diem";
     }
 
     /**
-     * Tính điểm THPT
+     * Xử lý tập trung tất cả các yêu cầu Submit Form (POST) gửi về /cong-cu-tinh
      */
-    @PostMapping("/thpt")
-    public String tinhDiemTHPT(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
+    @PostMapping
+    public String tinhDiemPost(
+            @ModelAttribute("request") DiemXetTuyenRequest request,
+            @RequestParam(value = "phuongThucForm", defaultValue = "thpt") String phuongThucForm,
+            Model model) {
 
-        try {
-            request.setPhuongThuc("THPT");
-            if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
-                request.setMaToHop("A00");
-            }
-
-            DiemXetTuyenResponse response = service.tinhDiemTHPT(request);
-            model.addAttribute("result", response);
-            // Nếu chọn ngành, đưa thông tin ngành và so sánh với điểm
-            if (request.getManganh() != null && !request.getManganh().isBlank()) {
-                nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
-                    model.addAttribute("selectedNganh", n);
-                    try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
-                        java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemsan();
-                        java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemtrungtuyen();
-                        model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
-                        model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
-                    } catch (Exception ex) {
-                        // ignore comparison errors
-                    }
-                });
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
+        thucHienLogicTinhDiem(request, phuongThucForm, model);
 
         model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "thpt");
         return "cong-cu-tinh-diem";
     }
 
-    // Support GET-based calculation so the tool works via query-string links
-    @GetMapping("/thpt")
-    public String tinhDiemTHPTGet(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
-        // Reuse POST logic behavior
+    /**
+     * Hàm trung gian đóng gói logic tính toán để tránh lặp code (DRY Principle)
+     */
+    private void thucHienLogicTinhDiem(DiemXetTuyenRequest request, String phuongThucForm, Model model) {
         try {
-            request.setPhuongThuc("THPT");
-            if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
-                request.setMaToHop("A00");
+            DiemXetTuyenResponse response = null;
+
+            if ("vsat".equalsIgnoreCase(phuongThucForm)) {
+                request.setPhuongThuc("VSAT");
+                if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
+                    request.setMaToHop("A00");
+                }
+                response = service.tinhDiemVSAT(request);
+                model.addAttribute("activeTab", "vsat");
+
+            } else if ("dgnl".equalsIgnoreCase(phuongThucForm)) {
+                request.setPhuongThuc("DGNL");
+                request.setMaToHop("DGNL");
+                response = service.tinhDiemDGNL(request);
+                model.addAttribute("activeTab", "dgnl");
+
+            } else { // Mặc định hoặc "thpt"
+                request.setPhuongThuc("THPT");
+                if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
+                    request.setMaToHop("A00");
+                }
+                response = service.tinhDiemTHPT(request);
+                model.addAttribute("activeTab", "thpt");
             }
 
-            DiemXetTuyenResponse response = service.tinhDiemTHPT(request);
             model.addAttribute("result", response);
+
+            // Xử lý logic đối sánh Điểm Sàn / Điểm Chuẩn của Ngành đã chọn
             if (request.getManganh() != null && !request.getManganh().isBlank()) {
+                final DiemXetTuyenResponse finalResponse = response;
                 nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
                     model.addAttribute("selectedNganh", n);
                     try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
+                        java.math.BigDecimal diemXet = finalResponse.getDiemXetTuyen();
                         java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
                                 : n.getnDiemsan();
                         java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
                                 : n.getnDiemtrungtuyen();
+
                         model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
                         model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
                     } catch (Exception ex) {
-                        // ignore
+                        // Bỏ qua lỗi so sánh nếu có trường dữ liệu bị null
                     }
                 });
             }
+
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("activeTab", phuongThucForm); // Giữ lại tab đang thao tác khi xảy ra lỗi
         }
-
-        model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "thpt");
-        return "cong-cu-tinh-diem";
-    }
-
-    @PostMapping("/vsat")
-    public String tinhDiemVSAT(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
-
-        try {
-            request.setPhuongThuc("VSAT");
-            if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
-                request.setMaToHop("A00");
-            }
-
-            DiemXetTuyenResponse response = service.tinhDiemVSAT(request);
-            model.addAttribute("result", response);
-            if (request.getManganh() != null && !request.getManganh().isBlank()) {
-                nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
-                    model.addAttribute("selectedNganh", n);
-                    try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
-                        java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemsan();
-                        java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemtrungtuyen();
-                        model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
-                        model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
-                    } catch (Exception ex) {
-                    }
-                });
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-
-        model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "vsat");
-        return "cong-cu-tinh-diem";
-    }
-
-    @GetMapping("/vsat")
-    public String tinhDiemVSATGet(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
-        try {
-            request.setPhuongThuc("VSAT");
-            if (request.getMaToHop() == null || request.getMaToHop().isBlank()) {
-                request.setMaToHop("A00");
-            }
-
-            DiemXetTuyenResponse response = service.tinhDiemVSAT(request);
-            model.addAttribute("result", response);
-            if (request.getManganh() != null && !request.getManganh().isBlank()) {
-                nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
-                    model.addAttribute("selectedNganh", n);
-                    try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
-                        java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemsan();
-                        java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemtrungtuyen();
-                        model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
-                        model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
-                    } catch (Exception ex) {
-                    }
-                });
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-
-        model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "vsat");
-        return "cong-cu-tinh-diem";
-    }
-
-    @PostMapping("/dgnl")
-    public String tinhDiemDGNL(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
-
-        try {
-            request.setPhuongThuc("DGNL");
-            request.setMaToHop("DGNL");
-
-            DiemXetTuyenResponse response = service.tinhDiemDGNL(request);
-            model.addAttribute("result", response);
-            if (request.getManganh() != null && !request.getManganh().isBlank()) {
-                nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
-                    model.addAttribute("selectedNganh", n);
-                    try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
-                        java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemsan();
-                        java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemtrungtuyen();
-                        model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
-                        model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
-                    } catch (Exception ex) {
-                    }
-                });
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-
-        model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "dgnl");
-        return "cong-cu-tinh-diem";
-    }
-
-    @GetMapping("/dgnl")
-    public String tinhDiemDGNLGet(@ModelAttribute("request") DiemXetTuyenRequest request, Model model) {
-        try {
-            request.setPhuongThuc("DGNL");
-            request.setMaToHop("DGNL");
-
-            DiemXetTuyenResponse response = service.tinhDiemDGNL(request);
-            model.addAttribute("result", response);
-            if (request.getManganh() != null && !request.getManganh().isBlank()) {
-                nganhService.getByMaNganh(request.getManganh()).ifPresent(n -> {
-                    model.addAttribute("selectedNganh", n);
-                    try {
-                        java.math.BigDecimal diemXet = response.getDiemXetTuyen();
-                        java.math.BigDecimal diemsan = n.getnDiemsan() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemsan();
-                        java.math.BigDecimal diemchuan = n.getnDiemtrungtuyen() == null ? java.math.BigDecimal.ZERO
-                                : n.getnDiemtrungtuyen();
-                        model.addAttribute("datDiemSan", diemXet.compareTo(diemsan) >= 0);
-                        model.addAttribute("datDiemChuan", diemXet.compareTo(diemchuan) >= 0);
-                    } catch (Exception ex) {
-                    }
-                });
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-
-        model.addAttribute("nganhList", nganhService.getAllNganh());
-        model.addAttribute("activeTab", "dgnl");
-        return "cong-cu-tinh-diem";
     }
 
     private DiemXetTuyenRequest defaultRequest() {
@@ -239,6 +117,17 @@ public class DiemXetTuyenControllerWeb {
                 .phuongThuc("THPT")
                 .khuVuc("0")
                 .doiTuong("0")
+                .toan(0.0)
+                .li(0.0)
+                .hoa(0.0)
+                .sinh(0.0)
+                .su(0.0)
+                .di(0.0)
+                .va(0.0)
+                .n1(0.0)
+                .diemTong(0.0)
+                .diemCong(0.0)
+                .diemUuTien(0.0)
                 .build();
     }
 }
