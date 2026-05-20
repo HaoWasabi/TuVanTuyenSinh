@@ -47,10 +47,19 @@ public class ProfileController {
         model.addAttribute("doiTuong", user.getDoiTuong());
         model.addAttribute("diemKhuvuc", BigDecimal.ZERO);
         model.addAttribute("diemDoiTuong", BigDecimal.ZERO);
-
+        
+        // Fetch nguyện vọng
         List<NguyenVong> nguyenVongs = nguyenVongService.getByCccd(user.getCccd());
         nguyenVongs.forEach(nv -> nv.setTenNganh(resolveTenNganh(nv.getNvManganh())));
         model.addAttribute("nguyenVong", nguyenVongs);
+
+        // Lấy tên ngành của nguyện vọng 1 để hiển thị ở mục "Ngành xét tuyển" (nếu có)
+        String tenNganh = "Chưa đăng ký nguyện vọng";
+        if (!nguyenVongs.isEmpty()) {
+            // Giả sử nguyện vọng đầu tiên trong list là NV1
+            tenNganh = resolveTenNganh(nguyenVongs.get(0).getNvManganh());
+        }
+        model.addAttribute("tenNganh", tenNganh);
 
         return "diemthicanhan";
     }

@@ -139,6 +139,11 @@ public class NganhServiceWeb {
                 .slThpt(nganh.getSlThpt())
                 .slVsat(nganh.getSlVsat())
                 .slDgnl(nganh.getSlDgnl())
+                // Thêm mapping các cột phương thức tuyển sinh
+                .nTuyenThang(nganh.getnTuyenthang())
+                .nThpt(nganh.getnThpt())
+                .nVsat(nganh.getnVsat())
+                .nDgnl(nganh.getnDgnl())
                 .toHopKhacList(toHopKhacList)
                 .build();
     }

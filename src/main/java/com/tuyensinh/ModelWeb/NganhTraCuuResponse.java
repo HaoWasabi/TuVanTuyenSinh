@@ -24,6 +24,13 @@ public class NganhTraCuuResponse {
     private Integer slThpt; // Số lượng THPT
     private Integer slVsat; // Số lượng VSAT
     private Integer slDgnl; // Số lượng ĐGNL
+    
+    // THÊM MỚI: Các cờ phương thức tuyển sinh
+    private String nTuyenThang; 
+    private String nThpt;       
+    private String nVsat;       
+    private String nDgnl;       
+
     private List<ToHopDiemInfo> toHopKhacList;
 
     @Data
