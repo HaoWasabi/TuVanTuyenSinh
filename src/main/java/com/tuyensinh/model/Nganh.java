@@ -38,7 +38,7 @@ public class Nganh {
     @Column(name = "n_diemtrungtuyen", precision = 10, scale = 2)
     private BigDecimal nDiemtrungtuyen;
 
-    @Column(name = "n_tuyenthẳng", length = 1)
+    @Column(name = "n_tuyenthang", length = 1)
     private String nTuyenthang;
 
     @Column(name = "n_dgnl", length = 1)

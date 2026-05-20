@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
 /**
  * Panel Quản lý Ngành & Tổ hợp - Bao gồm 4 tab chức năng con
  * Đã đồng bộ hoàn toàn kích thước, bố cục với CandidateManagementPanel
- * Sử dụng MajorDeleteConfirmDialog và MajorImportExcelDialog chuẩn của hệ thống.
+ * Sử dụng MajorDeleteConfirmDialog và MajorImportExcelDialog chuẩn của hệ
+ * thống.
  */
 public class MajorManagementPanel extends JPanel {
 
@@ -85,54 +86,58 @@ public class MajorManagementPanel extends JPanel {
                     "Số Thí Sinh ĐKNV"
             };
             Object[][] dataNganh = buildNganhData();
-            tabbedPane.addTab("QL Ngành Tuyển Sinh", createTabPanel("Danh sách Ngành đào tạo", colsNganh, dataNganh, null));
+            tabbedPane.addTab("QL Ngành Tuyển Sinh",
+                    createTabPanel("Danh sách Ngành đào tạo", colsNganh, dataNganh, null));
             hasVisibleTab = true;
         }
 
         // --- TAB 2: QL Tổ Hợp Môn ---
         if (SessionManager.hasPermission("TOHOP_VIEW")) {
-            String[] colsToHop = {"ID Tổ Hợp", "Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Tên Tổ Hợp"};
+            String[] colsToHop = { "ID Tổ Hợp", "Mã Tổ Hợp", "Môn 1", "Môn 2", "Môn 3", "Tên Tổ Hợp" };
             Object[][] dataToHop = buildToHopData();
-            tabbedPane.addTab("QL Tổ Hợp Môn", createTabPanel("Danh sách Tổ hợp môn xét tuyển", colsToHop, dataToHop, null));
+            tabbedPane.addTab("QL Tổ Hợp Môn",
+                    createTabPanel("Danh sách Tổ hợp môn xét tuyển", colsToHop, dataToHop, null));
             hasVisibleTab = true;
         }
 
         // --- TAB 3: QL Danh Sách Ngành - Tổ Hợp ---
         if (SessionManager.hasPermission("NGANH_TOHOP_VIEW")) {
             String[] colsNganhToHop = {
-                "ID bản ghi",
-                "Mã ngành",
-                "Mã tổ hợp",
-                "Môn 1",
-                "Hệ số môn 1",
-                "Môn 2",
-                "Hệ số môn 2",
-                "Môn 3",
-                "Hệ số môn 3",
-                "Mã tổ hợp - ngành",
-                "Độ lệch"
+                    "ID bản ghi",
+                    "Mã ngành",
+                    "Mã tổ hợp",
+                    "Môn 1",
+                    "Hệ số môn 1",
+                    "Môn 2",
+                    "Hệ số môn 2",
+                    "Môn 3",
+                    "Hệ số môn 3",
+                    "Mã tổ hợp - ngành",
+                    "Độ lệch"
             };
             Object[][] dataNganhToHop = buildNganhToHopData();
-            tabbedPane.addTab("QL Ngành - Tổ Hợp", createTabPanel("Map Tổ hợp môn vào Ngành", colsNganhToHop, dataNganhToHop, buildNganhToHopFilterOptions()));
+            tabbedPane.addTab("QL Ngành - Tổ Hợp", createTabPanel("Map Tổ hợp môn vào Ngành", colsNganhToHop,
+                    dataNganhToHop, buildNganhToHopFilterOptions()));
             hasVisibleTab = true;
         }
 
         // --- TAB 4: QL Bảng Quy Đổi ---
         if (SessionManager.hasPermission("QUYDOI_VIEW")) {
             String[] colsQuyDoi = {
-                "ID Quy Đổi",
-                "Phương Thức",
-                "Tổ Hợp",
-                "Môn",
-                "Điểm A",
-                "Điểm B",
-                "Điểm C",
-                "Điểm D",
-                "Mã Quy Đổi",
-                "Phân Vị"
+                    "ID Quy Đổi",
+                    "Phương Thức",
+                    "Tổ Hợp",
+                    "Môn",
+                    "Điểm A",
+                    "Điểm B",
+                    "Điểm C",
+                    "Điểm D",
+                    "Mã Quy Đổi",
+                    "Phân Vị"
             };
             Object[][] dataQuyDoi = buildQuyDoiData();
-            tabbedPane.addTab("QL Bảng Quy Đổi", createTabPanel("Bảng quy đổi điểm Ngoại ngữ & V-SAT", colsQuyDoi, dataQuyDoi, new String[]{"Tất cả", "Ngoại Ngữ (IELTS/VSTEP)", "Kỳ thi V-SAT"}));
+            tabbedPane.addTab("QL Bảng Quy Đổi", createTabPanel("Bảng quy đổi điểm Ngoại ngữ & V-SAT", colsQuyDoi,
+                    dataQuyDoi, new String[] { "Tất cả", "Ngoại Ngữ (IELTS/VSTEP)", "Kỳ thi V-SAT" }));
             hasVisibleTab = true;
         }
 
@@ -147,7 +152,7 @@ public class MajorManagementPanel extends JPanel {
         }
 
         add(tabbedPane, BorderLayout.CENTER);
-        
+
     }
 
     private Object[][] buildNganhData() {
@@ -313,14 +318,13 @@ public class MajorManagementPanel extends JPanel {
 
         // Kích thước ô tìm kiếm (28) đồng bộ chuẩn với CandidateManagementPanel
         String placeholderText = "Từ khóa tìm kiếm...";
-        JTextField searchInput = new JTextField(28); 
+        JTextField searchInput = new JTextField(28);
         searchInput.setText(placeholderText);
         searchInput.setFont(UIStyles.FONT_BODY);
         searchInput.setForeground(UIStyles.TEXT_MUTED);
         searchInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
-                new EmptyBorder(6, 10, 6, 10)
-        ));
+                new EmptyBorder(6, 10, 6, 10)));
 
         searchInput.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
@@ -330,6 +334,7 @@ public class MajorManagementPanel extends JPanel {
                     searchInput.setForeground(UIStyles.TEXT_DARK);
                 }
             }
+
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (searchInput.getText().trim().isEmpty()) {
@@ -341,7 +346,7 @@ public class MajorManagementPanel extends JPanel {
 
         toolbar.add(searchInput);
 
-        final JComboBox<String>[] comboFilterRef = new JComboBox[] {null};
+        final JComboBox<String>[] comboFilterRef = new JComboBox[] { null };
 
         if (filterOptions != null && filterOptions.length > 0) {
             JComboBox<String> comboFilter = new JComboBox<>(filterOptions);
@@ -352,7 +357,7 @@ public class MajorManagementPanel extends JPanel {
         }
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
-        JButton importBtn = createButton("Import", UIStyles.SUCCESS); 
+        JButton importBtn = createButton("Import", UIStyles.SUCCESS);
         JButton addBtn = createButton("Thêm", UIStyles.INFO);
         JButton editBtn = createButton("Sửa", UIStyles.WARNING);
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
@@ -384,7 +389,7 @@ public class MajorManagementPanel extends JPanel {
         DefaultTableModel model = new DefaultTableModel(data, columns) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; 
+                return false;
             }
         };
         JTable table = new JTable(model);
@@ -396,7 +401,7 @@ public class MajorManagementPanel extends JPanel {
         table.setFont(UIStyles.FONT_BODY);
 
         // --- SỰ KIỆN NÚT BẤM ---
-        
+
         searchBtn.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -414,36 +419,43 @@ public class MajorManagementPanel extends JPanel {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 MajorImportExcelDialog dialog = new MajorImportExcelDialog(
                         (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel),
-                        titleStr
-                );
+                        titleStr);
                 dialog.setVisible(true);
 
                 if (dialog.isConfirmed()) {
                     try {
                         if (isQuyDoiTab(titleStr)) {
-                            List<BangQuyDoi> imported = bqdService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            List<BangQuyDoi> imported = bqdService
+                                    .importFromExcel(dialog.getSelectedFile().getAbsolutePath());
                             refreshTableData(model, buildQuyDoiData());
                             JOptionPane.showMessageDialog(panel,
-                                    "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
+                                    "Import thành công " + imported.size() + " dòng từ file: "
+                                            + dialog.getSelectedFile().getName(),
                                     "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
                         } else if (isNganhToHopTab(titleStr)) {
-                            List<NganhToHop> imported = nthService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            List<NganhToHop> imported = nthService
+                                    .importFromExcel(dialog.getSelectedFile().getAbsolutePath());
                             refreshTableData(model, buildNganhToHopData());
                             JOptionPane.showMessageDialog(panel,
-                                "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
-                                "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
+                                    "Import thành công " + imported.size() + " dòng từ file: "
+                                            + dialog.getSelectedFile().getName(),
+                                    "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
                         } else if (isToHopTab(titleStr)) {
-                            List<TohopMonthi> imported = tohopService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            List<TohopMonthi> imported = tohopService
+                                    .importFromExcel(dialog.getSelectedFile().getAbsolutePath());
                             refreshTableData(model, buildToHopData());
                             JOptionPane.showMessageDialog(panel,
-                                "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
-                                "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
+                                    "Import thành công " + imported.size() + " dòng từ file: "
+                                            + dialog.getSelectedFile().getName(),
+                                    "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
                         } else if (isNganhTab(titleStr)) {
-                            List<Nganh> imported = nganhService.importFromExcel(dialog.getSelectedFile().getAbsolutePath());
+                            List<Nganh> imported = nganhService
+                                    .importFromExcel(dialog.getSelectedFile().getAbsolutePath());
                             refreshTableData(model, buildNganhData());
                             JOptionPane.showMessageDialog(panel,
-                                "Import thành công " + imported.size() + " dòng từ file: " + dialog.getSelectedFile().getName(),
-                                "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
+                                    "Import thành công " + imported.size() + " dòng từ file: "
+                                            + dialog.getSelectedFile().getName(),
+                                    "Import Dữ Liệu", JOptionPane.INFORMATION_MESSAGE);
                         } else {
                             JOptionPane.showMessageDialog(panel,
                                     "Import dữ liệu thành công từ file: " + dialog.getSelectedFile().getName(),
@@ -466,10 +478,9 @@ public class MajorManagementPanel extends JPanel {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 SharedFormDialog dialog = new SharedFormDialog(
-                        (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel), 
-                        "Thêm Mới - " + titleStr, 
-                        columns
-                );
+                        (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel),
+                        "Thêm Mới - " + titleStr,
+                        columns);
                 dialog.setVisible(true);
 
                 if (dialog.isConfirmed()) {
@@ -498,7 +509,8 @@ public class MajorManagementPanel extends JPanel {
                         } else {
                             model.addRow(formData);
                         }
-                        JOptionPane.showMessageDialog(panel, "Thêm dữ liệu thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(panel, "Thêm dữ liệu thành công!", "Thành công",
+                                JOptionPane.INFORMATION_MESSAGE);
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(panel,
                                 "Thêm dữ liệu thất bại: " + ex.getMessage(),
@@ -514,16 +526,15 @@ public class MajorManagementPanel extends JPanel {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
                     SharedFormDialog dialog = new SharedFormDialog(
-                            (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel), 
-                            "Chỉnh Sửa - " + titleStr, 
-                            columns
-                    );
-                    
+                            (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel),
+                            "Chỉnh Sửa - " + titleStr,
+                            columns);
+
                     Object[] rowData = new Object[columns.length];
                     for (int i = 0; i < columns.length; i++) {
                         rowData[i] = table.getValueAt(selectedRow, i);
                     }
-                    
+
                     dialog.setData(rowData);
                     dialog.setVisible(true);
 
@@ -563,7 +574,8 @@ public class MajorManagementPanel extends JPanel {
                                     model.setValueAt(newData[i], selectedRow, i);
                                 }
                             }
-                            JOptionPane.showMessageDialog(panel, "Cập nhật dữ liệu thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(panel, "Cập nhật dữ liệu thành công!", "Thành công",
+                                    JOptionPane.INFORMATION_MESSAGE);
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(panel,
                                     "Cập nhật thất bại: " + ex.getMessage(),
@@ -571,7 +583,8 @@ public class MajorManagementPanel extends JPanel {
                         }
                     }
                 } else {
-                    JOptionPane.showMessageDialog(panel, "Vui lòng chọn một dòng từ bảng để chỉnh sửa!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panel, "Vui lòng chọn một dòng từ bảng để chỉnh sửa!", "Cảnh báo",
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
@@ -589,9 +602,8 @@ public class MajorManagementPanel extends JPanel {
                     }
 
                     MajorDeleteConfirmDialog dialog = new MajorDeleteConfirmDialog(
-                            (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel), 
-                            itemName
-                    );
+                            (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(panel),
+                            itemName);
                     dialog.setVisible(true);
 
                     if (dialog.isConfirmed()) {
@@ -627,7 +639,8 @@ public class MajorManagementPanel extends JPanel {
                             } else {
                                 model.removeRow(selectedRow);
                             }
-                            JOptionPane.showMessageDialog(panel, "Đã xóa thành công mục: " + itemName, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(panel, "Đã xóa thành công mục: " + itemName, "Thành công",
+                                    JOptionPane.INFORMATION_MESSAGE);
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(panel,
                                     "Xóa dữ liệu thất bại: " + ex.getMessage(),
@@ -635,7 +648,8 @@ public class MajorManagementPanel extends JPanel {
                         }
                     }
                 } else {
-                    JOptionPane.showMessageDialog(panel, "Vui lòng chọn một dòng từ bảng để xóa!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panel, "Vui lòng chọn một dòng từ bảng để xóa!", "Cảnh báo",
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
@@ -645,15 +659,13 @@ public class MajorManagementPanel extends JPanel {
         tableCard.setBackground(UIStyles.BG_CARD);
         tableCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyles.BORDER),
-                new EmptyBorder(16, 16, 16, 16)
-        ));
+                new EmptyBorder(16, 16, 16, 16)));
 
         JLabel tableTitle = new JLabel(titleStr);
         tableTitle.setFont(UIStyles.FONT_SUBTITLE);
         tableTitle.setForeground(UIStyles.TEXT_DARK);
         tableCard.add(tableTitle, BorderLayout.NORTH);
         tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
-
 
         panel.add(toolbar, BorderLayout.NORTH);
         panel.add(tableCard, BorderLayout.CENTER);
@@ -679,15 +691,15 @@ public class MajorManagementPanel extends JPanel {
 
     private String[] resolveTabActionPermissions(String titleStr) {
         if (isQuyDoiTab(titleStr)) {
-            return new String[]{"QUYDOI_IMPORT", "QUYDOI_CREATE", "QUYDOI_EDIT", "QUYDOI_DELETE"};
+            return new String[] { "QUYDOI_IMPORT", "QUYDOI_CREATE", "QUYDOI_EDIT", "QUYDOI_DELETE" };
         }
         if (isNganhToHopTab(titleStr)) {
-            return new String[]{null, "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE"};
+            return new String[] { null, "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE", "NGANH_TOHOP_MANAGE" };
         }
         if (titleStr != null && titleStr.contains("Tổ hợp môn")) {
-            return new String[]{"TOHOP_IMPORT", "TOHOP_CREATE", "TOHOP_EDIT", "TOHOP_DELETE"};
+            return new String[] { "TOHOP_IMPORT", "TOHOP_CREATE", "TOHOP_EDIT", "TOHOP_DELETE" };
         }
-        return new String[]{"NGANH_IMPORT", "NGANH_CREATE", "NGANH_EDIT", "NGANH_DELETE"};
+        return new String[] { "NGANH_IMPORT", "NGANH_CREATE", "NGANH_EDIT", "NGANH_DELETE" };
     }
 
     private void refreshTableData(DefaultTableModel model, Object[][] rows) {
@@ -698,7 +710,7 @@ public class MajorManagementPanel extends JPanel {
     }
 
     private void applyTableFilter(TableRowSorter<DefaultTableModel> sorter, String titleStr,
-                                  String term, String placeholderText, String selectedFilter) {
+            String term, String placeholderText, String selectedFilter) {
         List<RowFilter<Object, Object>> filters = new ArrayList<>();
 
         String keyword = term == null ? "" : term.trim();
@@ -762,6 +774,8 @@ public class MajorManagementPanel extends JPanel {
         item.setNChitieu(parseInteger(data[3]));
         item.setNDiemsan(parseBigDecimal(data[4]));
         item.setNDiemtrungtuyen(parseBigDecimal(data != null && data.length > 5 ? data[5] : null));
+
+        // Gọi hàm áp dụng phương thức xét tuyển từ data[6]
         applyAdmissionMethods(item, data != null && data.length > 6 ? data[6] : null);
         return item;
     }
@@ -809,10 +823,10 @@ public class MajorManagementPanel extends JPanel {
         item.setKtpl(hasSubject(mon1, mon2, mon3, "kinhtephapluat"));
 
         boolean hasKnownSubject = Boolean.TRUE.equals(item.getTo()) || Boolean.TRUE.equals(item.getLi())
-            || Boolean.TRUE.equals(item.getHo()) || Boolean.TRUE.equals(item.getSi())
-            || Boolean.TRUE.equals(item.getVa()) || Boolean.TRUE.equals(item.getSu())
-            || Boolean.TRUE.equals(item.getDi()) || Boolean.TRUE.equals(item.getTi())
-            || Boolean.TRUE.equals(item.getKtpl());
+                || Boolean.TRUE.equals(item.getHo()) || Boolean.TRUE.equals(item.getSi())
+                || Boolean.TRUE.equals(item.getVa()) || Boolean.TRUE.equals(item.getSu())
+                || Boolean.TRUE.equals(item.getDi()) || Boolean.TRUE.equals(item.getTi())
+                || Boolean.TRUE.equals(item.getKtpl());
         item.setKhac(!hasKnownSubject);
         item.setDoLech(parseBigDecimal(data != null && data.length > 10 ? data[10] : null));
         return item;
@@ -824,16 +838,22 @@ public class MajorManagementPanel extends JPanel {
         }
         String text = value.toLowerCase();
         text = text.replace("á", "a").replace("à", "a").replace("ả", "a").replace("ã", "a").replace("ạ", "a");
-        text = text.replace("ă", "a").replace("ắ", "a").replace("ằ", "a").replace("ẳ", "a").replace("ẵ", "a").replace("ặ", "a");
-        text = text.replace("â", "a").replace("ấ", "a").replace("ầ", "a").replace("ẩ", "a").replace("ẫ", "a").replace("ậ", "a");
+        text = text.replace("ă", "a").replace("ắ", "a").replace("ằ", "a").replace("ẳ", "a").replace("ẵ", "a")
+                .replace("ặ", "a");
+        text = text.replace("â", "a").replace("ấ", "a").replace("ầ", "a").replace("ẩ", "a").replace("ẫ", "a")
+                .replace("ậ", "a");
         text = text.replace("é", "e").replace("è", "e").replace("ẻ", "e").replace("ẽ", "e").replace("ẹ", "e");
-        text = text.replace("ê", "e").replace("ế", "e").replace("ề", "e").replace("ể", "e").replace("ễ", "e").replace("ệ", "e");
+        text = text.replace("ê", "e").replace("ế", "e").replace("ề", "e").replace("ể", "e").replace("ễ", "e")
+                .replace("ệ", "e");
         text = text.replace("í", "i").replace("ì", "i").replace("ỉ", "i").replace("ĩ", "i").replace("ị", "i");
         text = text.replace("ó", "o").replace("ò", "o").replace("ỏ", "o").replace("õ", "o").replace("ọ", "o");
-        text = text.replace("ô", "o").replace("ố", "o").replace("ồ", "o").replace("ổ", "o").replace("ỗ", "o").replace("ộ", "o");
-        text = text.replace("ơ", "o").replace("ớ", "o").replace("ờ", "o").replace("ở", "o").replace("ỡ", "o").replace("ợ", "o");
+        text = text.replace("ô", "o").replace("ố", "o").replace("ồ", "o").replace("ổ", "o").replace("ỗ", "o")
+                .replace("ộ", "o");
+        text = text.replace("ơ", "o").replace("ớ", "o").replace("ờ", "o").replace("ở", "o").replace("ỡ", "o")
+                .replace("ợ", "o");
         text = text.replace("ú", "u").replace("ù", "u").replace("ủ", "u").replace("ũ", "u").replace("ụ", "u");
-        text = text.replace("ư", "u").replace("ứ", "u").replace("ừ", "u").replace("ử", "u").replace("ữ", "u").replace("ự", "u");
+        text = text.replace("ư", "u").replace("ứ", "u").replace("ừ", "u").replace("ử", "u").replace("ữ", "u")
+                .replace("ự", "u");
         text = text.replace("ý", "y").replace("ỳ", "y").replace("ỷ", "y").replace("ỹ", "y").replace("ỵ", "y");
         text = text.replace("đ", "d");
         return text.replaceAll("[^a-z0-9]", "");
@@ -908,12 +928,25 @@ public class MajorManagementPanel extends JPanel {
     }
 
     private void applyAdmissionMethods(Nganh item, Object value) {
-        String normalized = normalizeSubject(value == null ? "" : value.toString());
+        if (value == null) {
+            item.setNTuyenthang("0");
+            item.setNDgnl("0");
+            item.setNThpt("0");
+            item.setNVsat("0");
+            return;
+        }
 
-        item.setNTuyenthang(toFlag(normalized.contains("tuyenthang") || normalized.contains("xtt")));
-        item.setNDgnl(toFlag(normalized.contains("dgnl")));
-        item.setNThpt(toFlag(normalized.contains("thpt")));
-        item.setNVsat(toFlag(normalized.contains("vsat")));
+        // Chuyển về chữ thường để so sánh chính xác, không dùng bộ lọc normalizeSubject
+        // nữa
+        String valLower = value.toString().toLowerCase();
+
+        // Kiểm tra trực tiếp cả chuỗi có dấu (từ CheckBox truyền ra) và chuỗi không dấu
+        // (nếu có từ nguồn khác)
+        item.setNTuyenthang(toFlag(
+                valLower.contains("tuyển thẳng") || valLower.contains("tuyenthang") || valLower.contains("xtt")));
+        item.setNDgnl(toFlag(valLower.contains("đgnl") || valLower.contains("dgnl")));
+        item.setNThpt(toFlag(valLower.contains("thpt")));
+        item.setNVsat(toFlag(valLower.contains("v-sat") || valLower.contains("vsat")));
     }
 
     private String toFlag(boolean value) {
