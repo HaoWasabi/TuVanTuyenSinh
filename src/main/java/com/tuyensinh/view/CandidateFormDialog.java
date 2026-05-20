@@ -22,7 +22,8 @@ import java.util.Date;
 
 /**
  * Form dialog để thêm/sửa thông tin thí sinh
- * Các trường: CCCD, Số báo danh, Họ, Tên, Ngày sinh, Giới tính, Email, Điện thoại,
+ * Các trường: CCCD, Số báo danh, Họ, Tên, Ngày sinh, Giới tính, Email, Điện
+ * thoại,
  * Mật khẩu, Nơi sinh, Đối tượng, Khu vực
  */
 public class CandidateFormDialog extends JDialog {
@@ -32,13 +33,22 @@ public class CandidateFormDialog extends JDialog {
     private final JTextField tenField = new JTextField(20);
     private final JSpinner ngaysinhSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-    private final JComboBox<String> gioitinhCombo = new JComboBox<>(new String[]{"Nam", "Nữ"});
+    private final JComboBox<String> gioitinhCombo = new JComboBox<>(new String[] { "Nam", "Nữ" });
     private final JTextField emailField = new JTextField(20);
     private final JTextField dienthoaiField = new JTextField(20);
     private final JPasswordField passwordField = new JPasswordField(20);
     private final JTextField noisinhField = new JTextField(20);
-    private final JComboBox<String> doituongCombo = new JComboBox<>(new String[]{"KV1", "KV2", "KV3", "KV2NT"});
-    private final JComboBox<String> khuvucCombo = new JComboBox<>(new String[]{"KV1", "KV2", "KV3", "KV2NT"});
+    private final JComboBox<ComboItem> doituongCombo = new JComboBox<>(new ComboItem[] {
+            new ComboItem("UT0", "Không thuộc diện ưu tiên"),
+            new ComboItem("UT1", "Nhóm UT1 (Dân tộc thiểu số, khuyết tật...) (+2.0)"),
+            new ComboItem("UT2", "Nhóm UT2 (Thương binh, bđ xuất ngũ...) (+1.0)")
+    });
+    private final JComboBox<ComboItem> khuvucCombo = new JComboBox<>(new ComboItem[] {
+            new ComboItem("KV1", "Khu vực 1 (KV1) (+0.75)"),
+            new ComboItem("KV2", "Khu vực 2 (KV2) (+0.25)"),
+            new ComboItem("KV2NT", "Khu vực 2 - Nông thôn (KV2-NT) (+0.5)"),
+            new ComboItem("KV3", "Khu vực 3 (KV3)")
+    });
 
     private boolean confirmed = false;
 
@@ -73,12 +83,12 @@ public class CandidateFormDialog extends JDialog {
         addFormField(formPanel, "Giới tính:", gioitinhCombo);
         addFormField(formPanel, "Email:", emailField);
         addFormField(formPanel, "Điện thoại:", dienthoaiField);
-        
+
         // Chỉ hiển thị trường mật khẩu khi sửa (isEditing=true)
         if (isEditing) {
             addFormField(formPanel, "Mật khẩu (để trống nếu không đổi):", passwordField);
         }
-        
+
         addFormField(formPanel, "Nơi sinh:", noisinhField);
         addFormField(formPanel, "Đối tượng:", doituongCombo);
         addFormField(formPanel, "Khu vực:", khuvucCombo);
@@ -132,21 +142,25 @@ public class CandidateFormDialog extends JDialog {
 
     private boolean validateForm() {
         if (cccdField.getText().trim().isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "CCCD không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(this, "CCCD không được để trống!", "Lỗi",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
         if (sbaodanhField.getText().trim().isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Số báo danh không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(this, "Số báo danh không được để trống!", "Lỗi",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
         if (hoField.getText().trim().isEmpty() || tenField.getText().trim().isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Họ và tên không được để trống!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(this, "Họ và tên không được để trống!", "Lỗi",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
         Date selectedDate = (Date) ngaysinhSpinner.getValue();
         LocalDate dob = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         if (!dob.isBefore(LocalDate.now())) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Ngày sinh phải thuộc quá khứ!", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(this, "Ngày sinh phải thuộc quá khứ!", "Lỗi",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
             return false;
         }
         return true;
@@ -156,26 +170,61 @@ public class CandidateFormDialog extends JDialog {
         return confirmed;
     }
 
-    public String getCCCD() { return cccdField.getText(); }
-    public String getSbaodanh() { return sbaodanhField.getText(); }
-    public String getHo() { return hoField.getText(); }
-    public String getTen() { return tenField.getText(); }
+    public String getCCCD() {
+        return cccdField.getText();
+    }
+
+    public String getSbaodanh() {
+        return sbaodanhField.getText();
+    }
+
+    public String getHo() {
+        return hoField.getText();
+    }
+
+    public String getTen() {
+        return tenField.getText();
+    }
+
     public String getNgaysinh() {
         Date date = (Date) ngaysinhSpinner.getValue();
         return dateFormat.format(date);
     }
-    public String getGioitinh() { return (String) gioitinhCombo.getSelectedItem(); }
-    public String getEmail() { return emailField.getText(); }
-    public String getDienthoai() { return dienthoaiField.getText(); }
-    public String getPassword() { return new String(passwordField.getPassword()); }
-    public String getNoisinh() { return noisinhField.getText(); }
-    public String getDoituong() { return (String) doituongCombo.getSelectedItem(); }
-    public String getKhuvuc() { return (String) khuvucCombo.getSelectedItem(); }
+
+    public String getGioitinh() {
+        return (String) gioitinhCombo.getSelectedItem();
+    }
+
+    public String getEmail() {
+        return emailField.getText();
+    }
+
+    public String getDienthoai() {
+        return dienthoaiField.getText();
+    }
+
+    public String getPassword() {
+        return new String(passwordField.getPassword());
+    }
+
+    public String getNoisinh() {
+        return noisinhField.getText();
+    }
+
+    public String getDoituong() {
+        ComboItem item = (ComboItem) doituongCombo.getSelectedItem();
+        return (item != null) ? item.getValue() : ""; // Trả về "UT0", "UT1"... thay vì tên dài
+    }
+
+    public String getKhuvuc() {
+        ComboItem item = (ComboItem) khuvucCombo.getSelectedItem();
+        return (item != null) ? item.getValue() : ""; // Trả về "KV1", "KV2NT"...
+    }
 
     // Setters for editing mode
     public void setData(String cccd, String sbaodanh, String ho, String ten, String ngaysinh,
-                        String gioitinh, String email, String dienthoai, String noisinh,
-                        String doituong, String khuvuc) {
+            String gioitinh, String email, String dienthoai, String noisinh,
+            String doituong, String khuvuc) {
         cccdField.setText(cccd);
         sbaodanhField.setText(sbaodanh);
         hoField.setText(ho);
@@ -191,8 +240,43 @@ public class CandidateFormDialog extends JDialog {
         emailField.setText(email);
         dienthoaiField.setText(dienthoai);
         noisinhField.setText(noisinh);
-        doituongCombo.setSelectedItem(doituong);
-        khuvucCombo.setSelectedItem(khuvuc);
+        setSelectedComboValue(doituongCombo, doituong);
+        setSelectedComboValue(khuvucCombo, khuvuc);
         cccdField.setEnabled(false); // Không cho sửa CCCD (primary key)
+    }
+
+    private static class ComboItem {
+        private final String value; // Giá trị ẩn (Ví dụ: UT1)
+        private final String label; // Tên hiển thị (Ví dụ: Đối tượng ưu tiên 1)
+
+        public ComboItem(String value, String label) {
+            this.value = value;
+            this.label = label;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        @Override
+        public String toString() {
+            return label; // Quyết định JComboBox sẽ hiển thị chữ gì trên giao diện
+        }
+    }
+
+    private void setSelectedComboValue(JComboBox<ComboItem> comboBox, String value) {
+        if (value == null)
+            return;
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            ComboItem item = comboBox.getItemAt(i);
+            if (item.getValue().equals(value)) {
+                comboBox.setSelectedItem(item);
+                break;
+            }
+        }
     }
 }
