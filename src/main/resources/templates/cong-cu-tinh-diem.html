@@ -176,24 +176,23 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-ma-to-hop">Tổ hợp xét tuyển</label>
-                                <select id="vsat-ma-to-hop" th:field="*{maToHop}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm font-medium">
-                                    <option value="A00">A00 - Toán, Lý, Hóa</option>
-                                    <option value="A01">A01 - Toán, Lý, Anh</option>
-                                    <option value="B00">B00 - Toán, Hóa, Sinh</option>
-                                    <option value="C00">C00 - Văn, Sử, Địa</option>
-                                    <option value="C01">C01 - Văn, Toán, Lý</option>
-                                    <option value="D01">D01 - Toán, Văn, Anh</option>
-                                    <option value="D07">D07 - Toán, Hóa, Anh</option>
-                                </select>
-                            </div>
-
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-manganh">Chọn ngành đối chiếu (Tùy chọn)</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-manganh">Chọn ngành đối chiếu</label>
                                 <select id="vsat-manganh" name="manganh" th:field="*{manganh}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm font-medium">
                                     <option value="">-- Không chọn --</option>
                                     <th:block th:each="n : ${nganhList}">
                                         <option th:value="${n.manganh}" th:text="${n.manganh + ' - ' + n.tenNganh}" th:selected="${selectedNganh != null and selectedNganh.manganh == n.manganh}"></option>
+                                    </th:block>
+                                </select>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="vsat-ma-to-hop">Tổ hợp xét tuyển</label>
+                                <select id="vsat-ma-to-hop" th:field="*{maToHop}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm font-medium">
+                                    <option value="">-- Chọn ngành để tải tổ hợp --</option>
+                                    <th:block th:if="${selectedNganh != null and toHopList != null}">
+                                        <th:block th:each="th : ${toHopList}">
+                                            <option th:value="${th.maToHop}" th:text="${th.maToHop + ' - ' + (th.tenToHop != null ? th.tenToHop : 'Tổ hợp xét tuyển')}" th:selected="${request.maToHop == th.maToHop}"></option>
+                                        </th:block>
                                     </th:block>
                                 </select>
                             </div>
@@ -551,16 +550,19 @@
             });
         });
 
-        const manganhSelect = document.getElementById('thpt-manganh');
-        const toHopSelect = document.getElementById('thpt-ma-to-hop');
+        // --- ĐỒNG BỘ DỮ LIỆU TỔ HỢP TỰ ĐỘNG (THPT & VSAT) ---
+        const initDynamicToHop = (formType) => {
+            const manganhSelect = document.getElementById(`${formType}-manganh`);
+            const toHopSelect = document.getElementById(`${formType}-ma-to-hop`);
 
-        if (manganhSelect && toHopSelect) {
+            if (!manganhSelect || !toHopSelect) return;
+
             const loadToHop = async (manganh, selectedValue) => {
                 toHopSelect.innerHTML = '<option value="">-- Đang tải tổ hợp... --</option>';
 
                 if (!manganh) {
                     toHopSelect.innerHTML = '<option value="">-- Chọn ngành để tải tổ hợp --</option>';
-                    updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop');
+                    updateVisibleSubjects(`content-${formType}`, `${formType}-ma-to-hop`);
                     return;
                 }
 
@@ -581,7 +583,7 @@
                         toHopSelect.appendChild(opt);
                     });
 
-                    updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop');
+                    updateVisibleSubjects(`content-${formType}`, `${formType}-ma-to-hop`);
 
                 } catch (err) {
                     console.error(err);
@@ -589,17 +591,20 @@
                 }
             };
 
-            // Gọi hàm khi người dùng thay đổi chuyên ngành
             manganhSelect.addEventListener('change', function() {
                 loadToHop(this.value, '');
             });
 
-            // Tự động tải lại tổ hợp nếu bị thiếu khi load trang sau submit
             const initialToHop = /*[[${request.maToHop}]]*/ '';
             if (manganhSelect.value && toHopSelect.options.length <= 1) {
                 loadToHop(manganhSelect.value, initialToHop);
             }
-        }
+        };
+
+        // Kích hoạt tính năng tải API cho cả hai form
+        initDynamicToHop('thpt');
+        initDynamicToHop('vsat');
+        // --- KẾT THÚC ĐOẠN ĐỒNG BỘ DỮ LIỆU ---
 
         setActiveTab(activeTab);
         updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop');
