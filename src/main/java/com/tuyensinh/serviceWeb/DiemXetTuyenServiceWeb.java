@@ -40,12 +40,12 @@ public class DiemXetTuyenServiceWeb {
                                 .build();
 
                 // Tính điểm tổ hợp xét tuyển (thang 30) = DTHXT
-                BigDecimal diemToHop = CongThucUtil.tinhDiemToHopXetTuyen(diemThi, request.getMaToHop());
+                BigDecimal diemToHop = CongThucUtil.tinhDiemToHopXetTuyen(diemThi, request.getMaToHop(), "THPT", null);
 
                 // Tính tổng Điểm cộng (DC) từ diemCongChungChi + diemCongUuTien, max 3.0
                 BigDecimal diemCongChungChi = toBigDecimal(request.getDiemCongChungChi());
                 BigDecimal diemCongUuTien = toBigDecimal(request.getDiemCongUuTien());
-                BigDecimal diemCong = CongThucUtil.tinhDiemCongToiDa(diemCongChungChi, diemCongUuTien);
+                BigDecimal diemCong = CongThucUtil.tinhTongDiemCong(diemCongChungChi, diemCongUuTien);
 
                 // Tính Mức Điểm Ưu Tiên (MDUT) từ khuVuc + doiTuong
                 BigDecimal mucDiemUuTien = CongThucUtil.tinhMucDiemUuTien(
@@ -176,7 +176,7 @@ public class DiemXetTuyenServiceWeb {
                 // Tính tổng Điểm cộng (DC) từ diemCongChungChi + diemCongUuTien, max 3.0
                 BigDecimal diemCongChungChi = toBigDecimal(request.getDiemCongChungChi());
                 BigDecimal diemCongUuTien = toBigDecimal(request.getDiemCongUuTien());
-                BigDecimal diemCong = CongThucUtil.tinhDiemCongToiDa(diemCongChungChi, diemCongUuTien);
+                BigDecimal diemCong = CongThucUtil.tinhTongDiemCong(diemCongChungChi, diemCongUuTien);
 
                 // Tính Mức Điểm Ưu Tiên (MDUT) từ khuVuc + doiTuong
                 BigDecimal mucDiemUuTien = CongThucUtil.tinhMucDiemUuTien(
@@ -233,7 +233,7 @@ public class DiemXetTuyenServiceWeb {
                 // Tính tổng Điểm cộng (DC) từ diemCongChungChi + diemCongUuTien, max 3.0
                 BigDecimal diemCongChungChi = toBigDecimal(request.getDiemCongChungChi());
                 BigDecimal diemCongUuTien = toBigDecimal(request.getDiemCongUuTien());
-                BigDecimal diemCong = CongThucUtil.tinhDiemCongToiDa(diemCongChungChi, diemCongUuTien);
+                BigDecimal diemCong = CongThucUtil.tinhTongDiemCong(diemCongChungChi, diemCongUuTien);
 
                 // Tính Mức Điểm Ưu Tiên (MDUT) từ khuVuc + doiTuong
                 BigDecimal mucDiemUuTien = CongThucUtil.tinhMucDiemUuTien(
