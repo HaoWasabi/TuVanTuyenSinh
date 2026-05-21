@@ -47,6 +47,7 @@ public class ProfileController {
         model.addAttribute("doiTuong", user.getDoiTuong());
         model.addAttribute("diemKhuvuc", BigDecimal.ZERO);
         model.addAttribute("diemDoiTuong", BigDecimal.ZERO);
+        model.addAttribute("dPhuongthuc", diem != null ? diem.getDPhuongthuc() : null);
         
         // Fetch nguyện vọng
         List<NguyenVong> nguyenVongs = nguyenVongService.getByCccd(user.getCccd());

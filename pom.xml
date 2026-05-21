@@ -21,14 +21,14 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>6.1.4</version> <!-- Dùng 5.3.33 nếu dự án dùng Java 11 trở xuống -->
+            <version>6.2.4</version> <!-- Nâng cấp lên Spring 6.2.x để hỗ trợ Java 25 ASM -->
         </dependency>
 
         <!-- Spring JDBC (Cho JdbcTemplate, EmptyResultDataAccessException...) -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>6.1.4</version>
+            <version>6.2.4</version>
         </dependency>
 
         <!-- Embedded Tomcat (Để khởi động Web Server bằng hàm main) -->
@@ -171,6 +171,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

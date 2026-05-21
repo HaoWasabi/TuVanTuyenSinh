@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{base.html}">
+    layout:decorate="~{base.html}">
+
 <head>
     <title>Điểm Thi Cá Nhân</title>
 </head>
+
 <body>
     <div layout:fragment="content">
         <!-- Đã thêm .doubleValue() để ép kiểu BigDecimal về Double, tránh lỗi ClassCastException khi sort -->
-        <div class="max-w-4xl mx-auto"
-             th:with="diemKhuvucCalc=${khuvuc == 'KV1' ? 0.75 : (khuvuc == 'KV2-NT' ? 0.5 : (khuvuc == 'KV2' ? 0.25 : 0))},
+        <div class="max-w-4xl mx-auto" th:with="diemKhuvucCalc=${khuvuc == 'KV1' ? 0.75 : (khuvuc == 'KV2-NT' ? 0.5 : (khuvuc == 'KV2' ? 0.25 : 0))},
                       diemDoiTuongCalc=${doiTuong == 'UT1' ? 2 : (doiTuong == 'UT2' ? 1 : 0)},
                       tongDiemCong=${diemKhuvucCalc + diemDoiTuongCalc},
                       listDiem=${ {
@@ -25,7 +26,7 @@
                       tong3Mon=${sortedDiem[7] + sortedDiem[6] + sortedDiem[5]},
                       diemTam=${tong3Mon + tongDiemCong},
                       tongDiemCuoiCung=${diemTam > 30.0 ? 30.0 : diemTam}">
-            
+
             <h1 class="text-3xl font-bold mb-8">Điểm Thi Của Bạn</h1>
 
             <!-- Student Info & Admission Info -->
@@ -45,7 +46,8 @@
                         <p class="text-lg font-medium" th:text="${user.ngaySinh ?: 'N/A'}"></p>
                     </div>
                     <div>
-                        <label class="block text-sm text-gray-600 mb-1" title="Điểm 3 môn cao nhất + điểm ưu tiên (Tối đa 30)">Điểm tổng</label>
+                        <label class="block text-sm text-gray-600 mb-1"
+                            title="Điểm 3 môn cao nhất + điểm ưu tiên (Tối đa 30)">Điểm tổng</label>
                         <!-- Hiển thị điểm đã tính toán và chặn trần 30 -->
                         <p class="text-2xl font-bold text-blue-600" th:text="${tongDiemCuoiCung}"></p>
                     </div>
@@ -60,7 +62,8 @@
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Phương thức xét tuyển</label>
-                        <p class="text-xl font-semibold text-indigo-700">Điểm thi THPT</p>
+                        <p class="text-xl font-semibold text-indigo-700" th:text="${dPhuongthuc ?: 'Chưa cập nhật'}">
+                        </p>
                     </div>
                 </div>
             </div>
@@ -149,4 +152,5 @@
         lucide.createIcons();
     </script>
 </body>
+
 </html>

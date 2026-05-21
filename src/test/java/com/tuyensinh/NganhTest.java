@@ -37,7 +37,7 @@ public class NganhTest {
         list.forEach(n ->
                 System.out.println(n.getIdnganh()
                         + " | " + n.getManganh()
-                        + " | " + n.getTennganh())
+                        + " | " + n.getTenNganh())
         );
 
         // =========================
@@ -78,7 +78,7 @@ public class NganhTest {
                 n -> System.out.println(
                         n.getIdnganh() + " | " +
                         n.getManganh() + " | " +
-                        n.getTennganh()
+                        n.getTenNganh()
                 ),
                 () -> System.out.println("Không tìm thấy id ngành!")
         );   
@@ -88,7 +88,7 @@ public class NganhTest {
         service.getByMaNganh(MaNganh).ifPresentOrElse(
                 n -> System.out.println(
                         n.getManganh() + " | " +
-                        n.getTennganh()
+                        n.getTenNganh()
                 ),
                 () -> System.out.println("Không tồn tại mã ngành!")
         );
