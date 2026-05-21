@@ -79,6 +79,7 @@ public class MajorManagementPanel extends JPanel {
                     "ID Ngành",
                     "Mã Ngành",
                     "Tên Ngành",
+                    "Tổ Hợp Gốc",
                     "Chỉ Tiêu",
                     "Điểm Sàn",
                     "Điểm Trúng Tuyển",
@@ -165,7 +166,7 @@ public class MajorManagementPanel extends JPanel {
                 // Vẫn hiển thị danh sách ngành ngay cả khi truy vấn thống kê lỗi.
             }
 
-            Object[][] rows = new Object[nganhList.size()][8];
+            Object[][] rows = new Object[nganhList.size()][9]; // Đổi kích thước từ 8 thành 9 cho đủ số cột colsNganh
             for (int i = 0; i < nganhList.size(); i++) {
                 Nganh item = nganhList.get(i);
                 String maNganh = safeText(item.getManganh());
@@ -173,6 +174,7 @@ public class MajorManagementPanel extends JPanel {
                         safeNumber(item.getIdnganh()),
                         maNganh,
                         safeText(item.getTennganh()),
+                        safeText(item.getNTohopgoc()),
                         safeNumber(item.getNChitieu()),
                         formatDecimal(item.getNDiemsan()),
                         formatDecimal(item.getNDiemtrungtuyen()),
@@ -271,9 +273,9 @@ public class MajorManagementPanel extends JPanel {
         return value == null ? "" : value.toString();
     }
 
-    private String toCoKhong(boolean value) {
-        return value ? "Có" : "Không";
-    }
+    // private String toCoKhong(boolean value) {
+    // return value ? "Có" : "Không";
+    // }
 
     private String safeText(String value) {
         return value == null ? "" : value;
@@ -357,12 +359,16 @@ public class MajorManagementPanel extends JPanel {
         }
 
         JButton searchBtn = createButton("Tìm kiếm", UIStyles.PRIMARY);
+        // Bổ sung nút Làm mới màu xanh dương (Sử dụng UIStyles.PRIMARY hoặc Color tương
+        // ứng)
+        JButton refreshBtn = createButton("Làm mới", new Color(26, 115, 232));
         JButton importBtn = createButton("Import", UIStyles.SUCCESS);
         JButton addBtn = createButton("Thêm", UIStyles.INFO);
         JButton editBtn = createButton("Sửa", UIStyles.WARNING);
         JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
 
         toolbar.add(searchBtn);
+        toolbar.add(refreshBtn); // Thêm nút làm mới vào sau nút tìm kiếm
 
         String[] permissionCodes = resolveTabActionPermissions(titleStr);
         boolean canImport = permissionCodes[0] != null && SessionManager.hasPermission(permissionCodes[0]);
@@ -411,8 +417,30 @@ public class MajorManagementPanel extends JPanel {
             }
         });
 
-        // Intentionally do not auto-filter on combo change.
-        // Filtering is applied only when user clicks the Search button.
+        // Sự kiện nút Làm mới: Trả UI về ban đầu và pull lại dữ liệu từ database
+        refreshBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // 1. Reset các ô tìm kiếm và bộ lọc
+                searchInput.setText(placeholderText);
+                searchInput.setForeground(UIStyles.TEXT_MUTED);
+                if (comboFilterRef[0] != null) {
+                    comboFilterRef[0].setSelectedIndex(0);
+                }
+                sorter.setRowFilter(null);
+
+                // 2. Gọi Service để tải lại dữ liệu mới nhất
+                if (isQuyDoiTab(titleStr)) {
+                    refreshTableData(model, buildQuyDoiData());
+                } else if (isNganhToHopTab(titleStr)) {
+                    refreshTableData(model, buildNganhToHopData());
+                } else if (isToHopTab(titleStr)) {
+                    refreshTableData(model, buildToHopData());
+                } else if (isNganhTab(titleStr)) {
+                    refreshTableData(model, buildNganhData());
+                }
+            }
+        });
 
         importBtn.addActionListener(new java.awt.event.ActionListener() {
             @Override
@@ -771,12 +799,13 @@ public class MajorManagementPanel extends JPanel {
         item.setIdnganh(parseInteger(data[0]));
         item.setManganh(safeText(data[1] == null ? null : data[1].toString()));
         item.setTennganh(safeText(data[2] == null ? null : data[2].toString()));
-        item.setNChitieu(parseInteger(data[3]));
-        item.setNDiemsan(parseBigDecimal(data[4]));
-        item.setNDiemtrungtuyen(parseBigDecimal(data != null && data.length > 5 ? data[5] : null));
+        item.setNTohopgoc(safeText(data[3] == null ? null : data[3].toString()));
+        item.setNChitieu(parseInteger(data[4]));
+        item.setNDiemsan(parseBigDecimal(data[5]));
+        item.setNDiemtrungtuyen(parseBigDecimal(data != null && data.length > 6 ? data[6] : null));
 
-        // Gọi hàm áp dụng phương thức xét tuyển từ data[6]
-        applyAdmissionMethods(item, data != null && data.length > 6 ? data[6] : null);
+        // Gọi hàm áp dụng phương thức xét tuyển từ data[7]
+        applyAdmissionMethods(item, data != null && data.length > 7 ? data[7] : null);
         return item;
     }
 
@@ -936,12 +965,8 @@ public class MajorManagementPanel extends JPanel {
             return;
         }
 
-        // Chuyển về chữ thường để so sánh chính xác, không dùng bộ lọc normalizeSubject
-        // nữa
         String valLower = value.toString().toLowerCase();
 
-        // Kiểm tra trực tiếp cả chuỗi có dấu (từ CheckBox truyền ra) và chuỗi không dấu
-        // (nếu có từ nguồn khác)
         item.setNTuyenthang(toFlag(
                 valLower.contains("tuyển thẳng") || valLower.contains("tuyenthang") || valLower.contains("xtt")));
         item.setNDgnl(toFlag(valLower.contains("đgnl") || valLower.contains("dgnl")));
