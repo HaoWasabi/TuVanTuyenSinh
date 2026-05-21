@@ -39,13 +39,13 @@ public class BQDRepository {
 
     public List<BangQuyDoi> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from BangQuyDoi", BangQuyDoi.class).list();
+            return session.createQuery("from BangQuyDoi b where b.status = 'active'", BangQuyDoi.class).list();
         }
     }
 
     public Optional<BangQuyDoi> findByMaquydoi(String dMaquydoi) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dMaquydoi = :dMaquydoi", BangQuyDoi.class)
+            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dMaquydoi = :dMaquydoi and b.status = 'active'", BangQuyDoi.class)
                     .setParameter("dMaquydoi", dMaquydoi)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -55,7 +55,7 @@ public class BQDRepository {
 
     public Optional<BangQuyDoi> findByTohopAndMon(String dTohop, String dMon) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dTohop = :dTohop and b.dMon = :dMon", BangQuyDoi.class)
+            BangQuyDoi result = session.createQuery("from BangQuyDoi b where b.dTohop = :dTohop and b.dMon = :dMon and b.status = 'active'", BangQuyDoi.class)
                     .setParameter("dTohop", dTohop)
                     .setParameter("dMon", dMon)
                     .setMaxResults(1)
@@ -201,7 +201,7 @@ public class BQDRepository {
         }
 
         Optional<BangQuyDoi> existing = session.createQuery(
-                        "from BangQuyDoi b where b.dMaquydoi = :dMaquydoi", BangQuyDoi.class)
+                        "from BangQuyDoi b where b.dMaquydoi = :dMaquydoi and b.status = 'active'", BangQuyDoi.class)
                 .setParameter("dMaquydoi", maQuyDoi)
                 .setMaxResults(1)
                 .uniqueResultOptional();

@@ -55,4 +55,8 @@ public class ThiSinh {
 
     @Column(name = "khu_vuc", length = 45)
     private String khuVuc;
+
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
 }

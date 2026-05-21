@@ -57,14 +57,14 @@ public class NganhRepository {
 
     public List<Nganh> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from Nganh", Nganh.class).list();
+            return session.createQuery("from Nganh n where n.status = 'active'", Nganh.class).list();
         }
     }
 
     public Optional<Nganh> findByMaNganh(String manganh) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Nganh result = session.createQuery(
-                    "from Nganh n where n.manganh = :manganh",
+                    "from Nganh n where n.manganh = :manganh and n.status = 'active'",
                     Nganh.class)
                     .setParameter("manganh", manganh)
                     .setMaxResults(1)
@@ -78,7 +78,7 @@ public class NganhRepository {
     public Optional<Nganh> findByTenNganh(String tennganh) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Nganh result = session.createQuery(
-                    "from Nganh n where n.tennganh = :tennganh",
+                    "from Nganh n where n.tennganh = :tennganh and n.status = 'active'",
                     Nganh.class)
                     .setParameter("tennganh", tennganh)
                     .setMaxResults(1)

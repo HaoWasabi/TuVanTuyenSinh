@@ -15,7 +15,7 @@ public class RoleRepository {
     public Optional<Role> findById(Integer id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             // Sử dụng JOIN FETCH để lấy quyền (permissions) ngay lập tức
-            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id";
+            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id AND r.status = 'active'";
             return session.createQuery(hql, Role.class)
                     .setParameter("id", id)
                     .uniqueResultOptional();
@@ -24,7 +24,7 @@ public class RoleRepository {
 
     public List<Role> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions ORDER BY r.id";
+            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.status = 'active' ORDER BY r.id";
             return session.createQuery(hql, Role.class).getResultList();
         }
     }
@@ -74,7 +74,7 @@ public class RoleRepository {
             tx = session.beginTransaction();
             
             // Lấy Role kèm theo danh sách quyền hiện tại
-            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id";
+            String hql = "SELECT DISTINCT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id AND r.status = 'active'";
             Role role = session.createQuery(hql, Role.class)
                     .setParameter("id", roleId)
                     .uniqueResult();

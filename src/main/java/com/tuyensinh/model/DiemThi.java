@@ -81,4 +81,8 @@ public class DiemThi {
 
     @Column(name = "`NK2`", precision = 8, scale = 2)
     private BigDecimal nk2;
+
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
 }

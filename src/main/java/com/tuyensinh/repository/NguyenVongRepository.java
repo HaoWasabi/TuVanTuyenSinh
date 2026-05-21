@@ -36,14 +36,14 @@ public class NguyenVongRepository {
 
     public List<NguyenVong> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from NguyenVong", NguyenVong.class).list();
+            return session.createQuery("from NguyenVong n where n.status = 'active'", NguyenVong.class).list();
         }
     }
 
     // Hàm lấy nguyện vọng theo CCCD
     public List<NguyenVong> findByCccd(String cccd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from NguyenVong n where n.nnCccd = :cccd order by n.nvTt asc", NguyenVong.class)
+            return session.createQuery("from NguyenVong n where n.nnCccd = :cccd and n.status = 'active' order by n.nvTt asc", NguyenVong.class)
                     .setParameter("cccd", cccd)
                     .list();
         }
@@ -52,7 +52,7 @@ public class NguyenVongRepository {
     // Hàm lấy danh sách nguyện vọng theo ngành, sắp xếp điểm từ cao xuống thấp
     public List<NguyenVong> findByMaNganh(String maNganh) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from NguyenVong n where n.nvManganh = :maNganh order by n.diemXettuyen desc, n.nvTt asc", NguyenVong.class)
+            return session.createQuery("from NguyenVong n where n.nvManganh = :maNganh and n.status = 'active' order by n.diemXettuyen desc, n.nvTt asc", NguyenVong.class)
                     .setParameter("maNganh", maNganh)
                     .list();
         }

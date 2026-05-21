@@ -80,6 +80,7 @@ foreach ($item in $cpItems) {
 $cp = [string]::Join(';', $cpItemsUnique)
 
 $argsContent = @(
+    '--release', '17',
     '-encoding', 'UTF-8',
     '-cp', $cp,
     '-processorpath', $lombokJar,

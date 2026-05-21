@@ -144,6 +144,8 @@ public class DiemXetTuyenServiceWeb {
                 BigDecimal sinhQD = CongThucUtil.quyDoiVsat150Sang10(toBigDecimal(request.getSinh()));
                 BigDecimal suQD = CongThucUtil.quyDoiVsat150Sang10(toBigDecimal(request.getSu()));
                 BigDecimal diQD = CongThucUtil.quyDoiVsat150Sang10(toBigDecimal(request.getDi()));
+                BigDecimal vaQD = CongThucUtil.quyDoiVsat150Sang10(toBigDecimal(request.getVa()));
+                BigDecimal n1QD = CongThucUtil.quyDoiVsat150Sang10(toBigDecimal(request.getN1()));
 
                 // Thêm chi tiết từng môn
                 chiTietQuyDoi.add(MonQuyDoi.builder().tenMon("Toán").diemGoc(toBigDecimal(request.getToan()))
@@ -158,9 +160,13 @@ public class DiemXetTuyenServiceWeb {
                                 .diemQuyDoi(suQD).thangDiem("150→10").build());
                 chiTietQuyDoi.add(MonQuyDoi.builder().tenMon("Địa").diemGoc(toBigDecimal(request.getDi()))
                                 .diemQuyDoi(diQD).thangDiem("150→10").build());
+                chiTietQuyDoi.add(MonQuyDoi.builder().tenMon("Văn").diemGoc(toBigDecimal(request.getVa()))
+                                .diemQuyDoi(vaQD).thangDiem("150→10").build());
+                chiTietQuyDoi.add(MonQuyDoi.builder().tenMon("Ngoại ngữ 1").diemGoc(toBigDecimal(request.getN1()))
+                                .diemQuyDoi(n1QD).thangDiem("150→10").build());
 
-                // Tính điểm trung bình 6 môn (thang 10)
-                BigDecimal diemTrungBinh = tinhDiemTrungBinh6Mon(request);
+                // Tính điểm trung bình theo tổ hợp VSAT đã chọn
+                BigDecimal diemTrungBinh = tinhDiemTrungBinhVsat(request);
                 BigDecimal diemTrungBinhQuyDoi = CongThucUtil.quyDoiVsat150Sang10(diemTrungBinh);
 
                 // Nhân 3 để ra thang 30
@@ -187,6 +193,7 @@ public class DiemXetTuyenServiceWeb {
                                 diemUuTien);
 
                 boolean datNguong = CongThucUtil.datNguong(diemXetTuyen, NGUONG_TUYEN_SINH);
+                List<String> selectedCodes = getVsatSubjectCodes(request.getMaToHop());
 
                 return DiemXetTuyenResponse.builder()
                                 .phuongThuc("VSAT")
@@ -202,8 +209,9 @@ public class DiemXetTuyenServiceWeb {
                                 .diemUuTien(diemUuTien)
                                 .diemXetTuyen(diemXetTuyen)
                                 .chiTietQuyDoi(chiTietQuyDoi)
-                                .thongBao("VSAT: TB 6 môn = " + diemTrungBinh + " (150) → "
-                                                + diemTrungBinhQuyDoi + " (10) → " + diemToHop + " (30)")
+                                .thongBao("VSAT: TB " + selectedCodes.size() + " môn (" + request.getMaToHop() + ") = "
+                                                + diemTrungBinh + " (150) → " + diemTrungBinhQuyDoi
+                                                + " (10) → " + diemToHop + " (30)")
                                 .datNguong(datNguong)
                                 .build();
         }
@@ -273,6 +281,49 @@ public class DiemXetTuyenServiceWeb {
                                 .add(toBigDecimal(request.getSu()))
                                 .add(toBigDecimal(request.getDi()));
                 return tong.divide(new BigDecimal("6"), 4, RoundingMode.HALF_UP);
+        }
+
+        /**
+         * Tính điểm trung bình VSAT chỉ với các môn thuộc tổ hợp đã chọn
+         */
+        private BigDecimal tinhDiemTrungBinhVsat(DiemXetTuyenRequest request) {
+                List<String> codes = getVsatSubjectCodes(request.getMaToHop());
+                if (codes.isEmpty()) {
+                        codes = getVsatSubjectCodes("A00");
+                }
+
+                BigDecimal tong = BigDecimal.ZERO;
+                for (String code : codes) {
+                        tong = tong.add(getScoreForCode(request, code));
+                }
+                return tong.divide(new BigDecimal(codes.size()), 4, RoundingMode.HALF_UP);
+        }
+
+        /**
+         * Trả về danh sách mã môn để tính VSAT theo tổ hợp
+         */
+        private List<String> getVsatSubjectCodes(String maToHop) {
+                if (maToHop == null) {
+                        return List.of("TO", "LI", "HO");
+                }
+                switch (maToHop.trim().toUpperCase()) {
+                        case "A00":
+                                return List.of("TO", "LI", "HO");
+                        case "A01":
+                                return List.of("TO", "LI", "N1");
+                        case "B00":
+                                return List.of("TO", "HO", "SI");
+                        case "C00":
+                                return List.of("VA", "SU", "DI");
+                        case "C01":
+                                return List.of("VA", "TO", "LI");
+                        case "D01":
+                                return List.of("TO", "VA", "N1");
+                        case "D07":
+                                return List.of("TO", "HO", "N1");
+                        default:
+                                return List.of("TO", "LI", "HO");
+                }
         }
 
         /**

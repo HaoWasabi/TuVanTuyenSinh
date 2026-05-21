@@ -53,7 +53,7 @@ public class TohopMonthiRepository {
                      HibernateUtil.getSessionFactory().openSession()) {
 
             return session.createQuery(
-                    "from TohopMonthi",
+                    "from TohopMonthi t where t.status = 'active'",
                     TohopMonthi.class
             ).list();
         }
@@ -66,7 +66,7 @@ public class TohopMonthiRepository {
                      HibernateUtil.getSessionFactory().openSession()) {
 
             TohopMonthi result = session.createQuery(
-                    "from TohopMonthi t where t.matohop = :matohop",
+                    "from TohopMonthi t where t.matohop = :matohop and t.status = 'active'",
                     TohopMonthi.class)
                     .setParameter("matohop", matohop)
                     .setMaxResults(1)
@@ -178,7 +178,7 @@ public class TohopMonthiRepository {
 
             // tìm theo mã tổ hợp
             TohopMonthi existing = session.createQuery(
-                    "from TohopMonthi t where t.matohop = :ma",
+                    "from TohopMonthi t where t.matohop = :ma and t.status = 'active'",
                     TohopMonthi.class)
                     .setParameter("ma", item.getMatohop())
                     .setMaxResults(1)

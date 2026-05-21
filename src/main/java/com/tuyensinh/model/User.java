@@ -47,8 +47,9 @@ public class User {
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
-    @Column(name = "status", length = 20)
-    private String status; // 'active' hoặc 'off'
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active"; // 'active' hoặc 'off'
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -13,15 +13,15 @@ public class UserRepository {
 
     public List<User> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from User u order by u.id desc", User.class).list();
+            return session.createQuery("from User u where u.status = 'active' order by u.id desc", User.class).list();
         }
     }
 
     public List<User> searchByKeyword(String keyword) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "from User u where lower(u.username) like :kw " +
+            String hql = "from User u where (lower(u.username) like :kw " +
                     "or lower(u.email) like :kw " +
-                    "or lower(u.fullName) like :kw " +
+                    "or lower(u.fullName) like :kw) and u.status = 'active' " +
                     "order by u.id desc";
             return session.createQuery(hql, User.class)
                     .setParameter("kw", "%" + keyword.toLowerCase() + "%")
@@ -82,7 +82,7 @@ public class UserRepository {
     public Optional<User> findByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             // Thay JOIN FETCH bằng LEFT JOIN FETCH để tránh mất dữ liệu nếu Role bị lỗi logic
-            String hql = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.username = :username";
+            String hql = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.username = :username AND u.status = 'active'";
             return session.createQuery(hql, User.class)
                     .setParameter("username", username)
                     .uniqueResultOptional();

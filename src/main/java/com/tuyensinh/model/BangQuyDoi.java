@@ -51,4 +51,8 @@ public class BangQuyDoi {
 
     @Column(name = "`d_phanvi`", length = 255)
     private String dPhanvi;
+
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
 }

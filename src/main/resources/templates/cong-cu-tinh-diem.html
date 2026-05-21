@@ -170,7 +170,7 @@
                             <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700"><i data-lucide="layers-3" class="h-5 w-5"></i></span>
                             <div>
                                 <h2 class="text-xl font-black text-slate-900">Tính điểm VSAT</h2>
-                                <p class="text-sm text-slate-500">Nhập điểm các môn thi đánh giá năng lực chuyên biệt (Thang điểm 150).</p>
+                                <p class="text-sm text-slate-500">Nhập điểm tất cả môn thi đánh giá năng lực chuyên biệt (Thang điểm 150). Hệ thống sẽ tính theo tổ hợp đã chọn.</p>
                             </div>
                         </div>
 
@@ -480,16 +480,27 @@
 
             const selectedToHop = normalizeToHop(select.value);
             const base = subjectsByToHop[selectedToHop] || subjectsByToHop.A00;
-            const visibleSet = new Set(base.concat(['TO','VA']));
+            const isVsatForm = formId === 'content-vsat';
+            const visibleSet = new Set(base);
+
+            if (!isVsatForm) {
+                visibleSet.add('TO');
+                visibleSet.add('VA');
+            }
 
             form.querySelectorAll('.subject-field[data-subject]').forEach((field) => {
                 const subjectCode = field.getAttribute('data-subject');
                 const isVisible = visibleSet.has(subjectCode);
                 const input = field.querySelector('input');
 
-                field.classList.toggle('hidden', !isVisible);
+                if (isVsatForm) {
+                    field.classList.remove('hidden');
+                    field.classList.toggle('opacity-60', !isVisible);
+                } else {
+                    field.classList.toggle('hidden', !isVisible);
+                }
 
-                if (!isVisible && input && (input.value || '').trim() === '') {
+                if (!isVisible && !isVsatForm && input && (input.value || '').trim() === '') {
                     input.value = '0';
                 }
             });

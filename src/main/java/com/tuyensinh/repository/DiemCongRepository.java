@@ -36,14 +36,14 @@ public class DiemCongRepository {
 
     public List<DiemCong> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemCong", DiemCong.class).list();
+            return session.createQuery("from DiemCong d where d.status = 'active'", DiemCong.class).list();
         }
     }
 
     // Hàm lấy điểm cộng theo CCCD
     public List<DiemCong> findByCccd(String cccd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemCong d where d.tsCccd = :cccd", DiemCong.class)
+            return session.createQuery("from DiemCong d where d.tsCccd = :cccd and d.status = 'active'", DiemCong.class)
                     .setParameter("cccd", cccd)
                     .list();
         }

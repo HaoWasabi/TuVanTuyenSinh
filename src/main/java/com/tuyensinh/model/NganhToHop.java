@@ -87,4 +87,8 @@ public class NganhToHop {
 
     @Column(name = "`dolech`", precision = 6, scale = 2)
     private BigDecimal doLech;
+
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
 }

@@ -40,14 +40,14 @@ public class NTHRepository {
 
     public List<NganhToHop> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from NganhToHop", NganhToHop.class).list();
+            return session.createQuery("from NganhToHop n where n.status = 'active'", NganhToHop.class).list();
         }
     }
 
     public List<NganhToHop> findByMaNganh(String maNganh) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session
-                    .createQuery("from NganhToHop n where upper(n.maNganh) = upper(:maNganh) order by n.maToHop",
+                    .createQuery("from NganhToHop n where upper(n.maNganh) = upper(:maNganh) and n.status = 'active' order by n.maToHop",
                             NganhToHop.class)
                     .setParameter("maNganh", maNganh)
                     .list();
@@ -56,7 +56,7 @@ public class NTHRepository {
 
     public Optional<NganhToHop> findByTbKeys(String tbKeys) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            NganhToHop result = session.createQuery("from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
+            NganhToHop result = session.createQuery("from NganhToHop m where m.tbKeys = :tbKeys and m.status = 'active'", NganhToHop.class)
                     .setParameter("tbKeys", tbKeys)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -342,7 +342,7 @@ public class NTHRepository {
         }
 
         Optional<NganhToHop> existing = session.createQuery(
-                "from NganhToHop m where m.tbKeys = :tbKeys", NganhToHop.class)
+                "from NganhToHop m where m.tbKeys = :tbKeys and m.status = 'active'", NganhToHop.class)
                 .setParameter("tbKeys", item.getTbKeys())
                 .setMaxResults(1)
                 .uniqueResultOptional();

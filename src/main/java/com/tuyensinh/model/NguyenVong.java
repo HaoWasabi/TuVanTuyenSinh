@@ -62,6 +62,10 @@ public class NguyenVong {
     @Transient
     private String tenNganh;
 
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
+
     public Integer getId() {
         return idnv;
     }

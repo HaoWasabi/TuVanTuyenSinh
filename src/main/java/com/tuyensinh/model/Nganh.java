@@ -62,6 +62,10 @@ public class Nganh {
     @Column(name = "sl_thpt", length = 45)
     private Integer slThpt;
 
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
+
     public Integer getId() {
         return idnganh;
     }

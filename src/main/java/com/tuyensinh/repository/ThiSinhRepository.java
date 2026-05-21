@@ -22,14 +22,14 @@ public class ThiSinhRepository {
     // Xem tất cả thí sinh
     public List<ThiSinh> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from ThiSinh", ThiSinh.class).list();
+            return session.createQuery("from ThiSinh t where t.status = 'active'", ThiSinh.class).list();
         }
     }
 
     // Tìm kiếm thí sinh theo CCCD (chính xác)
     public Optional<ThiSinh> findByCccd(String cccd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            ThiSinh result = session.createQuery("from ThiSinh t where t.cccd = :cccd", ThiSinh.class)
+            ThiSinh result = session.createQuery("from ThiSinh t where t.cccd = :cccd and t.status = 'active'", ThiSinh.class)
                     .setParameter("cccd", cccd)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -42,7 +42,7 @@ public class ThiSinhRepository {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             // Tìm theo CCCD trước
             ThiSinh result = session.createQuery(
-                    "from ThiSinh t where t.cccd = :cccd", ThiSinh.class)
+                    "from ThiSinh t where t.cccd = :cccd and t.status = 'active'", ThiSinh.class)
                     .setParameter("cccd", cccd)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -76,9 +76,9 @@ public class ThiSinhRepository {
     public List<ThiSinh> findByHoTen(String keyword) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             // Tìm kiếm chuỗi keyword xuất hiện trong 'Họ', hoặc 'Tên', hoặc ghép cả 'Họ' và 'Tên'
-            String hql = "from ThiSinh t where lower(t.ho) like lower(:keyword) " +
+            String hql = "from ThiSinh t where (lower(t.ho) like lower(:keyword) " +
                          "or lower(t.ten) like lower(:keyword) " +
-                         "or lower(concat(t.ho, ' ', t.ten)) like lower(:keyword)";
+                         "or lower(concat(t.ho, ' ', t.ten)) like lower(:keyword)) and t.status = 'active'";
             return session.createQuery(hql, ThiSinh.class)
                     .setParameter("keyword", "%" + keyword + "%")
                     .list();
@@ -124,7 +124,7 @@ public class ThiSinhRepository {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            ThiSinh existing = session.createQuery("from ThiSinh t where t.cccd = :cccd", ThiSinh.class)
+            ThiSinh existing = session.createQuery("from ThiSinh t where t.cccd = :cccd and t.status = 'active'", ThiSinh.class)
                     .setParameter("cccd", cccd)
                     .setMaxResults(1)
                     .uniqueResult();

@@ -36,14 +36,14 @@ public class DiemThiRepository {
 
     public List<DiemThi> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemThi", DiemThi.class).list();
+            return session.createQuery("from DiemThi d where d.status = 'active'", DiemThi.class).list();
         }
     }
 
     // Hàm lấy điểm thi theo CCCD
     public List<DiemThi> findByCccd(String cccd) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemThi d where d.cccd = :cccd", DiemThi.class)
+            return session.createQuery("from DiemThi d where d.cccd = :cccd and d.status = 'active'", DiemThi.class)
                     .setParameter("cccd", cccd)
                     .list();
         }
@@ -52,7 +52,7 @@ public class DiemThiRepository {
     // Hàm lấy điểm thi theo số báo danh
     public List<DiemThi> findBySoBaoDanh(String sobaodanh) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from DiemThi d where d.sobaodanh = :sobaodanh", DiemThi.class)
+            return session.createQuery("from DiemThi d where d.sobaodanh = :sobaodanh and d.status = 'active'", DiemThi.class)
                     .setParameter("sobaodanh", sobaodanh)
                     .list();
         }
@@ -236,7 +236,7 @@ public class DiemThiRepository {
      */
     public Object[] thongKeDiemTheoMon(String mon) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "SELECT AVG(d." + mon + "), MIN(d." + mon + "), MAX(d." + mon + "), COUNT(d." + mon + ") FROM DiemThi d WHERE d." + mon + " IS NOT NULL";
+            String hql = "SELECT AVG(d." + mon + "), MIN(d." + mon + "), MAX(d." + mon + "), COUNT(d." + mon + ") FROM DiemThi d WHERE d." + mon + " IS NOT NULL AND d.status = 'active'";
             return session.createQuery(hql, Object[].class).uniqueResult();
         }
     }
@@ -250,7 +250,7 @@ public class DiemThiRepository {
      */
     public Long demTheoKhoangDiem(String mon, BigDecimal tuDiem, BigDecimal denDiem) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "SELECT COUNT(d) FROM DiemThi d WHERE d." + mon + " >= :tuDiem AND d." + mon + " <= :denDiem";
+            String hql = "SELECT COUNT(d) FROM DiemThi d WHERE d." + mon + " >= :tuDiem AND d." + mon + " <= :denDiem AND d.status = 'active'";
             return session.createQuery(hql, Long.class)
                     .setParameter("tuDiem", tuDiem)
                     .setParameter("denDiem", denDiem)
@@ -264,7 +264,7 @@ public class DiemThiRepository {
      */
     public List<Object[]> thongKeSoLuongTheoPhuongThuc() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "SELECT d.dPhuongthuc, COUNT(d) FROM DiemThi d GROUP BY d.dPhuongthuc";
+            String hql = "SELECT d.dPhuongthuc, COUNT(d) FROM DiemThi d WHERE d.status = 'active' GROUP BY d.dPhuongthuc";
             return session.createQuery(hql, Object[].class).list();
         }
     }
@@ -276,7 +276,7 @@ public class DiemThiRepository {
     public Object[] thongKeDiemTrungBinhTatCaMon() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             String hql = "SELECT AVG(d.toan), AVG(d.vatLi), AVG(d.hoaHoc), AVG(d.sinhHoc), " +
-                        "AVG(d.lichSu), AVG(d.diaLi), AVG(d.nguVan), AVG(d.tinHoc), AVG(d.ktpl) FROM DiemThi d";
+                        "AVG(d.lichSu), AVG(d.diaLi), AVG(d.nguVan), AVG(d.tinHoc), AVG(d.ktpl) FROM DiemThi d WHERE d.status = 'active'";
             return session.createQuery(hql, Object[].class).uniqueResult();
         }
     }
@@ -296,7 +296,7 @@ public class DiemThiRepository {
                     "  WHEN d." + mon + " < 8 THEN '6-8' " +
                     "  ELSE '8-10' " +
                     "END, COUNT(d) " +
-                    "FROM DiemThi d WHERE d." + mon + " IS NOT NULL " +
+                    "FROM DiemThi d WHERE d." + mon + " IS NOT NULL AND d.status = 'active' " +
                     "GROUP BY CASE " +
                     "  WHEN d." + mon + " < 2 THEN '0-2' " +
                     "  WHEN d." + mon + " < 4 THEN '2-4' " +

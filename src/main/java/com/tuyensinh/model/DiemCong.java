@@ -51,4 +51,8 @@ public class DiemCong {
 
     @Column(name = "`dc_keys`", length = 45)
     private String dcKeys;
+
+    @Builder.Default
+    @Column(name = "status", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    private String status = "active";
 }
