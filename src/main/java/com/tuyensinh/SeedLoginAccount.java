@@ -25,7 +25,7 @@ public class SeedLoginAccount {
                 user.setPassword(password);
                 user.setEmail(email);
                 user.setFullName(fullName);
-                user.setStatus("active");
+                user.setStatus("ACTIVE");
                 user.setIdRoleValue(roleId);
                 userRepository.update(user);
                 System.out.println("Updated existing account: " + username);
@@ -35,7 +35,7 @@ public class SeedLoginAccount {
                         .password(password)
                         .email(email)
                         .fullName(fullName)
-                        .status("active")
+                        .status("ACTIVE")
                         .idRoleValue(roleId)
                         .build();
                 userRepository.save(user);

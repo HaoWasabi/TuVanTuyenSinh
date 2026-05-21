@@ -103,9 +103,20 @@ public class ThiSinhRepository {
                 return false;
             }
 
-            // CHUYỂN SANG XÓA MỀM
+            // CHUYỂN SANG XÓA MỀM THÍ SINH
             existing.setStatus("INACTIVE");
             session.merge(existing);
+
+            // XÓA MỀM TÀI KHOẢN NGƯỜI DÙNG TƯƠNG ỨNG (NẾU CÓ)
+            com.tuyensinh.model.User user = session.createQuery("from User u where u.studentCccd = :cccd", com.tuyensinh.model.User.class)
+                    .setParameter("cccd", cccd)
+                    .setMaxResults(1)
+                    .uniqueResult();
+            if (user != null) {
+                user.setStatus("INACTIVE");
+                session.merge(user);
+            }
+
             tx.commit();
             return true;
         } catch (Exception ex) {

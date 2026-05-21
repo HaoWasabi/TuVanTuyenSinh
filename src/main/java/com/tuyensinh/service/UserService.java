@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public User create(User user) {
-        validateRoleAndStatus(user);
+        validateStatus(user);
         return userRepository.save(user);
     }
 
@@ -37,7 +37,7 @@ public class UserService {
     }
 
     public User update(User user) {
-        validateRoleAndStatus(user);
+        validateStatus(user);
         return userRepository.update(user);
     }
 
@@ -45,15 +45,12 @@ public class UserService {
         return userRepository.deleteById(id);
     }
 
-    private void validateRoleAndStatus(User user) {
-        if (user.getRole() != null) {
-            String roleName = user.getRole().getName();
-            if (!"admin".equalsIgnoreCase(roleName) && !"user".equalsIgnoreCase(roleName)) {
-                throw new IllegalArgumentException("Lỗi: Role chỉ có thể là 'admin' hoặc 'user'. Giá trị nhận được: " + roleName);
+    private void validateStatus(User user) {
+        if (user.getStatus() != null) {
+            String status = user.getStatus().toUpperCase();
+            if (!status.equals("ACTIVE") && !status.equals("OFF") && !status.equals("INACTIVE")) {
+                throw new IllegalArgumentException("Lỗi: Status chỉ có thể là 'ACTIVE', 'OFF' hoặc 'INACTIVE'. Giá trị nhận được: " + user.getStatus());
             }
         }
-        if (user.getStatus() != null && !user.getStatus().equals("active") && !user.getStatus().equals("off")) {
-            throw new IllegalArgumentException("Lỗi: Status chỉ có thể là 'active' hoặc 'off'. Giá trị nhận được: " + user.getStatus());
-        }
     }
-}
+}

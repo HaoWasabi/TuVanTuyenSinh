@@ -13,13 +13,13 @@ public class UserRepository {
 
     public List<User> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from User u where u.status = 'active' order by u.id desc", User.class).list();
+            return session.createQuery("from User u where UPPER(u.status) != 'INACTIVE' order by u.id desc", User.class).list();
         }
     }
 
     public List<User> searchByKeyword(String keyword) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "from User u where u.status = 'ACTIVE' and " +
+            String hql = "from User u where UPPER(u.status) != 'INACTIVE' and " +
                     "(lower(u.username) like :kw " +
                     "or lower(u.email) like :kw " +
                     "or lower(u.fullName) like :kw) " +
@@ -46,7 +46,7 @@ public class UserRepository {
     public Optional<User> findById(Integer id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             User result = session.createQuery(
-                    "from User u where u.id = :id and u.status = 'active'",
+                    "from User u where u.id = :id",
                     User.class)
                     .setParameter("id", id)
                     .setMaxResults(1)
@@ -59,9 +59,24 @@ public class UserRepository {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            User merged = (User) session.merge(user);
+            // Load managed entity to avoid detached cascade issues with Role→permissions
+            User managed = session.get(User.class, user.getId());
+            if (managed == null) {
+                tx.rollback();
+                throw new RuntimeException("Không tìm thấy người dùng với ID: " + user.getId());
+            }
+            // Copy only User's own fields (avoid touching the Role relationship)
+            managed.setUsername(user.getUsername());
+            managed.setEmail(user.getEmail());
+            managed.setPassword(user.getPassword());
+            managed.setFullName(user.getFullName());
+            managed.setPhoneNumber(user.getPhoneNumber());
+            managed.setAvatarUrl(user.getAvatarUrl());
+            managed.setStatus(user.getStatus());
+            managed.setIdRoleValue(user.getIdRoleValue());
+            managed.setStudentCccd(user.getStudentCccd());
             tx.commit();
-            return merged;
+            return managed;
         } catch (Exception ex) {
             rollbackQuietly(tx);
             throw ex;
@@ -78,14 +93,18 @@ public class UserRepository {
                 return false;
             }
             // ==========================================
-            // THÊM LOGIC CHẶN XÓA TÀI KHOẢN THÍ SINH
+            // XÓA MỀM TÀI KHOẢN VÀ THÍ SINH (NẾU CÓ)
             // ==========================================
             String cccd = existing.getStudentCccd();
             if (cccd != null && !cccd.trim().isEmpty()) {
-                tx.commit();
-                // Ném ra ngoại lệ để báo cho tầng UI biết lý do không xóa được
-                throw new RuntimeException("Không được phép xóa tài khoản của thí sinh!");
-                // Hoặc nếu hệ thống của bạn không bắt Exception, bạn có thể return false;
+                com.tuyensinh.model.ThiSinh thiSinh = session.createQuery("from ThiSinh t where t.cccd = :cccd", com.tuyensinh.model.ThiSinh.class)
+                        .setParameter("cccd", cccd)
+                        .setMaxResults(1)
+                        .uniqueResult();
+                if (thiSinh != null) {
+                    thiSinh.setStatus("INACTIVE");
+                    session.merge(thiSinh);
+                }
             }
             // CHUYỂN SANG XÓA MỀM
             existing.setStatus("INACTIVE");
@@ -104,7 +123,7 @@ public class UserRepository {
             String hql = "SELECT DISTINCT u FROM User u " +
                     "LEFT JOIN FETCH u.role r " +
                     "LEFT JOIN FETCH r.permissions " +
-                    "WHERE u.status = 'ACTIVE' AND u.username = :username";
+                    "WHERE UPPER(u.status) != 'INACTIVE' AND u.username = :username";
             return session.createQuery(hql, User.class)
                     .setParameter("username", username)
                     .uniqueResultOptional();
