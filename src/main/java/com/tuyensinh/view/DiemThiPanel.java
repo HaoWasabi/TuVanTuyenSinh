@@ -344,7 +344,17 @@ public class DiemThiPanel extends JPanel {
             
             // Get note from DiemCong lookup
             DiemCong dc_info = diemCongMap.get(nv.getNvKeys());
-            String ghiChu = dc_info != null ? dc_info.getGhichu() : "";
+            String ghiChu = dc_info != null && dc_info.getGhichu() != null ? dc_info.getGhichu().trim() : "";
+            
+            String pt = nv.getTtPhuongthuc() != null ? nv.getTtPhuongthuc() : "";
+            String ptLower = pt.toLowerCase();
+            boolean isVsatDgnl = ptLower.contains("vsat") || ptLower.contains("v-sat") || ptLower.contains("đánh giá năng lực") || ptLower.contains("dgnl") || ptLower.contains("đgnl");
+
+            if (isVsatDgnl) {
+                if (!ghiChu.toLowerCase().contains("đã quy đổi")) {
+                    ghiChu = ghiChu.isEmpty() ? "Đã quy đổi" : ghiChu + " (Đã quy đổi)";
+                }
+            }
 
              Object[] row = {
                      cccd, 
@@ -356,7 +366,7 @@ public class DiemThiPanel extends JPanel {
                      formatDecimal(nv.getDiemCong()), 
                      formatDecimal(nv.getDiemUtqd()), 
                      formatDecimal(nv.getDiemXettuyen()),
-                     nv.getTtPhuongthuc(),
+                     cleanPhuongThuc(pt),
                      ghiChu
              };
             tableModel.addRow(row);
@@ -444,10 +454,17 @@ public class DiemThiPanel extends JPanel {
         return SessionManager.getCurrentUser().getUsername().trim();
     }
     
-    private String formatDecimal(BigDecimal value) {
+    private String formatDecimal(java.math.BigDecimal value) {
         if (value == null) {
             return "";
         }
         return value.stripTrailingZeros().toPlainString();
+    }
+
+    private String cleanPhuongThuc(String pt) {
+        if (pt == null) return "";
+        return pt.replaceAll("(?i)\\s*\\(đã quy đổi\\)\\s*", "")
+                 .replaceAll("(?i)\\s*-\\s*đã quy đổi\\s*", "")
+                 .replaceAll("(?i)\\s*đã quy đổi\\s*", "").trim();
     }
 }

@@ -31,7 +31,7 @@ public class DiemCongRepository {
     public Optional<DiemCong> findById(Integer id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             DiemCong result = session.createQuery(
-                    "from DiemCong d where d.id = :id and d.status = 'active'", DiemCong.class)
+                    "from DiemCong d where d.iddiemcong = :id and d.status = 'active'", DiemCong.class)
                     .setParameter("id", id)
                     .uniqueResult();
             return Optional.ofNullable(result);
@@ -59,7 +59,7 @@ public class DiemCongRepository {
             transaction = session.beginTransaction();
 
             // Hibernate sẽ tự động map object DiemCong thành lệnh INSERT SQL
-            session.save(dc);
+            session.persist(dc);
 
             transaction.commit();
             return true;
