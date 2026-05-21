@@ -196,6 +196,11 @@ public class UserManagementPanel extends JPanel {
             editBtn.addActionListener(e -> handleEdit());
             actions.add(editBtn);
         }
+        if (SessionManager.hasPermission("USER_TOGGLE")) {
+            JButton lockBtn = createButton("Khóa/Mở khóa", new Color(108, 117, 125));
+            lockBtn.addActionListener(e -> handleToggleLock());
+            actions.add(lockBtn);
+        }
         if (SessionManager.hasPermission("USER_DELETE")) {
             JButton deleteBtn = createButton("Xóa", UIStyles.DANGER);
             deleteBtn.addActionListener(e -> handleDelete());
@@ -263,11 +268,26 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void handleAdd() {
+        User currentUser = SessionManager.getCurrentUser();
+        Integer currentRoleId = currentUser != null ? currentUser.getIdRoleValue() : null;
+
+        // Xác định danh sách vai trò cho phép tạo
+        String[] availableRoles;
+        if (currentRoleId != null && currentRoleId == 1) {
+            // Admin: chỉ được tạo GIAM_THI và HOC_SINH (không được tạo ADMIN khác)
+            availableRoles = new String[]{"GIAM_THI", "HOC_SINH"};
+        } else if (currentRoleId != null && currentRoleId == 2) {
+            // Giám thị: chỉ được tạo HOC_SINH
+            availableRoles = new String[]{"HOC_SINH"};
+        } else {
+            availableRoles = new String[]{"HOC_SINH"};
+        }
+
         JTextField usernameField = new JTextField();
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
         JTextField phoneField = new JTextField();
-        JComboBox<String> roleBox = new JComboBox<>(new String[]{"ADMIN", "GIAM_THI", "HOC_SINH"});
+        JComboBox<String> roleBox = new JComboBox<>(availableRoles);
         JComboBox<String> statusBox = new JComboBox<>(new String[]{"Hoạt động", "Đã khóa"});
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -301,7 +321,7 @@ public class UserManagementPanel extends JPanel {
                     .email(defaultEmailIfBlank(emailField.getText(), usernameField.getText().trim()))
                     .phoneNumber(blankToNull(phoneField.getText()))
                     .idRoleValue(mapRoleOptionToId((String) roleBox.getSelectedItem()))
-                    .status("Hoạt động".equals(statusBox.getSelectedItem()) ? "active" : "off")
+                    .status("Hoạt động".equals(statusBox.getSelectedItem()) ? "ACTIVE" : "OFF")
                     .build();
 
             try {
@@ -331,16 +351,37 @@ public class UserManagementPanel extends JPanel {
             return;
         }
 
-        if (isOtherAdmin(user)) {
-            JOptionPane.showMessageDialog(this, "Bạn không có quyền sửa thông tin admin khác.", "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
+        String denyReason = canModifyUser(user, "sửa");
+        if (denyReason != null) {
+            JOptionPane.showMessageDialog(this, denyReason, "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         JTextField nameField = new JTextField(safe(user.getFullName()));
         JTextField emailField = new JTextField(safe(user.getEmail()));
         JTextField phoneField = new JTextField(safe(user.getPhoneNumber()));
-        JComboBox<String> roleBox = new JComboBox<>(new String[]{"ADMIN", "GIAM_THI", "HOC_SINH"});
-        roleBox.setSelectedItem(roleOptionFromId(user.getIdRoleValue()));
+
+        // Xác định danh sách vai trò cho phép chỉnh sửa
+        User currentUser = SessionManager.getCurrentUser();
+        Integer currentRoleId = currentUser != null ? currentUser.getIdRoleValue() : null;
+        String[] editableRoles;
+        if (currentRoleId != null && currentRoleId == 1) {
+            editableRoles = new String[]{"GIAM_THI", "HOC_SINH"};
+        } else if (currentRoleId != null && currentRoleId == 2) {
+            editableRoles = new String[]{"HOC_SINH"};
+        } else {
+            editableRoles = new String[]{"HOC_SINH"};
+        }
+
+        JComboBox<String> roleBox = new JComboBox<>(editableRoles);
+        String currentRoleOption = roleOptionFromId(user.getIdRoleValue());
+        // Nếu vai trò hiện tại nằm trong danh sách thì chọn, không thì để mặc định
+        for (int i = 0; i < editableRoles.length; i++) {
+            if (editableRoles[i].equals(currentRoleOption)) {
+                roleBox.setSelectedItem(currentRoleOption);
+                break;
+            }
+        }
         roleBox.setEnabled(SessionManager.hasPermission("USER_CHANGE_ROLE"));
         JComboBox<String> statusBox = new JComboBox<>(new String[]{"Hoạt động", "Đã khóa"});
         statusBox.setSelectedItem(toStatusLabel(user.getStatus()));
@@ -370,15 +411,106 @@ public class UserManagementPanel extends JPanel {
             if (SessionManager.hasPermission("USER_CHANGE_ROLE")) {
                 user.setIdRoleValue(mapRoleOptionToId((String) roleBox.getSelectedItem()));
             }
-            user.setStatus("Hoạt động".equals(statusBox.getSelectedItem()) ? "active" : "off");
+            user.setStatus("Hoạt động".equals(statusBox.getSelectedItem()) ? "ACTIVE" : "OFF");
 
             try {
                 userService.update(user);
                 loadUsers(userService.getAll());
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Đã sửa thông tin người dùng '" + safe(user.getUsername()) + "' thành công.",
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Không thể cập nhật người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void handleToggleLock() {
+        User user = getSelectedUser();
+        if (user == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn người dùng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String denyReason = canToggleLock(user);
+        if (denyReason != null) {
+            JOptionPane.showMessageDialog(this, denyReason, "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        boolean isCurrentlyActive = "ACTIVE".equalsIgnoreCase(user.getStatus());
+        String newStatus = isCurrentlyActive ? "OFF" : "ACTIVE";
+        String actionLabel = isCurrentlyActive ? "khóa" : "mở khóa";
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn " + actionLabel + " user '" + safe(user.getUsername()) + "' không?",
+                "Xác nhận " + actionLabel,
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            user.setStatus(newStatus);
+            userService.update(user);
+            loadUsers(userService.getAll());
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Đã " + actionLabel + " tài khoản '" + safe(user.getUsername()) + "' thành công.",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Không thể " + actionLabel + " người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Kiểm tra quyền khóa/mở khóa.
+     * - Admin (role_id=1): không được khóa/mở khóa admin khác
+     * - Giám thị (role_id=2): không được khóa/mở khóa admin hoặc giám thị khác
+     * @return null nếu được phép, hoặc chuỗi lý do từ chối
+     */
+    private String canToggleLock(User targetUser) {
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser == null) {
+            return "Không xác định được người dùng hiện tại.";
+        }
+
+        Integer currentRoleId = currentUser.getIdRoleValue();
+        Integer targetRoleId = targetUser.getIdRoleValue();
+
+        // Không được tự khóa chính mình
+        if (currentUser.getId() != null && currentUser.getId().equals(targetUser.getId())) {
+            return "Bạn không thể khóa/mở khóa chính mình.";
+        }
+
+        // Admin (role_id=1): không được khóa/mở khóa admin khác
+        if (currentRoleId != null && currentRoleId == 1) {
+            if (targetRoleId != null && targetRoleId == 1) {
+                return "Admin không được phép khóa/mở khóa admin khác.";
+            }
+            return null; // Admin được phép khóa GIAM_THI và HOC_SINH
+        }
+
+        // Giám thị (role_id=2): không được khóa/mở khóa admin hoặc giám thị khác
+        if (currentRoleId != null && currentRoleId == 2) {
+            if (targetRoleId != null && targetRoleId == 1) {
+                return "Giám thị không được phép khóa/mở khóa admin.";
+            }
+            if (targetRoleId != null && targetRoleId == 2) {
+                return "Giám thị không được phép khóa/mở khóa giám thị khác.";
+            }
+            return null; // Giám thị được phép khóa HOC_SINH
+        }
+
+        // Các role khác (HOC_SINH, v.v.) không có quyền khóa/mở khóa
+        return "Bạn không có quyền khóa/mở khóa người dùng.";
     }
 
     private void handleDelete() {
@@ -388,8 +520,9 @@ public class UserManagementPanel extends JPanel {
             return;
         }
 
-        if (isOtherAdmin(user)) {
-            JOptionPane.showMessageDialog(this, "Bạn không có quyền xóa admin khác.", "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
+        String denyReason = canModifyUser(user, "xóa");
+        if (denyReason != null) {
+            JOptionPane.showMessageDialog(this, denyReason, "Từ chối truy cập", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -406,6 +539,12 @@ public class UserManagementPanel extends JPanel {
         try {
             userService.deleteById(user.getId());
             loadUsers(userService.getAll());
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Đã xóa người dùng '" + safe(user.getUsername()) + "' thành công.",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Không thể xóa người dùng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
@@ -503,15 +642,53 @@ public class UserManagementPanel extends JPanel {
         return 3;
     }
 
-    private boolean isOtherAdmin(User targetUser) {
-        if (targetUser == null || targetUser.getIdRoleValue() == null || targetUser.getIdRoleValue() != 1) {
-            return false;
+    /**
+     * Kiểm tra quyền thêm/sửa/xóa người dùng.
+     * - Admin (role_id=1): không được thêm/sửa/xóa admin khác
+     * - Giám thị (role_id=2): không được thêm/sửa/xóa admin hoặc giám thị khác
+     * @param targetUser người dùng bị tác động
+     * @param action tên hành động (để hiển thị thông báo)
+     * @return null nếu được phép, hoặc chuỗi lý do từ chối
+     */
+    private String canModifyUser(User targetUser, String action) {
+        if (targetUser == null) {
+            return null;
         }
         User currentUser = SessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getId() == null || targetUser.getId() == null) {
-            return true;
+        if (currentUser == null) {
+            return "Không xác định được người dùng hiện tại.";
         }
-        return !currentUser.getId().equals(targetUser.getId());
+
+        Integer currentRoleId = currentUser.getIdRoleValue();
+        Integer targetRoleId = targetUser.getIdRoleValue();
+
+        if ("xóa".equals(action) && currentUser.getId() != null && currentUser.getId().equals(targetUser.getId())) {
+            return "Bạn không thể xóa tài khoản của chính mình.";
+        }
+
+        // Admin (role_id=1): không được thêm/sửa/xóa admin khác
+        if (currentRoleId != null && currentRoleId == 1) {
+            if (targetRoleId != null && targetRoleId == 1
+                    && !currentUser.getId().equals(targetUser.getId())) {
+                return "Admin không được phép " + action + " admin khác.";
+            }
+            return null;
+        }
+
+        // Giám thị (role_id=2): không được thêm/sửa/xóa admin hoặc giám thị khác
+        if (currentRoleId != null && currentRoleId == 2) {
+            if (targetRoleId != null && targetRoleId == 1) {
+                return "Giám thị không được phép " + action + " admin.";
+            }
+            if (targetRoleId != null && targetRoleId == 2
+                    && !currentUser.getId().equals(targetUser.getId())) {
+                return "Giám thị không được phép " + action + " giám thị khác.";
+            }
+            return null;
+        }
+
+        // Các role khác không có quyền
+        return "Bạn không có quyền " + action + " người dùng này.";
     }
 
     private String toStatusLabel(String status) {
@@ -520,6 +697,9 @@ public class UserManagementPanel extends JPanel {
         }
         if ("off".equalsIgnoreCase(status)) {
             return "Đã khóa";
+        }
+        if ("inactive".equalsIgnoreCase(status)) {
+            return "Đã xóa";
         }
         return safe(status);
     }

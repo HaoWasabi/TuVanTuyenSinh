@@ -25,17 +25,20 @@ public class AuthService {
                 System.err.println("[WARNING] Hibernate không thể map Role. Kiểm tra xem id=" + user.getIdRoleValue() + " có tồn tại trong bảng roles chưa?");
             }
 
-            // Kiểm tra trạng thái và mật khẩu (So sánh Plain Text theo dữ liệu thực tế DB)
-            if ("active".equalsIgnoreCase(user.getStatus()) && password.equals(user.getPassword())) {
-                // Khởi tạo Session: Nạp thông tin User và danh sách Quyền (Permissions)
-                SessionManager.initialize(user);
-                
-                // Cập nhật lần đăng nhập cuối
-                userRepository.updateLastLogin(user.getId());
-                return user;
-            } else if (!"active".equalsIgnoreCase(user.getStatus())) {
-                throw new RuntimeException("Tài khoản đang bị khóa hoặc chưa kích hoạt!");
+            // Kiểm tra mật khẩu trước
+            if (!password.equals(user.getPassword())) {
+                throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác!");
             }
+
+            // Mật khẩu đúng -> Kiểm tra trạng thái tài khoản
+            if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!");
+            }
+
+            // Đăng nhập thành công
+            SessionManager.initialize(user);
+            userRepository.updateLastLogin(user.getId());
+            return user;
         }
         
         throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác!");

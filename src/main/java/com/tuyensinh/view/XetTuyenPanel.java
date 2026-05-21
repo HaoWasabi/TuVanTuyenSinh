@@ -18,7 +18,6 @@ public class XetTuyenPanel extends JPanel {
 
     private JComboBox<String> phamViCombo;
     private JComboBox<String> nganhCombo;
-    private JComboBox<String> phuongThucCombo;
     private JCheckBox uuTienNVCheck;
     private JCheckBox motNVCheck;
     private JButton validateBtn;
@@ -99,7 +98,6 @@ public class XetTuyenPanel extends JPanel {
 
         form.add(createLabeledPanel("Phạm vi xét tuyển:", createPhamViPanel()));
         form.add(createLabeledPanel("Ngành áp dụng:", createNganhPanel()));
-        form.add(createLabeledPanel("Phương thức áp dụng:", createPhuongThucPanel()));
         form.add(createLabeledPanel("Quy tắc xét tuyển:", createRulesPanel()));
 
         card.add(form, BorderLayout.CENTER);
@@ -121,7 +119,7 @@ public class XetTuyenPanel extends JPanel {
     private JPanel createPhamViPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         panel.setOpaque(false);
-        phamViCombo = new JComboBox<>(new String[]{"Toàn trường", "Theo ngành", "Theo phương thức"});
+        phamViCombo = new JComboBox<>(new String[]{"Toàn trường", "Theo ngành"});
         phamViCombo.setFont(UIStyles.FONT_BODY);
         phamViCombo.addActionListener(e -> updateScopeFields());
         panel.add(phamViCombo);
@@ -136,16 +134,6 @@ public class XetTuyenPanel extends JPanel {
         nganhCombo.setEnabled(false);
         loadNganhCombo();
         panel.add(nganhCombo);
-        return panel;
-    }
-
-    private JPanel createPhuongThucPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        panel.setOpaque(false);
-        phuongThucCombo = new JComboBox<>(new String[]{"Tất cả", "THPT", "DGNL", "VSAT", "XTT"});
-        phuongThucCombo.setFont(UIStyles.FONT_BODY);
-        phuongThucCombo.setEnabled(false);
-        panel.add(phuongThucCombo);
         return panel;
     }
 
@@ -296,7 +284,6 @@ public class XetTuyenPanel extends JPanel {
     private void updateScopeFields() {
         int idx = phamViCombo.getSelectedIndex();
         nganhCombo.setEnabled(idx == 1);
-        phuongThucCombo.setEnabled(idx == 2);
     }
 
     private void handleValidate() {
@@ -359,12 +346,6 @@ public class XetTuyenPanel extends JPanel {
             if (selected != null && !selected.equals("Tất cả")) {
                 String maNganh = selected.split(" - ")[0];
                 config.setNganhApDung(maNganh);
-            }
-        } else if (phamViIdx == 2) {
-            config.setPhamVi(XetTuyenService.XetTuyenConfig.PhamVi.THEO_PHUONG_THUC);
-            String pt = (String) phuongThucCombo.getSelectedItem();
-            if (!pt.equals("Tất cả")) {
-                config.setPhuongThucApDung(pt);
             }
         }
 

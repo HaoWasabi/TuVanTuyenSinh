@@ -6980,4 +6980,44 @@ UPDATE xt_nguyenvongxettuyen
 SET nv_keys = REPLACE(nv_keys, '008306188356', '018306188356')
 WHERE nv_keys LIKE '%008306188356%';
 
+
+-- USERS
+SET @max_users = (SELECT MAX(user_id) FROM users);
+SET @sql1 = CONCAT('ALTER TABLE users AUTO_INCREMENT = ', @max_users + 1);
+PREPARE stmt1 FROM @sql1;
+EXECUTE stmt1;
+
+-- ROLES
+SET @max_roles = (SELECT MAX(id) FROM roles);
+SET @sql2 = CONCAT('ALTER TABLE roles AUTO_INCREMENT = ', @max_roles + 1);
+PREPARE stmt2 FROM @sql2;
+EXECUTE stmt2;
+
+-- BANGQUYDOI
+SET @max_qd = (SELECT MAX(idqd) FROM xt_bangquydoi);
+SET @sql3 = CONCAT('ALTER TABLE xt_bangquydoi AUTO_INCREMENT = ', @max_qd + 1);
+PREPARE stmt3 FROM @sql3;
+EXECUTE stmt3;
+
+DELIMITER $$
+
+CREATE TRIGGER auto_set_cccd
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    -- Nếu chưa có CCCD
+    IF NEW.student_cccd IS NULL THEN
+        -- Lấy CCCD từ bảng thí sinh theo username
+        SET NEW.student_cccd = (
+            SELECT cccd
+            FROM xt_thisinhxettuyen25
+            WHERE cccd = NEW.username
+            LIMIT 1
+        );
+    END IF;
+END$$
+
+DELIMITER ;
+
+
 -- Dump completed on 2026-05-18 21:38:19
