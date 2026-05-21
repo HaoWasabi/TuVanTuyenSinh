@@ -662,6 +662,10 @@ public class UserManagementPanel extends JPanel {
         Integer currentRoleId = currentUser.getIdRoleValue();
         Integer targetRoleId = targetUser.getIdRoleValue();
 
+        if ("xóa".equals(action) && currentUser.getId() != null && currentUser.getId().equals(targetUser.getId())) {
+            return "Bạn không thể xóa tài khoản của chính mình.";
+        }
+
         // Admin (role_id=1): không được thêm/sửa/xóa admin khác
         if (currentRoleId != null && currentRoleId == 1) {
             if (targetRoleId != null && targetRoleId == 1
