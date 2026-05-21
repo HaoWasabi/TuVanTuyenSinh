@@ -5,130 +5,224 @@
     <title>Tra cứu Ngành</title>
 </head>
 <body>
-    <div layout:fragment="content">
-        <h1 class="text-3xl font-bold mb-8">Tra cứu Ngành</h1>
+<div layout:fragment="content">
+    <h1 class="text-3xl font-bold mb-8">Tra cứu Ngành</h1>
 
-        <!-- Search Box -->
-        <div class="mb-8">
-            <form method="get" th:action="@{/tra-cuu-nganh}" class="flex gap-2">
-                <input type="text" name="search" placeholder="Tìm theo tên ngành hoặc mã ngành..."
-                       th:value="${search}"
-                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Tìm kiếm
-                </button>
-            </form>
-        </div>
+    <div class="mb-8">
+        <form method="get" th:action="@{/tra-cuu-nganh}" class="flex gap-2">
+            <input type="text" name="search" placeholder="Tìm theo tên ngành hoặc mã ngành..."
+                   th:value="${search}"
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"/>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Tìm kiếm
+            </button>
+        </form>
+    </div>
 
-        <!-- Majors List -->
-        <div class="grid md:grid-cols-2 gap-6">
-            <div th:each="nganh : ${nganhs}" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
-                <h3 class="text-lg font-semibold mb-2">
-                    <span th:text="${nganh.tenNganh + ' (' + nganh.maNganh + ')'}"></span>
-                </h3>
+    <div class="grid md:grid-cols-2 gap-6">
+        <div th:each="nganh : ${nganhs}" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
 
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Tổ hợp gốc:</span>
-                        <span class="font-medium">
-                            <span th:text="${nganh.maToHopGoc != null ? nganh.maToHopGoc : 'N/A'}"></span>
-                            <span th:if="${nganh.tenToHopGoc != null}" th:text="${' - ' + nganh.tenToHopGoc}"></span>
-                        </span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Điểm sàn:</span>
-                        <span class="font-medium" th:text="${nganh.diemSan != null ? nganh.diemSan : 'N/A'}"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Điểm trúng tuyển:</span>
-                        <span class="font-medium" th:text="${nganh.diemTrungTuyen != null ? nganh.diemTrungTuyen : 'N/A'}"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Chỉ tiêu tuyển sinh:</span>
-                        <span class="font-medium" th:text="${nganh.chiTieu != null ? nganh.chiTieu : 'N/A'}"></span>
-                    </div>
+            <h3 class="text-lg font-semibold mb-2">
+                <span th:text="${nganh.tenNganh + ' (' + nganh.maNganh + ')'}"></span>
+            </h3>
+
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Tổ hợp gốc:</span>
+                    <span class="font-medium">
+                        <span th:text="${nganh.maToHopGoc != null ? nganh.maToHopGoc : 'N/A'}"></span>
+                        <span th:if="${nganh.tenToHopGoc != null}"
+                              th:text="${' - ' + nganh.tenToHopGoc}"></span>
+                    </span>
                 </div>
 
-                <button class="mt-4 w-full px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50"
-                        onclick="showDetails(this)">
-                    Xem chi tiết
-                </button>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Điểm sàn:</span>
+                    <span class="font-medium"
+                          th:text="${nganh.diemSan != null ? nganh.diemSan : 'N/A'}"></span>
+                </div>
 
-                <!-- Details Section (Hidden by default) -->
-                <div class="mt-4 detail-section hidden border-t pt-4">
-                    <h4 class="font-semibold mb-3">Các tổ hợp khác và quy đổi điểm:</h4>
-                    <div th:if="${nganh.toHopKhacList == null or nganh.toHopKhacList.isEmpty()}" class="text-sm text-gray-500">
-                        Không có dữ liệu tổ hợp quy đổi.
-                    </div>
-                    <div th:if="${nganh.toHopKhacList != null and !nganh.toHopKhacList.isEmpty()}" class="overflow-x-auto">
-                        <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                            <thead class="bg-gray-50 text-gray-600">
-                                <tr>
-                                    <th class="text-left px-3 py-2">Mã tổ hợp</th>
-                                    <th class="text-left px-3 py-2">Tên tổ hợp</th>
-                                    <th class="text-right px-3 py-2">Độ lệch</th>
-                                    <th class="text-right px-3 py-2">Điểm sàn</th>
-                                    <th class="text-right px-3 py-2">Điểm trúng tuyển</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="toHop : ${nganh.toHopKhacList}" class="border-t border-gray-200">
-                                    <td class="px-3 py-2 font-medium" th:text="${toHop.maToHop}"></td>
-                                    <td class="px-3 py-2" th:text="${toHop.tenToHop != null ? toHop.tenToHop : 'N/A'}"></td>
-                                    <td class="px-3 py-2 text-right" th:text="${(nganh.diemSan != null ? nganh.diemSan : 0) - (toHop.diemSanQuyDoi != null ? toHop.diemSanQuyDoi : 0) != 0 ? (nganh.diemSan - toHop.diemSanQuyDoi) : 0}"></td>
-                                    <td class="px-3 py-2 text-right" th:text="${toHop.diemSanQuyDoi != null ? toHop.diemSanQuyDoi : 'N/A'}"></td>
-                                    <td class="px-3 py-2 text-right" th:text="${toHop.diemTrungTuyenQuyDoi != null ? toHop.diemTrungTuyenQuyDoi : 'N/A'}"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Admission Count Details -->
-                    <div class="mt-3 border-t pt-3">
-                        <h5 class="font-semibold text-sm mb-2">Số lượng đầu vào:</h5>
-                        <div class="grid grid-cols-2 gap-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Tuyển thẳng:</span>
-                                <span class="font-medium" th:text="${nganh.slXtt != null ? nganh.slXtt : 0}"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">THPT:</span>
-                                <span class="font-medium" th:text="${nganh.slThpt != null ? nganh.slThpt : 0}"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">VSAT:</span>
-                                <span class="font-medium" th:text="${nganh.slVsat != null ? nganh.slVsat : 0}"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">ĐGNL:</span>
-                                <span class="font-medium" th:text="${nganh.slDgnl != null ? nganh.slDgnl : 0}"></span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Điểm trúng tuyển:</span>
+                    <span class="font-medium"
+                          th:text="${nganh.diemTrungTuyen != null ? nganh.diemTrungTuyen : 'N/A'}"></span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Chỉ tiêu tuyển sinh:</span>
+                    <span class="font-medium"
+                          th:text="${nganh.chiTieu != null ? nganh.chiTieu : 'N/A'}"></span>
                 </div>
             </div>
-        </div>
 
-        <!-- No Results -->
-        <div th:if="${nganhs == null or nganhs.size() == 0}" class="text-center py-8">
-            <p class="text-gray-500">Không tìm thấy ngành học</p>
+            <!-- PHƯƠNG THỨC TUYỂN SINH -->
+            <div class="mt-3 border-t pt-3">
+                <h5 class="font-semibold text-sm mb-2">Phương thức tuyển sinh:</h5>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tuyển thẳng:</span>
+                        <span class="font-bold"
+                              th:classappend="${nganh.nTuyenThang == '1' ? 'text-green-600' : 'text-red-500'}"
+                              th:text="${nganh.nTuyenThang == '1' ? 'v' : 'X'}">
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">THPT:</span>
+                        <span class="font-bold"
+                              th:classappend="${nganh.nThpt == '1' ? 'text-green-600' : 'text-red-500'}"
+                              th:text="${nganh.nThpt == '1' ? 'v' : 'X'}">
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">VSAT:</span>
+                        <span class="font-bold"
+                              th:classappend="${nganh.nVsat == '1' ? 'text-green-600' : 'text-red-500'}"
+                              th:text="${nganh.nVsat == '1' ? 'v' : 'X'}">
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">ĐGNL:</span>
+                        <span class="font-bold"
+                              th:classappend="${nganh.nDgnl == '1' ? 'text-green-600' : 'text-red-500'}"
+                              th:text="${nganh.nDgnl == '1' ? 'v' : 'X'}">
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BUTTON -->
+            <button class="mt-4 w-full px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50"
+                    onclick="showDetails(this)">
+                Xem chi tiết
+            </button>
+
+            <!-- DETAIL -->
+            <div class="mt-4 detail-section hidden border-t pt-4">
+
+                <h4 class="font-semibold mb-3">Các tổ hợp khác và quy đổi điểm:</h4>
+
+                <div th:if="${nganh.toHopKhacList == null or nganh.toHopKhacList.isEmpty()}"
+                     class="text-sm text-gray-500">
+                    Không có dữ liệu tổ hợp quy đổi.
+                </div>
+
+                <div th:if="${nganh.toHopKhacList != null and !nganh.toHopKhacList.isEmpty()}"
+                     class="overflow-x-auto">
+
+                    <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+
+                        <thead class="bg-gray-50 text-gray-600">
+                        <tr>
+                            <th class="text-left px-3 py-2">Mã tổ hợp</th>
+                            <th class="text-left px-3 py-2">Tên tổ hợp</th>
+                            <th class="text-right px-3 py-2">Độ lệch</th>
+                            <th class="text-right px-3 py-2">Điểm sàn</th>
+                            <th class="text-right px-3 py-2">Điểm trúng tuyển</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="toHop : ${nganh.toHopKhacList}"
+                            class="border-t border-gray-200">
+
+                            <td class="px-3 py-2 font-medium"
+                                th:text="${toHop.maToHop}">
+                            </td>
+
+                            <td class="px-3 py-2"
+                                th:text="${toHop.tenToHop != null ? toHop.tenToHop : 'N/A'}">
+                            </td>
+
+                            <td class="px-3 py-2 text-right"
+                                th:text="${(nganh.diemSan != null ? nganh.diemSan : 0) - (toHop.diemSanQuyDoi != null ? toHop.diemSanQuyDoi : 0) != 0 ? (nganh.diemSan - toHop.diemSanQuyDoi) : 0}">
+                            </td>
+
+                            <td class="px-3 py-2 text-right"
+                                th:text="${toHop.diemSanQuyDoi != null ? toHop.diemSanQuyDoi : 'N/A'}">
+                            </td>
+
+                            <td class="px-3 py-2 text-right"
+                                th:text="${toHop.diemTrungTuyenQuyDoi != null ? toHop.diemTrungTuyenQuyDoi : 'N/A'}">
+                            </td>
+
+                        </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <!-- SỐ LƯỢNG ĐẦU VÀO -->
+                <div class="mt-3 border-t pt-3">
+
+                    <h5 class="font-semibold text-sm mb-2">Số lượng đầu vào:</h5>
+
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Tuyển thẳng:</span>
+                            <span class="font-medium"
+                                  th:text="${nganh.slXtt != null ? nganh.slXtt : 0}">
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">THPT:</span>
+                            <span class="font-medium"
+                                  th:text="${nganh.slThpt != null ? nganh.slThpt : 0}">
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">VSAT:</span>
+                            <span class="font-medium"
+                                  th:text="${nganh.slVsat != null ? nganh.slVsat : 0}">
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ĐGNL:</span>
+                            <span class="font-medium"
+                                  th:text="${nganh.slDgnl != null ? nganh.slDgnl : 0}">
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-    <script layout:fragment="scripts">
-        lucide.createIcons();
-        function showDetails(button) {
-            const card = button.parentElement;
-            const details = card.querySelectorAll('.detail-section');
-            if (!details || details.length === 0) return;
 
-            const anyHidden = Array.from(details).some(d => d.classList.contains('hidden'));
-            if (anyHidden) {
-                details.forEach(d => d.classList.remove('hidden'));
-                button.textContent = 'Ẩn chi tiết';
-            } else {
-                details.forEach(d => d.classList.add('hidden'));
-                button.textContent = 'Xem chi tiết';
-            }
+    <div th:if="${nganhs == null or nganhs.size() == 0}" class="text-center py-8">
+        <p class="text-gray-500">Không tìm thấy ngành học</p>
+    </div>
+</div>
+
+<script layout:fragment="scripts">
+    lucide.createIcons();
+
+    function showDetails(button) {
+        const card = button.parentElement;
+        const details = card.querySelectorAll('.detail-section');
+
+        if (!details || details.length === 0) return;
+
+        const anyHidden = Array.from(details).some(d => d.classList.contains('hidden'));
+
+        if (anyHidden) {
+            details.forEach(d => d.classList.remove('hidden'));
+            button.textContent = 'Ẩn chi tiết';
+        } else {
+            details.forEach(d => d.classList.add('hidden'));
+            button.textContent = 'Xem chi tiết';
         }
-    </script>
+    }
+</script>
 </body>
 </html>

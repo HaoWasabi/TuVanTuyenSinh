@@ -555,9 +555,7 @@
         const toHopSelect = document.getElementById('thpt-ma-to-hop');
 
         if (manganhSelect && toHopSelect) {
-            manganhSelect.addEventListener('change', async function() {
-                const manganh = this.value;
-                
+            const loadToHop = async (manganh, selectedValue) => {
                 toHopSelect.innerHTML = '<option value="">-- Đang tải tổ hợp... --</option>';
 
                 if (!manganh) {
@@ -577,6 +575,9 @@
                         const opt = document.createElement('option');
                         opt.value = item.maToHop;
                         opt.textContent = `${item.maToHop} - ${item.tenToHop || 'Tổ hợp xét tuyển'}`;
+                        if (selectedValue && item.maToHop === selectedValue) {
+                            opt.selected = true;
+                        }
                         toHopSelect.appendChild(opt);
                     });
 
@@ -586,7 +587,18 @@
                     console.error(err);
                     toHopSelect.innerHTML = '<option value="">Lỗi tải tổ hợp. Vui lòng thử lại.</option>';
                 }
+            };
+
+            // Gọi hàm khi người dùng thay đổi chuyên ngành
+            manganhSelect.addEventListener('change', function() {
+                loadToHop(this.value, '');
             });
+
+            // Tự động tải lại tổ hợp nếu bị thiếu khi load trang sau submit
+            const initialToHop = /*[[${request.maToHop}]]*/ '';
+            if (manganhSelect.value && toHopSelect.options.length <= 1) {
+                loadToHop(manganhSelect.value, initialToHop);
+            }
         }
 
         setActiveTab(activeTab);
