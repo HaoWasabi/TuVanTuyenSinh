@@ -283,7 +283,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="dgnl-score">Điểm ĐGNL gốc (0-1200)</label>
-                                <input id="dgnl-score" th:field="*{diemTong}" type="number" step="1" min="0" max="1200" data-score-input="true" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" placeholder="Ví dụ: 850" />
+                                <input id="dgnl-score" th:field="*{diemTong}" type="number" step="1" min="0" max="1200" data-score-input="true" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" placeholder="Nhập điểm gốc (0 - 1200)" />
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="dgnl-diem-cong">Điểm cộng thêm</label>
@@ -615,6 +615,23 @@
         initDynamicToHop('thpt');
         initDynamicToHop('vsat');
 
+        // --- KIỂM TRA ĐIỂM ĐGNL ---
+        const dgnlScoreInput = document.getElementById('dgnl-score');
+        if (dgnlScoreInput) {
+            dgnlScoreInput.addEventListener('change', function() {
+                const val = parseFloat(this.value);
+                if (val > 1200) {
+                    alert('Cảnh báo: Điểm Đánh giá năng lực không được vượt quá 1200 điểm.\nVui lòng kiểm tra và nhập lại giá trị chính xác.');
+                    this.value = ''; // Xóa giá trị sai
+                    this.focus();    // Focus lại để người dùng nhập lại
+                } else if (val < 0) {
+                    alert('Điểm không được nhỏ hơn 0.');
+                    this.value = '';
+                    this.focus();
+                }
+            });
+        }
+
         setActiveTab(activeTab);
         updateVisibleSubjects('content-thpt', 'thpt-ma-to-hop');
         updateVisibleSubjects('content-vsat', 'vsat-ma-to-hop');
@@ -671,6 +688,17 @@
                 const labelMap = {TO:'Toán', VA:'Văn', LI:'Lý', HO:'Hóa', SI:'Sinh', SU:'Sử', DI:'Địa', N1:'Ngoại ngữ 1'};
                 const lietLabels = liet.map(c => labelMap[c] || c);
                 showLietWarning(lietLabels);
+            });
+        }
+
+        const dgnlForm = document.getElementById('content-dgnl');
+        if (dgnlForm) {
+            dgnlForm.addEventListener('submit', (e) => {
+                const score = parseFloat(document.getElementById('dgnl-score').value);
+                if (score > 1200) {
+                    e.preventDefault();
+                    alert('Dữ liệu không hợp lệ: Điểm ĐGNL tối đa là 1200. Vui lòng nhập lại trước khi tính điểm.');
+                }
             });
         }
     </script>
